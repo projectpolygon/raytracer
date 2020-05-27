@@ -1,7 +1,29 @@
-#include "assignment.hpp"
 #include <iostream>
 #include <cfloat>
 #include <zeus/timer.hpp>
+
+#include "paths.hpp"
+
+#include <memory>
+#include <structures/ShadeRec.hpp>
+#include <structures/world.hpp>
+#include <materials/material.hpp>
+#include <structures/view_plane.hpp>
+#include <tracers/whitted_tracer.hpp>
+#include <materials/SV_matte.hpp>
+#include <samplers/jittered.hpp>
+#include <objects/triangle.hpp>
+#include <objects/sphere.hpp>
+#include <materials/reflective.hpp>
+#include <materials/transparent.hpp>
+#include <objects/mesh.hpp>
+#include <objects/torus.hpp>
+#include <lights/ambient_occlusion.hpp>
+#include <lights/ambient.hpp>
+#include <lights/point_light.hpp>
+#include <lights/directional.hpp>
+#include <cameras/pinhole.hpp>
+#include <structures/KDTree.hpp>
 
 int MESH_MAX_DEPTH = 25;
 int MESH_MAX_LEAF_SIZE = 10;
@@ -35,8 +57,8 @@ int main()
     std::vector<math::Vector> flag_normals = { math::Vector(0.0f, 0.0f, 1.0f),
         math::Vector(0.0f, 0.0f, 1.0f) ,
         math::Vector(0.0f, 0.0f, 1.0f) };
-    std::shared_ptr<SV_Matte> flag_tex = std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.jpg"));
-    
+    std::shared_ptr<SV_Matte> flag_tex = std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.png"));
+
     std::shared_ptr<SmoothMeshUVTriangle> flag = std::make_shared<SmoothMeshUVTriangle>(
         points3,
         uvs3,
@@ -70,10 +92,19 @@ int main()
     bgsphere->material_set(std::make_shared<Transparent>(0.28f, 0.75f, 0.04f, 0.7f, Colour(0.1f, 0.1f, 1.0f), 1.02f, 100.0f));
 
     // Textured SUZANNE MESH
-    Mesh m3 = Mesh(ShaderPath + std::string("suzanne.obj"),
-        ShaderPath + std::string(""),
-        math::Vector(0.0f, 0.0f, 0.0f));
-    m3.material_set(std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.jpg")));
+//    Mesh m3 = Mesh(ShaderPath + std::string("suzanne.obj"),
+//        ShaderPath + std::string(""),
+//        math::Vector(0.0f, 0.0f, 0.0f));
+//    m3.material_set(std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
+//    m3.scale(math::Vector(50.0f, 50.0f, 50.0f));
+//    m3.translate(math::Vector(0.0f, 120.0f, 100.0f));
+//    m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
+
+    // Textured DRAGON MESH
+    Mesh m3 = Mesh(ShaderPath + std::string("dragon.obj"),
+                   ShaderPath + std::string(""),
+                   math::Vector(0.0f, 0.0f, 0.0f));
+    m3.material_set(std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
     m3.scale(math::Vector(50.0f, 50.0f, 50.0f));
     m3.translate(math::Vector(0.0f, 120.0f, 100.0f));
     m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
@@ -152,7 +183,7 @@ int main()
     if (mulithreading_enabled)
     {
         // Render the scene using multiple threads
-        cam.multithread_render_scene(w, 4);
+        cam.multithread_render_scene(w, 12);
     }
     else {
         // Render the scene using a single thread
