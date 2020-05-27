@@ -1,9 +1,12 @@
 #pragma once
 
-#include <structures/ShadeRec.hpp>
+#include <structures/shade_rec.hpp>
 
-class Material {
-public:
-    Material() = default;
-    virtual Colour shade(ShadeRec& sr) const = 0;
-};
+namespace poly::material {
+
+    class Material {
+    public:
+        Material() = default;
+        virtual Colour shade(poly::structures::ShadeRec& sr) const = 0;
+    };
+}

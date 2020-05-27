@@ -5,7 +5,7 @@
 #include "paths.hpp"
 
 #include <memory>
-#include <structures/ShadeRec.hpp>
+#include <structures/shade_rec.hpp>
 #include <structures/world.hpp>
 #include <materials/material.hpp>
 #include <structures/view_plane.hpp>
@@ -33,18 +33,18 @@ int main()
     // Time seed RNG
     srand((unsigned int)time(0));
 
-    std::shared_ptr<ViewPlane> vp = std::make_shared<ViewPlane>();
+    std::shared_ptr<poly::structures::ViewPlane> vp = std::make_shared<poly::structures::ViewPlane>();
     vp->hres = 1000;
     vp->vres = 1000;
     vp->max_depth = 5;
     
     // WORLD
-    World w = World();
+    poly::structures::World w = poly::structures::World();
     w.m_vp = vp;
     w.m_background = Colour(0.0f, 0.0f, 0.0f);
-    w.m_sampler = std::make_shared<AA_Jittered>(9, 1);
+    w.m_sampler = std::make_shared<poly::sampler::AA_Jittered>(9, 1);
     w.m_slab_size = 50;
-    std::shared_ptr<WhittedTracer> w_tracer = std::make_shared<WhittedTracer>(&w);
+    std::shared_ptr<poly::structures::WhittedTracer> w_tracer = std::make_shared<poly::structures::WhittedTracer>(&w);
     w.m_tracer = w_tracer;
     
     // Textured triangle
@@ -57,9 +57,10 @@ int main()
     std::vector<math::Vector> flag_normals = { math::Vector(0.0f, 0.0f, 1.0f),
         math::Vector(0.0f, 0.0f, 1.0f) ,
         math::Vector(0.0f, 0.0f, 1.0f) };
-    std::shared_ptr<SV_Matte> flag_tex = std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.png"));
+    std::shared_ptr<poly::material::SV_Matte> flag_tex
+      = std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png"));
 
-    std::shared_ptr<SmoothMeshUVTriangle> flag = std::make_shared<SmoothMeshUVTriangle>(
+    std::shared_ptr<poly::object::SmoothMeshUVTriangle> flag = std::make_shared<poly::object::SmoothMeshUVTriangle>(
         points3,
         uvs3,
         flag_normals,
@@ -73,7 +74,7 @@ int main()
     std::vector<math::Vector2> uvs4 = { math::Vector2(1.0f, 0.0f),
         math::Vector2(1.0f,1.0f),
         math::Vector2(0.0, 1.0f) };
-    std::shared_ptr<SmoothMeshUVTriangle> flag2 = std::make_shared<SmoothMeshUVTriangle>(
+    std::shared_ptr<poly::object::SmoothMeshUVTriangle> flag2 = std::make_shared<poly::object::SmoothMeshUVTriangle>(
         points4,
         uvs4,
         flag_normals,
@@ -81,15 +82,15 @@ int main()
     flag2->material_set(flag_tex);
 
     // Mirrored Sphere
-    std::shared_ptr<Sphere> mirrorsphere = std::make_shared<Sphere>(
+    std::shared_ptr<poly::object::Sphere> mirrorsphere = std::make_shared<poly::object::Sphere>(
         //math::Vector(0.0f, 100.0f, -100.0), 50.0f);
         math::Vector(-90.0f, -50.0f, 100.0f), 30.0f);
-    mirrorsphere->material_set(std::make_shared<Reflective>(0.9f, 0.05f, 0.5f, Colour(1.0f, 1.0f, 1.0f), 100.0f));
+    mirrorsphere->material_set(std::make_shared<poly::material::Reflective>(0.9f, 0.05f, 0.5f, Colour(1.0f, 1.0f, 1.0f), 100.0f));
     
     // Transparent sphere
-    std::shared_ptr<Sphere> bgsphere = std::make_shared<Sphere>(
+    std::shared_ptr<poly::object::Sphere> bgsphere = std::make_shared<poly::object::Sphere>(
         math::Vector(90.0f, -50.0f, 100.0f), 30.0f);
-    bgsphere->material_set(std::make_shared<Transparent>(0.28f, 0.75f, 0.04f, 0.7f, Colour(0.1f, 0.1f, 1.0f), 1.02f, 100.0f));
+    bgsphere->material_set(std::make_shared<poly::material::Transparent>(0.28f, 0.75f, 0.04f, 0.7f, Colour(0.1f, 0.1f, 1.0f), 1.02f, 100.0f));
 
     // Textured SUZANNE MESH
 //    Mesh m3 = Mesh(ShaderPath + std::string("suzanne.obj"),
@@ -101,24 +102,24 @@ int main()
 //    m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
 
     // Textured DRAGON MESH
-    Mesh m3 = Mesh(ShaderPath + std::string("dragon.obj"),
+    poly::object::Mesh m3 = poly::object::Mesh(ShaderPath + std::string("dragon.obj"),
                    ShaderPath + std::string(""),
                    math::Vector(0.0f, 0.0f, 0.0f));
-    m3.material_set(std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
+    m3.material_set(std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
     m3.scale(math::Vector(50.0f, 50.0f, 50.0f));
     m3.translate(math::Vector(0.0f, 120.0f, 100.0f));
     m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
 
     // Matte Torus
-    std::shared_ptr<Torus> torus = std::make_shared<Torus>(math::Vector(0.0f, -60.0f, 200.0f), 20.0f, 10.0f);
-    torus->material_set(std::make_shared<Matte>(0.8f, Colour(1.0f, 0.0f, 0.85f)));
+    std::shared_ptr<poly::object::Torus> torus = std::make_shared<poly::object::Torus>(math::Vector(0.0f, -60.0f, 200.0f), 20.0f, 10.0f);
+    torus->material_set(std::make_shared<poly::material::Matte>(0.8f, Colour(1.0f, 0.0f, 0.85f)));
 
     // AMBIENT LIGHTING
     constexpr bool using_occlusion = true;
     if (using_occlusion) {
         // LIGHT: AMBIENT W/ OCCLUSION
-        std::shared_ptr<AmbientOcclusion> ambocc = std::make_shared<AmbientOcclusion>();
-        ambocc->sampler_set(std::make_shared<AA_Jittered>(25, 1), 2.0f);
+        std::shared_ptr<poly::light::AmbientOcclusion> ambocc = std::make_shared<poly::light::AmbientOcclusion>();
+        ambocc->sampler_set(std::make_shared<poly::sampler::AA_Jittered>(25, 1), 2.0f);
         ambocc->colour_set(Colour(1.0f, 1.0f, 1.0f));
         ambocc->radiance_scale(0.3f);
         ambocc->min_amount_set(0.0f);
@@ -126,26 +127,26 @@ int main()
     }
     else {
         // LIGHT: AMBIENT
-        std::shared_ptr<AmbientLight> amb = std::make_shared<AmbientLight>();
+        std::shared_ptr<poly::light::AmbientLight> amb = std::make_shared<poly::light::AmbientLight>();
         amb->colour_set(Colour(1.0f, 1.0f, 1.0f));
         amb->radiance_scale(0.3f);
         w.m_ambient = amb;
     }
 
     // LIGHT: POINT
-    std::shared_ptr<PointLight> ptlt = std::make_shared<PointLight>(
+    std::shared_ptr<poly::light::PointLight> ptlt = std::make_shared<poly::light::PointLight>(
     	math::Vector(0.0f, 100.0f, 500.0f));
     ptlt->radiance_scale(0.8f);
     w.m_lights.push_back(ptlt);
 
     // LIGHT: DIRECTIONAL
-    std::shared_ptr<DirectionalLight> dlt = std::make_shared<DirectionalLight>();
+    std::shared_ptr<poly::light::DirectionalLight> dlt = std::make_shared<poly::light::DirectionalLight>();
     dlt->radiance_scale(0.3f);
     dlt->direction_set(math::Vector(1.0f, 1.0f, 1.0f)); 
     //w.m_lights.push_back(dlt);
 
     // CAMERA
-    PinholeCamera cam = PinholeCamera(400.0f);
+    poly::camera::PinholeCamera cam = poly::camera::PinholeCamera(400.0f);
     cam.eye_set(atlas::math::Point(0.0f, 60.0f, 300.0f));
     cam.lookat_set(atlas::math::Point(0.0f, 0.0f, 0.0f));
     cam.upvec_set(atlas::math::Vector(0.0f, 1.0f, 0.0f));
@@ -155,7 +156,7 @@ int main()
     zeus::Timer<float> my_timer = zeus::Timer<float>();
     my_timer.start();
 
-    std::vector<std::shared_ptr<Object>> scene;
+    std::vector<std::shared_ptr<poly::object::Object>> scene;
 
     // add objects to the scene
     scene.push_back(flag);
@@ -166,12 +167,13 @@ int main()
 
     constexpr bool accelerator_enabled = true;
     if (accelerator_enabled) {
-        std::vector<std::shared_ptr<Object>> object3_data;
+        std::vector<std::shared_ptr<poly::object::Object>> object3_data;
         m3.dump_to_list(object3_data);
-        scene.push_back(std::make_shared<KDTree>(object3_data, 80, 1, 0.5f, MESH_MAX_LEAF_SIZE, MESH_MAX_DEPTH));
+        scene.push_back(std::make_shared<poly::structures::KDTree>(object3_data, 80, 1, 0.5f, MESH_MAX_LEAF_SIZE, MESH_MAX_DEPTH));
 
         // Create a KDT on the worlds' scene
-        std::shared_ptr<KDTree> kdt = std::make_shared<KDTree>(scene, 80, 1, 0.5f, 5, 15);
+        std::shared_ptr<poly::structures::KDTree> kdt
+          = std::make_shared<poly::structures::KDTree>(scene, 80, 1, 0.5f, 5, 15);
         w.m_scene.push_back(kdt);
     }
     else {

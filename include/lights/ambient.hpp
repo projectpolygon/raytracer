@@ -1,16 +1,19 @@
 #pragma once
 
-class AmbientLight : public Light {
-public:
-    AmbientLight() : Light() {}
+namespace poly::light {
 
-    atlas::math::Vector direction_get([[maybe_unused]] ShadeRec& sr)
-    {
-      return atlas::math::Vector(0.0f, 0.0f, 0.0f);
-    }
+    class AmbientLight : public Light {
+    public:
+        AmbientLight() : Light() {}
 
-    Colour L([[maybe_unused]] ShadeRec& sr)
-    {
-      return m_colour * m_ls;
-    }
-};
+        atlas::math::Vector direction_get([[maybe_unused]] poly::structures::ShadeRec& sr)
+        {
+          return atlas::math::Vector(0.0f, 0.0f, 0.0f);
+        }
+
+        Colour L([[maybe_unused]] poly::structures::ShadeRec& sr)
+        {
+          return m_colour * m_ls;
+        }
+    };
+}

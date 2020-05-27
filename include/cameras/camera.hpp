@@ -1,48 +1,47 @@
 #pragma once
 
-#ifndef CAMERA_HPP
-#define CAMERA_HPP
-
 #include "structures/scene_slab.hpp"
 
-class Camera {
-public:
-    Camera() = default;
+namespace poly::camera {
 
-    virtual void render_slab(std::shared_ptr<scene_slab> slab) const = 0;
-    virtual void render_scene(World& world) const = 0;
+    class Camera {
+    public:
+        Camera() = default;
 
-    void eye_set(atlas::math::Point const& eye)
-    {
-      m_eye = eye;
-    }
+        virtual void render_slab(std::shared_ptr<poly::structures::scene_slab> slab) const = 0;
+        virtual void render_scene(poly::structures::World& world) const = 0;
 
-    void lookat_set(atlas::math::Point const& lookat)
-    {
-      m_lookat = lookat;
-    }
+        void eye_set(atlas::math::Point const& eye)
+        {
+          m_eye = eye;
+        }
 
-    void upvec_set(atlas::math::Vector const& up)
-    {
-      m_up = up;
-    }
+        void lookat_set(atlas::math::Point const& lookat)
+        {
+          m_lookat = lookat;
+        }
 
-    virtual void uvw_compute()
-    {
-      atlas::math::Vector w = glm::normalize(m_eye - m_lookat);
-      atlas::math::Vector u = glm::normalize(glm::cross(m_up, w));
-      atlas::math::Vector v = glm::normalize(glm::cross(w, u));
+        void upvec_set(atlas::math::Vector const& up)
+        {
+          m_up = up;
+        }
 
-      this->m_u = u;
-      this->m_v = v;
-      this->m_w = w;
+        virtual void uvw_compute()
+        {
+          atlas::math::Vector w = glm::normalize(m_eye - m_lookat);
+          atlas::math::Vector u = glm::normalize(glm::cross(m_up, w));
+          atlas::math::Vector v = glm::normalize(glm::cross(w, u));
+
+          this->m_u = u;
+          this->m_v = v;
+          this->m_w = w;
+        };
+
+    protected:
+        atlas::math::Point m_eye;
+        atlas::math::Point m_lookat;
+        atlas::math::Point m_up;
+        atlas::math::Vector m_u, m_v, m_w;
     };
 
-protected:
-    atlas::math::Point m_eye;
-    atlas::math::Point m_lookat;
-    atlas::math::Point m_up;
-    atlas::math::Vector m_u, m_v, m_w;
-};
-
-#endif
+}

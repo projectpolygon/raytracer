@@ -1,43 +1,45 @@
 #pragma once
 
-class PerfectSpecular : public BRDF {
-public:
-    PerfectSpecular()
-    {
-      m_kd = 1.0f;
-      m_cd = random_colour_generate();
-    }
+namespace poly::material {
 
-    PerfectSpecular(const float kd, Colour const& colour)
-    {
-      m_kd = kd;
-      m_cd = colour;
-    }
+    class PerfectSpecular : public BRDF {
+    public:
+        PerfectSpecular()
+        {
+          m_kd = 1.0f;
+          m_cd = random_colour_generate();
+        }
 
-    Colour f([[maybe_unused]] ShadeRec const& sr,
-             [[maybe_unused]] atlas::math::Vector& w_o,
-             [[maybe_unused]] atlas::math::Vector& w_i) const
-    {
-      return Colour(0.0f, 0.0f, 0.0f);
-    }
+        PerfectSpecular(const float kd, Colour const& colour)
+        {
+          m_kd = kd;
+          m_cd = colour;
+        }
 
-    Colour sample_f([[maybe_unused]] ShadeRec const& sr,
-                    [[maybe_unused]] atlas::math::Vector& w_o,
-                    [[maybe_unused]] atlas::math::Vector& w_r) const
-    {
-      float ndotwo = glm::dot(sr.m_normal, w_o);
-      w_r = glm::normalize(-w_o + (2.0f * sr.m_normal * ndotwo));
-      return m_kd * m_cd / (float)(fabs(glm::dot(sr.m_normal, w_r)));
-    }
+        Colour f([[maybe_unused]] poly::structures::ShadeRec const& sr,
+                 [[maybe_unused]] atlas::math::Vector& w_o,
+                 [[maybe_unused]] atlas::math::Vector& w_i) const
+        {
+          return Colour(0.0f, 0.0f, 0.0f);
+        }
 
-    Colour rho([[maybe_unused]] ShadeRec const& sr,
-               [[maybe_unused]] atlas::math::Vector& w_o) const
-    {
-      return Colour(0.0f, 0.0f, 0.0f);
-    }
+        Colour sample_f([[maybe_unused]] poly::structures::ShadeRec const& sr,
+                        [[maybe_unused]] atlas::math::Vector& w_o,
+                        [[maybe_unused]] atlas::math::Vector& w_r) const
+        {
+          float ndotwo = glm::dot(sr.m_normal, w_o);
+          w_r = glm::normalize(-w_o + (2.0f * sr.m_normal * ndotwo));
+          return m_kd * m_cd / (float)(fabs(glm::dot(sr.m_normal, w_r)));
+        }
 
-protected:
-    float m_kd;
-    Colour m_cd;
-};
+        Colour rho([[maybe_unused]] poly::structures::ShadeRec const& sr,
+                   [[maybe_unused]] atlas::math::Vector& w_o) const
+        {
+          return Colour(0.0f, 0.0f, 0.0f);
+        }
 
+    protected:
+        float m_kd;
+        Colour m_cd;
+    };
+}

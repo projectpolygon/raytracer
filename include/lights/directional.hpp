@@ -1,40 +1,44 @@
 #pragma once
 
-class DirectionalLight : public Light
-{
-public:
+namespace poly::light {
 
-    DirectionalLight() : Light()
+    class DirectionalLight : public Light
     {
-      m_direction = atlas::math::Vector(0.0f, 0.0f, 1.0f);
-    }
+    public:
 
-    void direction_set(atlas::math::Vector const& direction)
-    {
-      m_direction = glm::normalize(direction);
-    }
+        DirectionalLight() : Light()
+        {
+          m_direction = atlas::math::Vector(0.0f, 0.0f, 1.0f);
+        }
 
-    atlas::math::Vector direction_get([[maybe_unused]]ShadeRec& sr)
-    {
-      return m_direction;
-    }
+        void direction_set(atlas::math::Vector const& direction)
+        {
+          m_direction = glm::normalize(direction);
+        }
 
-    Colour L(ShadeRec& sr)
-    {
-      math::Point new_origin = sr.hitpoint_get();
-      math::Vector new_direction = glm::normalize(direction_get(sr));
+        atlas::math::Vector direction_get([[maybe_unused]] poly::structures::ShadeRec& sr)
+        {
+          return m_direction;
+        }
 
-      math::Ray shadow_ray(new_origin	+ (m_surface_epsilon* new_direction),
-                           new_direction);
+        Colour L(poly::structures::ShadeRec& sr)
+        {
+          math::Point new_origin = sr.hitpoint_get();
+          math::Vector new_direction = glm::normalize(direction_get(sr));
 
-      if (in_shadow(shadow_ray, sr)) {
-        return Colour(0.0f, 0.0f, 0.0f);
-      }
-      else {
-        return m_colour * m_ls;
-      }
-    }
+          math::Ray shadow_ray(new_origin	+ (m_surface_epsilon* new_direction),
+                               new_direction);
 
-protected:
-    atlas::math::Vector m_direction;
-};
+          if (in_shadow(shadow_ray, sr)) {
+            return Colour(0.0f, 0.0f, 0.0f);
+          }
+          else {
+            return m_colour * m_ls;
+          }
+        }
+
+    protected:
+        atlas::math::Vector m_direction;
+    };
+
+}
