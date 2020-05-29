@@ -1,30 +1,49 @@
 cmake_minimum_required(VERSION 3.12)
-project(csc305_assignments LANGUAGES CXX C)
+project(polygon_raytracer LANGUAGES CXX C)
 
-set(ASSIGNMENT_ROOT "${PROJECT_SOURCE_DIR}")
+set(POLYGON_ROOT "${PROJECT_SOURCE_DIR}")
 
+# Fetch atlas
 include(FetchContent)
 FetchContent_Declare(
     atlas
-    GIT_REPOSITORY https://github.com/marovira/atlas.git)
+    GIT_REPOSITORY https://github.com/marovira/atlas.git
+    )
 FetchContent_Populate(atlas)
 add_subdirectory(${atlas_SOURCE_DIR} ${atlas_BINARY_DIR})
 
-set(ASSIGNMENT_INCLUDE
-    "${ASSIGNMENT_ROOT}/assignment.hpp"
-    )
-set(ASSIGNMENT_SOURCE 
-    "${ASSIGNMENT_ROOT}/main.cpp"
-    )
+set(POLYGON_INCLUDE "${POLYGON_ROOT}/assignment.hpp")
+set(POLYGON_SOURCE "${POLYGON_ROOT}/source/main.cpp")
 
-include_directories(${ASSIGNMENT_ROOT}/include)
+# Configure the "path" header so files in the program can be placed accordingly
+set(PATH_INCLUDE "${POLYGON_ROOT}/include/utilities/paths.hpp")
+configure_file("${POLYGON_ROOT}/include/utilities/paths.hpp.in" ${PATH_INCLUDE})
+list(APPEND POLYGON_INCLUDE ${PATH_INCLUDE})
 
-set(PATH_INCLUDE "${ASSIGNMENT_ROOT}/include/paths.hpp")
-configure_file("${ASSIGNMENT_ROOT}/paths.hpp.in" ${PATH_INCLUDE})
-list(APPEND ASSIGNMENT_INCLUDE ${PATH_INCLUDE})
+# Add the include directory so files can be found
+include_directories(${POLYGON_ROOT}/include)
 
-source_group("include" FILES ${ASSIGNMENT_INCLUDE})
-source_group("source" FILES ${ASSIGNMENT_SOURCE})
 
-add_executable(a5 ${ASSIGNMENT_SOURCE} ${ASSIGNMENT_SHADER})
-target_link_libraries(a5 PUBLIC atlas::atlas)
+# Create executable target
+add_executable(raytracer "${POLYGON_SOURCE}")
+
+# Dive into the source directory to collect source files
+add_subdirectory(source)
+
+# Update groupings
+source_group("include" REGULAR_EXPRESSION "${POLYGON_INCLUDE}/*")
+source_group("source" FILES  ${POLYGON_SOURCE})
+source_group("source\\BRDFs" FILES ${POLY_SOURCE_BRDF_GROUP})
+source_group("source\\BTDFs" FILES ${POLY_SOURCE_BTDF_GROUP})
+source_group("source\\cameras" FILES ${POLY_SOURCE_CAMERA_GROUP})
+source_group("source\\lights" FILES ${POLY_SOURCE_LIGHT_GROUP})
+source_group("source\\materials" FILES ${POLY_SOURCE_MATERIAL_GROUP})
+source_group("source\\objects" FILES ${POLY_SOURCE_OBJECT_GROUP})
+source_group("source\\samplers" FILES ${POLY_SOURCE_SAMPLER_GROUP})
+source_group("source\\structures" FILES ${POLY_SOURCE_STRUCTURE_GROUP})
+source_group("source\\textures" FILES ${POLY_SOURCE_TEXTURE_GROUP})
+source_group("source\\tracers" FILES ${POLY_SOURCE_TRACER_GROUP})
+source_group("source\\utilities" FILES ${POLY_SOURCE_UTILITY_GROUP})
+
+# Link against Atlas
+target_link_libraries(raytracer PUBLIC atlas::atlas)

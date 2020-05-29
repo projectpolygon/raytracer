@@ -1,32 +1,36 @@
 #include <iostream>
 #include <cfloat>
-#include <zeus/timer.hpp>
-
-#include "paths.hpp"
-
 #include <memory>
-#include <structures/shade_rec.hpp>
-#include <structures/world.hpp>
-#include <materials/material.hpp>
-#include <structures/view_plane.hpp>
-#include <tracers/whitted_tracer.hpp>
-#include <materials/SV_matte.hpp>
-#include <samplers/jittered.hpp>
-#include <objects/triangle.hpp>
-#include <objects/sphere.hpp>
-#include <materials/reflective.hpp>
-#include <materials/transparent.hpp>
-#include <objects/mesh.hpp>
-#include <objects/torus.hpp>
-#include <lights/ambient_occlusion.hpp>
-#include <lights/ambient.hpp>
-#include <lights/point_light.hpp>
-#include <lights/directional.hpp>
-#include <cameras/pinhole.hpp>
-#include <structures/KDTree.hpp>
+#include <zeus/timer.hpp>
+#include "utilities/paths.hpp"
+
+
+#include "structures/shade_rec.hpp"
+#include "structures/world.hpp"
+#include "materials/material.hpp"
+#include "structures/view_plane.hpp"
+#include "tracers/whitted_tracer.hpp"
+#include "materials/matte.hpp"
+#include "materials/SV_matte.hpp"
+#include "samplers/jittered.hpp"
+#include "objects/triangle.hpp"
+#include "objects/smooth_uv_triangle.hpp"
+#include "objects/sphere.hpp"
+#include "materials/reflective.hpp"
+#include "materials/transparent.hpp"
+#include "objects/mesh.hpp"
+#include "objects/torus.hpp"
+#include "lights/ambient_occlusion.hpp"
+#include "lights/ambient.hpp"
+#include "lights/point_light.hpp"
+#include "lights/directional.hpp"
+#include "cameras/pinhole.hpp"
+#include "structures/KDTree.hpp"
 
 int MESH_MAX_DEPTH = 25;
 int MESH_MAX_LEAF_SIZE = 10;
+
+using namespace atlas;
 
 int main()
 {
@@ -58,7 +62,7 @@ int main()
         math::Vector(0.0f, 0.0f, 1.0f) ,
         math::Vector(0.0f, 0.0f, 1.0f) };
     std::shared_ptr<poly::material::SV_Matte> flag_tex
-      = std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png"));
+      = std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.jpg"));
 
     std::shared_ptr<poly::object::SmoothMeshUVTriangle> flag = std::make_shared<poly::object::SmoothMeshUVTriangle>(
         points3,
@@ -102,10 +106,10 @@ int main()
 //    m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
 
     // Textured DRAGON MESH
-    poly::object::Mesh m3 = poly::object::Mesh(ShaderPath + std::string("dragon.obj"),
+    poly::object::Mesh m3 = poly::object::Mesh(ShaderPath + std::string("suzanne.obj"),
                    ShaderPath + std::string(""),
                    math::Vector(0.0f, 0.0f, 0.0f));
-    m3.material_set(std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
+    m3.material_set(std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.jpg")));
     m3.scale(math::Vector(50.0f, 50.0f, 50.0f));
     m3.translate(math::Vector(0.0f, 120.0f, 100.0f));
     m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
@@ -119,7 +123,7 @@ int main()
     if (using_occlusion) {
         // LIGHT: AMBIENT W/ OCCLUSION
         std::shared_ptr<poly::light::AmbientOcclusion> ambocc = std::make_shared<poly::light::AmbientOcclusion>();
-        ambocc->sampler_set(std::make_shared<poly::sampler::AA_Jittered>(25, 1), 2.0f);
+        ambocc->sampler_set(std::make_shared<poly::sampler::AA_Jittered>(4, 1), 2.0f);
         ambocc->colour_set(Colour(1.0f, 1.0f, 1.0f));
         ambocc->radiance_scale(0.3f);
         ambocc->min_amount_set(0.0f);
@@ -185,7 +189,7 @@ int main()
     if (mulithreading_enabled)
     {
         // Render the scene using multiple threads
-        cam.multithread_render_scene(w, 12);
+        cam.multithread_render_scene(w, 4);
     }
     else {
         // Render the scene using a single thread
@@ -197,35 +201,4 @@ int main()
     saveToBMP("render.bmp", w.m_vp->hres, w.m_vp->vres, w.m_image);
 
     return 0;
-}
-
-/**
- * Saves a BMP image file based on the given array of pixels. All pixel values
- * have to be in the range [0, 1].
- *
- * @param filename The name of the file to save to.
- * @param width The width of the image.
- * @param height The height of the image.
- * @param image The array of pixels representing the image.
- */
-void saveToBMP(std::string const& filename,
-	       std::size_t width,
-	       std::size_t height,
-	       std::vector<Colour> const& image)
-{
-    std::vector<unsigned char> data(image.size() * 3);
-
-    for (std::size_t i{0}, k{0}; i < image.size(); ++i, k += 3)
-    {
-	Colour pixel = image[i];
-	data[k + 0]  = static_cast<unsigned char>(pixel.r * 255);
-	data[k + 1]  = static_cast<unsigned char>(pixel.g * 255);
-	data[k + 2]  = static_cast<unsigned char>(pixel.b * 255);
-    }
-
-    stbi_write_bmp(filename.c_str(),
-		   static_cast<int>(width),
-		   static_cast<int>(height),
-		   3,
-		   data.data());
 }

@@ -1,38 +1,52 @@
 #pragma once
 
-namespace poly::light {class Light;}
+#ifndef WORLD_HPP
+#define WORLD_HPP
 
-#include <samplers/sampler.hpp>
-#include "view_plane.hpp"
+#include <memory>
+#include <vector>
+#include "samplers/sampler.hpp"
+#include "structures/view_plane.hpp"
 #include "tracers/tracer.hpp"
-#include <objects/object.hpp>
+#include "objects/object.hpp"
+#include "lights/light.hpp"
+
+namespace poly::light { class Light; }
+namespace poly::object { class Object; }
 
 namespace poly::structures {
 
+    class Tracer; // avoids non-declaration in circular dependancy
+
     class World {
     public:
-        Colour m_background{}; // Default pixel colour
+        // Default pixel colour
+        Colour m_background;
 
-        std::shared_ptr<poly::sampler::Sampler> m_sampler; // The sampler for AA
+         // The sampler for AA
+        std::shared_ptr<poly::sampler::Sampler> m_sampler;
 
-        std::vector<std::shared_ptr<poly::object::Object>> m_scene; // Objects in our scene
+        // Objects in our scene
+        std::vector<std::shared_ptr<poly::object::Object>> m_scene; 
 
-        std::shared_ptr<poly::light::Light> m_ambient; // Ambient light in our scene (gets handled specially)
-        std::vector<std::shared_ptr<poly::light::Light>> m_lights; // Lights in our scene
-        std::vector<Colour> m_image; // Output as 1D array
+        // Ambient light in our scene (gets handled specially)
+        std::shared_ptr<poly::light::Light> m_ambient;
+        
+        // Lights in our scene
+        std::vector<std::shared_ptr<poly::light::Light>> m_lights; 
+        
+        // Output as 1D array
+        std::vector<Colour> m_image; 
 
+        // Information about the view plane
         std::shared_ptr<ViewPlane> m_vp;
-        //std::shared_ptr<AcceleratorStruct> m_acceleratorStructure;
+
+        // Tracing Raycaster
         std::shared_ptr<Tracer> m_tracer;
 
-        unsigned int m_slab_size{};
-
-        World() = default;/*:m_acceleratorStructure{ nullptr } */
-        ~World() = default;
-
-        //void accelerator_set(std::shared_ptr<AcceleratorStruct> acc_struct)
-        //{
-        //	m_acceleratorStructure = acc_struct;
-        //}
+        // Dimensions of each slab
+        unsigned int m_slab_size;
     };
 }
+
+#endif // !WORLD_HPP

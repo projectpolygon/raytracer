@@ -1,4 +1,6 @@
 #pragma once
+#ifndef SAMPLER_HPP
+#define SAMPLER_HPP
 
 #include <vector>
 
@@ -31,3 +33,4 @@ namespace poly::sampler {
         std::vector<std::vector<float>> hemisphere_samples;
     };
 }
+#endif // !SAMPLER_HPP

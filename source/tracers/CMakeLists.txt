@@ -1,0 +1,6 @@
+set(TRACER_SOURCE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/tracer.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/whitted_tracer.cpp
+)
+set(POLY_SOURCE_TRACER_LIST ${TRACER_SOURCE} PARENT_SCOPE)
+target_sources(raytracer PRIVATE "${TRACER_SOURCE}")

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <types/atlas_types.hpp>
-#include "world.hpp"
+#include <vector>
+#include <mutex>
+#include <memory>
+#include "structures/world.hpp"
 
 namespace poly::structures {
 
@@ -22,17 +24,6 @@ namespace poly::structures {
           int _start_x,
           int _end_x,
           int _start_y,
-          int _end_y)
-        {
-          world = _world;
-          storage_mutex = _storage_mutex;
-          storage = _storage;
-          start_x = _start_x;
-          end_x = _end_x;
-          start_y = _start_y;
-          end_y = _end_y;
-        }
-
-
+          int _end_y);
     };
 }

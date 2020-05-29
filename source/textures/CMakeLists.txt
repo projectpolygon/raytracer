@@ -1,0 +1,6 @@
+set(TEXTURE_SOURCE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/constant_colour.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/image_texture.cpp
+)
+set(POLY_SOURCE_TEXTURE_LIST ${TEXTURE_SOURCE} PARENT_SCOPE)
+target_sources(raytracer PRIVATE "${TEXTURE_SOURCE}")

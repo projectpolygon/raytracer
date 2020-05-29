@@ -1,9 +1,17 @@
 #pragma once
+#ifndef OBJECT_HPP
+#define OBJECT_HPP
 
-#include <materials/material.hpp>
-#include <structures/bounds.hpp>
-#include <structures/shade_rec.hpp>
 #include <memory>
+
+#include <atlas/math/ray.hpp>
+#include <atlas/math/math.hpp>
+
+#include "materials/material.hpp"
+#include "structures/bounds.hpp"
+#include "objects/object.hpp"
+#include "structures/shade_rec.hpp"
+
 
 namespace poly::object {
 
@@ -37,3 +45,5 @@ namespace poly::object {
         poly::structures::Bounds3D bounds;
     };
 }
+
+#endif // !OBJECT_HPP
