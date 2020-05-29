@@ -1,0 +1,8 @@
+set(LIGHT_INCLUDE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/light.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ambient.hpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/directional.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/point_light.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ambient_occlusion.hpp
+)
+set(POLY_INCLUDE_LIGHT_LIST ${LIGHT_INCLUDE} PARENT_SCOPE)
