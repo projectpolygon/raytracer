@@ -1,5 +1,8 @@
 #pragma once
 
+#include <atlas/math/math.hpp>
+#include "utilities/utilities.hpp"
+#include "structures/shade_rec.hpp"
 
 namespace poly::material {
 

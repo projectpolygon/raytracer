@@ -1,0 +1,10 @@
+set(POLYOBJECT_SOURCE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/mesh.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/plane.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/triangle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sphere.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/torus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/smooth_uv_triangle.cpp
+)
+set(POLY_SOURCE_OBJECT_LIST ${POLYOBJECT_SOURCE} PARENT_SCOPE)
+target_sources(raytracer PRIVATE "${POLYOBJECT_SOURCE}")

@@ -1,14 +1,18 @@
 #pragma once
 
+#ifndef SHADEREC_HPP
+#define SHADEREC_HPP
+
 #include <memory>
-#include "types/atlas_types.hpp"
+#include "structures/world.hpp"
+#include "utilities/utilities.hpp"
+#include "materials/material.hpp"
 
 namespace poly::material {class Material;}
 
 namespace poly::structures {
 
-    class World;
-
+    //class World;
 
     class ShadeRec {
     public:
@@ -21,20 +25,9 @@ namespace poly::structures {
         Colour m_colour;
         atlas::math::Normal m_normal;
 
-        ShadeRec(World& world)
-          : m_world(world), m_material{nullptr},
-            m_colour{ Colour(0.0f, 0.0f, 0.0f) },
-            m_normal{math::Vector(0.0f, 0.0f, 0.0f)}
-        {
-          m_tmin = std::numeric_limits<float>::max();
-          depth = 0;
-        }
-
-        math::Vector hitpoint_get() const
-        {
-          return m_ray.o + m_ray.d * m_tmin;
-        }
+        ShadeRec(World& world);
+        atlas::math::Vector hitpoint_get() const;
     };
-
-
 }
+
+#endif // !SHADEREC_HPP
