@@ -17,6 +17,16 @@ FetchContent_Declare(
 FetchContent_Populate(atlas)
 add_subdirectory(${atlas_SOURCE_DIR} ${atlas_BINARY_DIR})
 
+FetchContent_Declare(json
+        GIT_REPOSITORY https://github.com/nlohmann/json.git
+        GIT_TAG v3.7.3)
+
+FetchContent_GetProperties(json)
+if(NOT json_POPULATED)
+    FetchContent_Populate(json)
+    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 set(POLYGON_INCLUDE "${POLYGON_ROOT}/assignment.hpp")
 set(POLYGON_SOURCE "${POLYGON_ROOT}/source/main.cpp")
 
@@ -75,4 +85,4 @@ source_group("source\\utilities" FILES ${POLY_SOURCE_UTILITY_GROUP})
 # --------------------
 # Link against Atlas
 # --------------------
-target_link_libraries(raytracer PUBLIC atlas::atlas)
+target_link_libraries(raytracer PUBLIC atlas::atlas nlohmann_json::nlohmann_json)

@@ -41,7 +41,7 @@ namespace poly::camera
 		int slab_width = world.m_slab_size;
 		int slab_height = world.m_slab_size;
 
-		for (int i = 0; i < wheight; i += world.m_slab_size)
+		for (int i = world.m_start_height; i < world.m_end_height; i += world.m_slab_size)
 		{
 			// Reset slab width on each height loop
 			slab_width = world.m_slab_size;
@@ -52,7 +52,7 @@ namespace poly::camera
 				slab_height = wheight - i - 1;
 			}
 
-			for (int j = 0; j < wwidth; j += world.m_slab_size)
+			for (int j = world.m_start_width; j < world.m_end_width; j += world.m_slab_size)
 			{
 				if (j + slab_width > wwidth)
 				{

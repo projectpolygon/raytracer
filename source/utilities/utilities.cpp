@@ -12,26 +12,28 @@ using Colour = math::Vector;
  * @param height The height of the image.
  * @param image The array of pixels representing the image.
  */
-void saveToBMP(std::string const &filename,
-			   std::size_t width,
-			   std::size_t height,
-			   std::vector<Colour> const &image)
+void saveToBMP(std::string const& filename,
+							 poly::utils::BMP_info& info)
 {
-	std::vector<unsigned char> data(image.size() * 3);
+	std::vector<unsigned char> data(info.m_image.size() * 3);
+	int width = info.m_total_width;
+	int height = info.m_total_height;
 
-	for (std::size_t i{0}, k{0}; i < image.size(); ++i, k += 3)
+	for (int i{height - info.m_end_height}, k{0}; i < height - info.m_start_height; ++i)
 	{
-		Colour pixel = image[i];
-		data[k + 0] = static_cast<unsigned char>(pixel.r * 255);
-		data[k + 1] = static_cast<unsigned char>(pixel.g * 255);
-		data[k + 2] = static_cast<unsigned char>(pixel.b * 255);
+		for (int j{info.m_start_width}; j < info.m_end_width; ++j, k += 3) {
+			Colour pixel = info.m_image[(i * width) + j];
+			data[k + 0]  = static_cast<unsigned char>(pixel.r * 255);
+			data[k + 1]  = static_cast<unsigned char>(pixel.g * 255);
+			data[k + 2]  = static_cast<unsigned char>(pixel.b * 255);
+		}
 	}
 
 	stbi_write_bmp(filename.c_str(),
-				   static_cast<int>(width),
-				   static_cast<int>(height),
-				   3,
-				   data.data());
+								 static_cast<int>(info.m_end_width - info.m_start_width),
+								 static_cast<int>(info.m_end_height - info.m_start_height),
+								 3,
+								 data.data());
 }
 
 Colour random_colour_generate()
