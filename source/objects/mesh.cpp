@@ -1,5 +1,3 @@
-#pragma once
-
 #include "objects/mesh.hpp"
 #include <iostream>
 

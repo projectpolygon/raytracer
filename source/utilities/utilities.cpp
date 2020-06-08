@@ -1,5 +1,3 @@
-#pragma once
-
 #include "utilities/utilities.hpp"
 
 using namespace atlas;

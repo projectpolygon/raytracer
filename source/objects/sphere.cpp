@@ -1,5 +1,3 @@
-#pragma once
-
 #include "objects/sphere.hpp"
 #include <atlas/math/solvers.hpp>
 #include <zeus/float.hpp>
@@ -26,7 +24,7 @@ namespace poly::object {
         poly::structures::Bounds3D Sphere::boundbox_get() const
         {
           return bounds;
-        };
+        }
 
         math::Vector Sphere::normal_get(math::Ray<math::Vector>const& R,
                                 float t) const

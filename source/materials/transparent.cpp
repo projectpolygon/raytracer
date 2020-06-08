@@ -1,5 +1,3 @@
-#pragma once
-
 #include "materials/transparent.hpp"
 
 namespace poly::material

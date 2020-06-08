@@ -1,5 +1,3 @@
-#pragma once
-
 #include "structures/shade_rec.hpp"
 #include "BRDFs/glossy_specular.hpp"
 

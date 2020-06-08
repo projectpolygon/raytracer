@@ -1,5 +1,3 @@
-#pragma once
-
 #include "lights/directional.hpp"
 
 namespace poly::light

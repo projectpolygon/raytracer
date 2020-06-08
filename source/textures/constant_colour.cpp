@@ -1,5 +1,3 @@
-#pragma once
-
 #include "textures/constant_colour.hpp"
 
 namespace poly::texture

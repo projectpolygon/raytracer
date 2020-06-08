@@ -1,5 +1,3 @@
-#pragma once
-
 #include "materials/SV_matte.hpp"
 
 namespace poly::material {

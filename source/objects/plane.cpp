@@ -1,5 +1,3 @@
-#pragma once
-
 #include "objects/plane.hpp"
 
 using namespace atlas;

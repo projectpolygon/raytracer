@@ -38,4 +38,5 @@ build
 
 # Files
 flag.png
+include/utilities/paths.hpp
 

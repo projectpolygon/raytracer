@@ -1,5 +1,3 @@
-#pragma once
-
 #include "structures/world.hpp"
 #include "tracers/whitted_tracer.hpp"
 #include "structures/shade_rec.hpp"

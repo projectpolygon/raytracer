@@ -1,5 +1,3 @@
-#pragma once
-
 #include "BRDFs/perfect_specular.hpp"
 
 namespace poly::material

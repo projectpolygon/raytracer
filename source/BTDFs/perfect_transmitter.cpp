@@ -1,5 +1,3 @@
-#pragma once
-
 #include "BTDFs/perfect_transmitter.hpp"
 
 using namespace atlas;

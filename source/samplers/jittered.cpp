@@ -1,6 +1,5 @@
-#pragma once
-
 #include "samplers/jittered.hpp"
+#include <math.h>
 #include <assert.h>
 
 template<typename T, typename = std::enable_if<std::is_floating_point<T>::value>>

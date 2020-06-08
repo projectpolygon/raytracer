@@ -1,5 +1,3 @@
-#pragma once
-
 #include "BRDFs/SV_lambertian.hpp"
 
 namespace poly::material

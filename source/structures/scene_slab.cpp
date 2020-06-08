@@ -1,5 +1,3 @@
-#pragma once
-
 #include "utilities/utilities.hpp"
 #include "structures/world.hpp"
 #include "structures/scene_slab.hpp"

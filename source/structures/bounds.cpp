@@ -1,5 +1,3 @@
-#pragma once
-
 #include "structures/bounds.hpp"
 
 namespace poly::structures

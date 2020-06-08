@@ -1,5 +1,3 @@
-#pragma once
-
 #include "materials/phong.hpp"
 
 namespace poly::material {

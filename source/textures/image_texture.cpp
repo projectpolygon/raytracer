@@ -1,7 +1,3 @@
-#pragma once
-#ifndef IMAGETEX_HPP
-#define IMAGETEX_HPP
-
 #include <iostream>
 #include "textures/image_texture.hpp"
 
@@ -58,5 +54,3 @@ namespace poly::texture
 		return image_data.at(row).at(col);
 	}
 } // namespace poly::texture
-
-#endif // !IMAGETEX_HPP

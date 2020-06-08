@@ -1,5 +1,3 @@
-#pragma once
-
 #include <algorithm>
 #include "structures/KDTree.hpp"
 #include "structures/bounds.hpp"

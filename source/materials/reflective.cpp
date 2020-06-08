@@ -1,5 +1,3 @@
-#pragma once
-
 #include "materials/reflective.hpp"
 
 namespace poly::material

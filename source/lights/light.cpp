@@ -1,5 +1,3 @@
-#pragma once
-
 #include "lights/light.hpp"
 
 namespace poly::light

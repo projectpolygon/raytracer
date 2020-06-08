@@ -1,5 +1,3 @@
-#pragma once
-
 #include "structures/world.hpp"
 #include "tracers/tracer.hpp"
 

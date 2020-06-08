@@ -1,5 +1,3 @@
-#pragma once
-
 #include "objects/torus.hpp"
 #include <atlas/math/solvers.hpp>
 
@@ -27,7 +25,7 @@ namespace poly::object
 	poly::structures::Bounds3D Torus::boundbox_get() const
 	{
 		return bounds;
-	};
+	}
 
 	math::Vector Torus::normal_get(math::Ray<math::Vector> const &R,
 								   float t) const

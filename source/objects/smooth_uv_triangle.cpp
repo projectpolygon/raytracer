@@ -1,5 +1,3 @@
-#pragma once
-
 #include "objects/smooth_uv_triangle.hpp"
 
 namespace poly::object

@@ -2,9 +2,8 @@
 #include <cfloat>
 #include <memory>
 #include <zeus/timer.hpp>
+
 #include "utilities/paths.hpp"
-
-
 #include "structures/shade_rec.hpp"
 #include "structures/world.hpp"
 #include "materials/material.hpp"
@@ -27,8 +26,8 @@
 #include "cameras/pinhole.hpp"
 #include "structures/KDTree.hpp"
 
-int MESH_MAX_DEPTH = 25;
-int MESH_MAX_LEAF_SIZE = 10;
+constexpr int MESH_MAX_DEPTH = 25;
+constexpr int MESH_MAX_LEAF_SIZE = 10;
 
 using namespace atlas;
 
@@ -62,7 +61,7 @@ int main()
         math::Vector(0.0f, 0.0f, 1.0f) ,
         math::Vector(0.0f, 0.0f, 1.0f) };
     std::shared_ptr<poly::material::SV_Matte> flag_tex
-      = std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.jpg"));
+      = std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png"));
 
     std::shared_ptr<poly::object::SmoothMeshUVTriangle> flag = std::make_shared<poly::object::SmoothMeshUVTriangle>(
         points3,
@@ -109,7 +108,7 @@ int main()
     poly::object::Mesh m3 = poly::object::Mesh(ShaderPath + std::string("suzanne.obj"),
                    ShaderPath + std::string(""),
                    math::Vector(0.0f, 0.0f, 0.0f));
-    m3.material_set(std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.jpg")));
+    m3.material_set(std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
     m3.scale(math::Vector(50.0f, 50.0f, 50.0f));
     m3.translate(math::Vector(0.0f, 120.0f, 100.0f));
     m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)

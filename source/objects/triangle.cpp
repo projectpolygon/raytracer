@@ -1,5 +1,3 @@
-#pragma once
-
 #include "objects/triangle.hpp"
 
 namespace poly::object

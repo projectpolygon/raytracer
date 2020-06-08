@@ -1,5 +1,3 @@
-#pragma once
-
 #include "lights/ambient.hpp"
 #include "utilities/utilities.hpp"
 

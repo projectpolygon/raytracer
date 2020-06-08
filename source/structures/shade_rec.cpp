@@ -1,5 +1,3 @@
-#pragma once
-
 #include <memory>
 #include "utilities/utilities.hpp"
 #include "structures/shade_rec.hpp"

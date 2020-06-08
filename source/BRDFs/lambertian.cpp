@@ -1,5 +1,3 @@
-#pragma once
-
 #include "BRDFs/lambertian.hpp"
 
 using namespace atlas;

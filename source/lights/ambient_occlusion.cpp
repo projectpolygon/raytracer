@@ -1,5 +1,3 @@
-#pragma once
-
 #include "lights/ambient_occlusion.hpp"
 
 namespace poly::light {

@@ -1,6 +1,5 @@
-#pragma once
-
 #include <iostream>
+#include <thread>
 #include "cameras/pinhole.hpp"
 
 namespace poly::camera
