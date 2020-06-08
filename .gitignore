@@ -40,3 +40,6 @@ build
 flag.png
 include/utilities/paths.hpp
 
+# Renders
+*.bmp
+

@@ -39,21 +39,34 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
     // Time seed RNG
     srand((unsigned int)time(0));
 
-    nlohmann::json task = poly::utils::open_json_file(argv[1]);
+	// Open the JSON file specified as the first argument to the program
+	std::string path_to_json(ShaderPath);
+	path_to_json.append(argv[1]);
+	std::cout << path_to_json << std::endl;
+    nlohmann::json task = poly::utils::open_json_file(path_to_json.c_str());
+
+	// Create the world (objects, lights, materials, textures, image information)
     poly::structures::World w2 = poly::utils::create_world(task);
-		poly::camera::PinholeCamera cam2 = poly::utils::parse_camera(task["camera"]);
-		cam2.multithread_render_scene(w2, task["max_threads"]);
+	
+	// Create the camera
+	poly::camera::PinholeCamera cam2 = poly::utils::parse_camera(task["camera"]);
+	
+	// Run a render on the specified number of threads
+	cam2.multithread_render_scene(w2, task["max_threads"]);
 
-		poly::utils::BMP_info info;
-		info.m_total_height = w2.m_vp->hres;
-		info.m_total_width = w2.m_vp->vres;
-		info.m_start_width = w2.m_start_width;
-		info.m_start_height = w2.m_start_height;
-		info.m_end_width = w2.m_end_width;
-		info.m_end_height = w2.m_end_height;
-		info.m_image = w2.m_image;
+	poly::utils::BMP_info info;
+	info.m_total_height = w2.m_vp->hres;
+	info.m_total_width = w2.m_vp->vres;
+	info.m_start_width = w2.m_start_width;
+	info.m_start_height = w2.m_start_height;
+	info.m_end_width = w2.m_end_width;
+	info.m_end_height = w2.m_end_height;
+	info.m_image = w2.m_image;
 
-		saveToBMP("render.bmp", info);
+	std::string path_to_output(ShaderPath);
+	path_to_output.append(task["output_file"]);
+	std::cout << path_to_output << std::endl;
+	saveToBMP(path_to_output.c_str(), info);
 
 
 

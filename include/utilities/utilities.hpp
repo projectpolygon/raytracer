@@ -11,15 +11,15 @@
 using Colour = atlas::math::Vector;
 
 namespace poly::utils {
-		struct BMP_info{
-				int m_total_height;
-				int m_total_width;
-				int m_start_height;
-				int m_start_width;
-				int m_end_height;
-				int m_end_width;
-				std::vector<Colour> m_image;
-		};
+	struct BMP_info{
+		int m_total_height;
+		int m_total_width;
+		int m_start_height;
+		int m_start_width;
+		int m_end_height;
+		int m_end_width;
+		std::vector<Colour> m_image;
+	};
 }
 
 

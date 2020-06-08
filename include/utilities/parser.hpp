@@ -16,7 +16,7 @@ namespace poly::utils {
 		/*
 		 * Parses json array data and converts it into atlas code
 		 */
-		math::Vector parse_vector(nlohmann::json vector_json, std::size_t size);
+		math::Vector parse_vector(nlohmann::json vector_json);
 
 		/*
 		 * Parses json data about material and returns a pointer

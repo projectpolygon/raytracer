@@ -1,18 +1,22 @@
+#include "utilities/paths.hpp"
 #include "utilities/parser.hpp"
+
+#include "objects/sphere.hpp"
+#include "objects/torus.hpp"
+#include "objects/triangle.hpp"
+#include "objects/mesh.hpp"
+
+#include "structures/KDTree.hpp"
 
 namespace poly::utils {
 
 		/*
 		 * Parses json array data and converts it into atlas code
 		 */
-		math::Vector parse_vector(nlohmann::json vector_json, const std::size_t size)
+		math::Vector parse_vector(nlohmann::json vector_json)
 		{
 			// TODO: Make more generic for different sizes
-			math::Vector v{};
-			for (std::size_t i{0}; i < size; ++i) {
-				v[i] = vector_json[i];
-			}
-			return v;
+			return { vector_json[0], vector_json[1], vector_json[2] };
 		}
 
 		/*
@@ -23,7 +27,7 @@ namespace poly::utils {
 			auto material_type = material_json["type"];
 			if (material_type == "matte") {
 				return std::make_shared<poly::material::Matte>(
-					material_json["diffuse"], Colour{parse_vector(material_json["colour"], 3)});
+					material_json["diffuse"], Colour{parse_vector(material_json["colour"])});
 			} else {
 				throw std::runtime_error("incorrect material parameters");
 			}
@@ -78,14 +82,54 @@ namespace poly::utils {
 		void parse_objects(poly::structures::World& w, nlohmann::json& task)
 		{
 			for (auto obj : task["objects"]) {
-				if (obj["type"] == "sphere") {
+				if (obj["type"] == "mesh") {
+					std::string path_to_object(ShaderPath);
+					path_to_object.append(obj["object_file"]);
+					std::string path_to_material(ShaderPath);
+					path_to_material.append(obj["material_file"]);
+
+					std::vector<std::shared_ptr<poly::object::Object>> object_list;
+
+					std::shared_ptr<poly::object::Mesh> s =
+						std::make_shared<poly::object::Mesh>(path_to_object.c_str(), path_to_material.c_str(), parse_vector(obj["position"]));
+
+					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+					s->material_set(material);
+					s->scale(parse_vector(obj["scale"]));
+					//s->translate(parse_vector(obj["position"]));
+					s->dump_to_list(object_list);
+
+					w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 1, 0.5f, 10, 25));
+				}
+				else if (obj["type"] == "sphere") {
 					std::shared_ptr<poly::object::Sphere> s =
-						std::make_shared<poly::object::Sphere>(parse_vector(obj["centre"], 3), obj["radius"]);
+						std::make_shared<poly::object::Sphere>(parse_vector(obj["centre"]), obj["radius"]);
 
 					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
 					s->material_set(material);
 					w.m_scene.push_back(s);
-				} else {
+				} 
+				else if (obj["type"] == "torus") {
+					std::shared_ptr<poly::object::Torus> s =
+						std::make_shared<poly::object::Torus>(parse_vector(obj["centre"]), obj["inner_radius"], obj["outer_radius"]);
+
+					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+
+					s->material_set(material);
+					w.m_scene.push_back(s);
+				}
+				else if (obj["type"] == "triangle") {
+					//std::vector<std::vector<float>> points = obj["points"];
+					std::vector<math::Vector> points = {parse_vector(obj["points"][0]), parse_vector(obj["points"][1]), parse_vector(obj["points"][2])};
+					math::Vector position = parse_vector(obj["position"]);
+					std::shared_ptr<poly::object::Triangle> s =
+						std::make_shared<poly::object::Triangle>(points, position);
+
+					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+					s->material_set(material);
+					w.m_scene.push_back(s);
+				}
+				else {
 					throw std::runtime_error("Incorrect object type");
 				}
 			}
@@ -99,12 +143,12 @@ namespace poly::utils {
 			for (auto light : task["lights"]) {
 				std::shared_ptr<poly::light::Light> l;
 				if (light["type"] == "point") {
-					l = std::make_shared<poly::light::PointLight>(parse_vector(light["position"], 3));
+					l = std::make_shared<poly::light::PointLight>(parse_vector(light["position"]));
 					l->radiance_scale(light["intensity"]);
 					w.m_lights.push_back(l);
 				} else if (light["type"] == "ambient"){
 					l = std::make_shared<poly::light::AmbientLight>();
-					l->colour_set(parse_vector(light["colour"], 3));
+					l->colour_set(parse_vector(light["colour"]));
 					l->radiance_scale(light["intensity"]);
 					w.m_ambient = l;
 				} else {
@@ -137,11 +181,11 @@ namespace poly::utils {
 			w.m_start_height = task["slab_starty"];
 			w.m_end_width = task["slab_endx"];
 			w.m_end_height = task["slab_endy"];
-			w.m_slab_size = (w.m_end_width - w.m_start_width) / (unsigned int)task["max_threads"];
+			w.m_slab_size = 200;// (w.m_end_width - w.m_start_width) / (unsigned int)task["max_threads"];
 
 			try {
 				w.m_background = Colour{task["background"]};
-			} catch (nlohmann::detail::type_error&  e) {
+			} catch ([[maybe_unused]]nlohmann::detail::type_error&  e) {
 				w.m_background = {0.0f, 0.0f, 0.0f};
 			}
 
@@ -166,9 +210,9 @@ namespace poly::utils {
 		poly::camera::PinholeCamera parse_camera(nlohmann::json camera_json)
 		{
 			poly::camera::PinholeCamera cam = poly::camera::PinholeCamera(camera_json["distance"]);
-			cam.eye_set(parse_vector(camera_json["eye"], 3));
-			cam.lookat_set(parse_vector(camera_json["lookat"], 3));
-			cam.upvec_set(parse_vector(camera_json["up"], 3));
+			cam.eye_set(parse_vector(camera_json["eye"]));
+			cam.lookat_set(parse_vector(camera_json["lookat"]));
+			cam.upvec_set(parse_vector(camera_json["up"]));
 			cam.uvw_compute();
 			return cam;
 		}

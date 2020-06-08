@@ -30,10 +30,10 @@ void saveToBMP(std::string const& filename,
 	}
 
 	stbi_write_bmp(filename.c_str(),
-								 static_cast<int>(info.m_end_width - info.m_start_width),
-								 static_cast<int>(info.m_end_height - info.m_start_height),
-								 3,
-								 data.data());
+		static_cast<int>(info.m_end_width - info.m_start_width),
+		static_cast<int>(info.m_end_height - info.m_start_height),
+		3,
+		data.data());
 }
 
 Colour random_colour_generate()

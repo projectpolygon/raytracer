@@ -24,7 +24,7 @@ namespace poly::structures {
         Colour m_background;
 
         // Section to be rendered
-				int m_start_width, m_start_height, m_end_width, m_end_height;
+		int m_start_width, m_start_height, m_end_width, m_end_height;
 
          // The sampler for AA
         std::shared_ptr<poly::sampler::Sampler> m_sampler;
