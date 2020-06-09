@@ -139,7 +139,7 @@ namespace poly::structures
 		}
 
 		math::Vector invDir(1 / ray.d.x, 1 / ray.d.y, 1 / ray.d.z);
-		constexpr int maxTodo = 128;
+		constexpr int maxTodo = 512;
 		KDToDo todo[maxTodo];
 		int todoPos = 0;
 
@@ -248,7 +248,7 @@ namespace poly::structures
 		}
 
 		math::Vector invDir(1 / ray.d.x, 1 / ray.d.y, 1 / ray.d.z);
-		constexpr int maxTodo = 128;
+		constexpr int maxTodo = 512;
 		KDToDo todo[maxTodo];
 		int todoPos = 0;
 
@@ -370,7 +370,7 @@ namespace poly::structures
 			m_allocatedNodes = new_num_to_allocate;
 		}
 
-		m_nextFreeNode++;
+		++m_nextFreeNode;
 
 		// If the number of objects in this node is less than our maximum per leaf, or we are at depth 0, stop recursion
 		if (num_objects <= maxPrims || depth == 0)
@@ -384,7 +384,6 @@ namespace poly::structures
 		float bestCost = std::numeric_limits<float>::max(); // This might mean that no other axes are tried!!
 		float oldCost = intersectCost * float(num_objects);
 		float invTotalSA = 1 / node_bounds.surfaceArea();
-		;
 		int num_edges = 2 * num_objects;
 		math::Vector bounds_diagonal = node_bounds.pMax - node_bounds.pMin;
 
@@ -477,9 +476,9 @@ namespace poly::structures
             }
             */
 
-			if (bestAxis == -1)
+			if (bestAxis == -1 && retries < 2)
 			{ // This will never be hit! The float is ININITY...so EVERYTHING will select a best axis
-				retries++;
+				++retries;
 				axis = (axis + 1) % num_axes;
 			}
 			else

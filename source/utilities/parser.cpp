@@ -1,3 +1,5 @@
+#include <thread>
+#include <iostream>
 #include "utilities/paths.hpp"
 #include "utilities/parser.hpp"
 
@@ -99,7 +101,7 @@ namespace poly::utils {
 					//s->translate(parse_vector(obj["position"]));
 					s->dump_to_list(object_list);
 
-					w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 1, 0.5f, 10, 25));
+					w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 30, 0.75f, 10, 50));
 				}
 				else if (obj["type"] == "sphere") {
 					std::shared_ptr<poly::object::Sphere> s =
@@ -130,7 +132,7 @@ namespace poly::utils {
 					w.m_scene.push_back(s);
 				}
 				else {
-					throw std::runtime_error("Incorrect object type");
+					throw std::runtime_error("ERROR: object type not supported");
 				}
 			}
 		}
@@ -170,8 +172,9 @@ namespace poly::utils {
 				vp->hres = task["image_width"];
 				vp->max_depth = task["max_depth"];
 			} catch (const nlohmann::detail::type_error& e) {
-				std::wcerr << "Incorrect job parameters" << std::endl;
+				std::wcerr << "ERROR: incorrect viewplane parameters" << std::endl;
 				std::wcerr << e.what() << std::endl;
+				exit(1);
 			}
 
 			w.m_vp = vp;
@@ -181,11 +184,18 @@ namespace poly::utils {
 			w.m_start_height = task["slab_starty"];
 			w.m_end_width = task["slab_endx"];
 			w.m_end_height = task["slab_endy"];
-			w.m_slab_size = 200;// (w.m_end_width - w.m_start_width) / (unsigned int)task["max_threads"];
+			try {
+				w.m_slab_size = task["slab_size"];
+			}
+			catch ([[maybe_unused]]nlohmann::detail::type_error& e) {
+				std::clog << "WARN: no slab size set" << std::endl;
+				w.m_slab_size = vp->hres / 4;
+			}
 
 			try {
-				w.m_background = Colour{task["background"]};
+				w.m_background = Colour{parse_vector(task["background"])};
 			} catch ([[maybe_unused]]nlohmann::detail::type_error&  e) {
+				std::clog << "WARN: no background was set" << std::endl;
 				w.m_background = {0.0f, 0.0f, 0.0f};
 			}
 
@@ -195,6 +205,7 @@ namespace poly::utils {
 				parse_light(w, task);
 			} catch (const nlohmann::detail::type_error& e) {
 				std::wcerr << e.what() << std::endl;
+				std::wcerr << "ERROR: error parsing samples, light, or object" << std::endl;
 				exit(1);
 			} catch (const std::runtime_error& e) {
 				std::wcerr << e.what() << std::endl;
@@ -207,13 +218,60 @@ namespace poly::utils {
 		/*
 		 * Parses camera from json data and returns a camera object
 		 */
-		poly::camera::PinholeCamera parse_camera(nlohmann::json camera_json)
+		poly::camera::PinholeCamera parse_camera(nlohmann::json& json)
 		{
+			nlohmann::json camera_json = json["camera"];
+
+			// Create the camera and set how many threads it can render on
 			poly::camera::PinholeCamera cam = poly::camera::PinholeCamera(camera_json["distance"]);
+
+			// Autodetect possible threads
+			std::size_t maximum_threads_allowed = json["max_threads"];
+			
+			const auto processor_count = std::thread::hardware_concurrency();
+			std::clog << "INFO: detecting " << processor_count << " cores" << std::endl;
+
+			if (processor_count < maximum_threads_allowed && processor_count > 0) {
+				std::clog << "INFO: using " << processor_count << " cores" << std::endl;
+				cam.set_max_threads(processor_count);
+			}
+			else if (maximum_threads_allowed > 0){
+				std::clog << "INFO: using max of " << maximum_threads_allowed << " cores" << std::endl;
+				cam.set_max_threads(maximum_threads_allowed);
+			}
+			else
+			{
+				std::clog << "INFO: using default of 1 core" << std::endl;
+				cam.set_max_threads(1);
+			}
+
+			// Set the camera position and view parameters
 			cam.eye_set(parse_vector(camera_json["eye"]));
 			cam.lookat_set(parse_vector(camera_json["lookat"]));
 			cam.upvec_set(parse_vector(camera_json["up"]));
 			cam.uvw_compute();
 			return cam;
+		}
+
+		poly::utils::BMP_info create_output_container(nlohmann::json& json)
+		{
+			poly::utils::BMP_info expected_output;
+			expected_output.m_total_height = json["image_height"];
+			expected_output.m_total_width = json["image_width"];
+			expected_output.m_start_width = json["slab_startx"];
+			expected_output.m_start_height = json["slab_starty"];
+			expected_output.m_end_width = json["slab_endx"];
+			expected_output.m_end_height = json["slab_endy"];
+
+			// Ensure bounds are kept within the total image
+			if (expected_output.m_end_height > expected_output.m_total_height) {
+				expected_output.m_end_height = expected_output.m_total_height;
+			}
+
+			if (expected_output.m_end_width > expected_output.m_total_width) {
+				expected_output.m_end_width = expected_output.m_total_width;
+			}
+
+			return expected_output;
 		}
 }

@@ -34,12 +34,17 @@
 # Directories
 build
 .idea
-.vscode
+.vscode/
+.vs/
 
 # Files
 flag.png
+*.obj
 include/utilities/paths.hpp
+
 
 # Renders
 *.bmp
 
+# dotfile configurations
+.*

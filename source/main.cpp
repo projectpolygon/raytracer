@@ -5,28 +5,28 @@
 #include <nlohmann/json.hpp>
 
 #include "utilities/paths.hpp"
-#include "structures/shade_rec.hpp"
-#include "structures/world.hpp"
-#include "utilities/utilities.hpp"
-#include "materials/material.hpp"
-#include "structures/view_plane.hpp"
-#include "tracers/whitted_tracer.hpp"
-#include "materials/matte.hpp"
-#include "materials/SV_matte.hpp"
-#include "samplers/jittered.hpp"
-#include "objects/triangle.hpp"
-#include "objects/smooth_uv_triangle.hpp"
-#include "objects/sphere.hpp"
-#include "materials/reflective.hpp"
-#include "materials/transparent.hpp"
-#include "objects/mesh.hpp"
-#include "objects/torus.hpp"
-#include "lights/ambient_occlusion.hpp"
-#include "lights/ambient.hpp"
-#include "lights/point_light.hpp"
-#include "lights/directional.hpp"
-#include "cameras/pinhole.hpp"
-#include "structures/KDTree.hpp"
+//#include "structures/shade_rec.hpp"
+//#include "structures/world.hpp"
+//#include "utilities/utilities.hpp"
+//#include "materials/material.hpp"
+//#include "structures/view_plane.hpp"
+//#include "tracers/whitted_tracer.hpp"
+//#include "materials/matte.hpp"
+//#include "materials/SV_matte.hpp"
+//#include "samplers/jittered.hpp"
+//#include "objects/triangle.hpp"
+//#include "objects/smooth_uv_triangle.hpp"
+//#include "objects/sphere.hpp"
+//#include "materials/reflective.hpp"
+//#include "materials/transparent.hpp"
+//#include "objects/mesh.hpp"
+//#include "objects/torus.hpp"
+//#include "lights/ambient_occlusion.hpp"
+//#include "lights/ambient.hpp"
+//#include "lights/point_light.hpp"
+//#include "lights/directional.hpp"
+//#include "cameras/pinhole.hpp"
+//#include "structures/KDTree.hpp"
 #include "utilities/parser.hpp"
 
 constexpr int MESH_MAX_DEPTH = 25;
@@ -34,41 +34,72 @@ constexpr int MESH_MAX_LEAF_SIZE = 10;
 
 using namespace atlas;
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
+int main(int argc, [[maybe_unused]] char** argv)
 {
+	if (argc != 2) {
+		std::cerr << "ERROR: you must specify a taskfile" << std::endl;
+		exit(1);
+	}
+
     // Time seed RNG
     srand((unsigned int)time(0));
 
 	// Open the JSON file specified as the first argument to the program
-	std::string path_to_json(ShaderPath);
-	path_to_json.append(argv[1]);
-	std::cout << path_to_json << std::endl;
-    nlohmann::json task = poly::utils::open_json_file(path_to_json.c_str());
+	std::clog << "INFO: reading taskfile '" << argv[1] << "' from directory '" << ShaderPath << "'"<< std::endl;
+	nlohmann::json taskfile;
+	try {
+		taskfile = poly::utils::open_json_file(std::string(ShaderPath).append(argv[1]).c_str());
+	}
+	catch (...) {
+		std::cerr << "ERROR: taskfile could not be parsed" << std::endl;
+		exit(1);
+	}
 
 	// Create the world (objects, lights, materials, textures, image information)
-    poly::structures::World w2 = poly::utils::create_world(task);
+	poly::structures::World world;
+	try{
+		world = poly::utils::create_world(taskfile);
+	}
+	catch (const nlohmann::detail::type_error& e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "ERROR: world could not be parsed" << std::endl;
+		exit(1);
+	}
 	
 	// Create the camera
-	poly::camera::PinholeCamera cam2 = poly::utils::parse_camera(task["camera"]);
+	poly::camera::PinholeCamera camera;
+	try {
+		camera = poly::utils::parse_camera(taskfile);
+	}
+	catch (const nlohmann::detail::type_error& e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "ERROR: camera could not be parsed" << std::endl;
+		exit(1);
+	}
 	
 	// Run a render on the specified number of threads
-	cam2.multithread_render_scene(w2, task["max_threads"]);
+	poly::utils::BMP_info output;
+	try {
+		output = poly::utils::BMP_info(poly::utils::create_output_container(taskfile));
+	} catch (const nlohmann::detail::type_error& e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "ERROR: output information could not be parsed" << std::endl;
+		exit(1);
+	}
 
-	poly::utils::BMP_info info;
-	info.m_total_height = w2.m_vp->hres;
-	info.m_total_width = w2.m_vp->vres;
-	info.m_start_width = w2.m_start_width;
-	info.m_start_height = w2.m_start_height;
-	info.m_end_width = w2.m_end_width;
-	info.m_end_height = w2.m_end_height;
-	info.m_image = w2.m_image;
+	zeus::Timer<float> render_timer = zeus::Timer<float>();
+	render_timer.start();
 
-	std::string path_to_output(ShaderPath);
-	path_to_output.append(task["output_file"]);
-	std::cout << path_to_output << std::endl;
-	saveToBMP(path_to_output.c_str(), info);
+	camera.multithread_render_scene(world, output);
 
+	std::clog << "\nINFO: Time to render was: " << render_timer.elapsed() << std::endl;
 
+	// Create the required output file
+	saveToBMP(taskfile, output);
+
+	return 0;
+
+// OLD RENDER SETUP BELOW (KEEPING FOR REFERENCE)
 
 //    std::shared_ptr<poly::structures::ViewPlane> vp = std::make_shared<poly::structures::ViewPlane>();
 //    vp->hres = 1000;
@@ -230,8 +261,4 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char** argv)
 //    }
 //
 //    std::cout << "\nTime to render was: " << my_timer.elapsed() << std::endl;
-
-
-
-    return 0;
 }

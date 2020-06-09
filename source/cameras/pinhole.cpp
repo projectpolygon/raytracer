@@ -4,7 +4,7 @@
 
 namespace poly::camera
 {
-
+	PinholeCamera::PinholeCamera() :m_d{} {}
 	PinholeCamera::PinholeCamera(float d)
 	{
 		m_d = d;
@@ -23,14 +23,12 @@ namespace poly::camera
 		}
 	}
 
-	void PinholeCamera::multithread_render_scene(poly::structures::World &world, unsigned int num_threads)
+	void PinholeCamera::multithread_render_scene(poly::structures::World &world, poly::utils::BMP_info& output)
 	{
-		int wheight = (int)world.m_vp->vres;
-		int wwidth = (int)world.m_vp->hres;
 
-		// vector for which we will allow threads to read from an retrieve slabs to render
-		std::shared_ptr<std::mutex> slablist_mutex = std::make_shared<std::mutex>();
-		std::vector<std::shared_ptr<poly::structures::scene_slab>> slabs;
+		int total_render_height = output.m_total_height;
+		int total_render_width = output.m_total_width;
+		std::size_t num_threads = m_max_threads;
 
 		std::shared_ptr<std::vector<std::vector<Colour>>> storage = std::make_shared<std::vector<std::vector<Colour>>>(world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
 		std::shared_ptr<std::mutex> storage_mutex = std::make_shared<std::mutex>();
@@ -41,26 +39,28 @@ namespace poly::camera
 		int slab_width = world.m_slab_size;
 		int slab_height = world.m_slab_size;
 
-		for (int i = world.m_start_height; i < world.m_end_height; i += world.m_slab_size)
+		// vector for which we will allow threads to read from an retrieve slabs to render
+		std::vector<std::shared_ptr<poly::structures::scene_slab>> slabs;
+		for (int i = output.m_start_height; i < output.m_end_height; i += world.m_slab_size)
 		{
 			// Reset slab width on each height loop
 			slab_width = world.m_slab_size;
 
 			// Check that we aren't flying off the bottom of our image
-			if (i + slab_height > wheight)
+			if (i + slab_height > total_render_height)
 			{
-				slab_height = wheight - i - 1;
+				slab_height = total_render_height - i - 1;
 			}
 
-			for (int j = world.m_start_width; j < world.m_end_width; j += world.m_slab_size)
+			for (int j = output.m_start_width; j < output.m_end_width; j += world.m_slab_size)
 			{
-				if (j + slab_width > wwidth)
+				if (j + slab_width > total_render_width)
 				{
-					slab_width = wwidth - j - 1;
+					slab_width = total_render_width - j - 1;
 				}
 
-				int w_center = wwidth / 2;
-				int h_center = wheight / 2;
+				int w_center = total_render_width / 2;
+				int h_center = total_render_height / 2;
 
 				std::shared_ptr<poly::structures::scene_slab> new_ti = std::make_shared<poly::structures::scene_slab>(
 					world_ptr, //std::make_shared<World>(world),
@@ -76,30 +76,31 @@ namespace poly::camera
 			}
 		}
 
-		// Creat the specified number of threads and let them work on the pool of slabs
-		std::cout << "INFO: rendering on " << num_threads << " threads" << std::endl;
-		for (unsigned int i = 0; i < num_threads; i++)
+		// mutex protecting the list of slabs to be rendered
+		std::shared_ptr<std::mutex> slablist_mutex = std::make_shared<std::mutex>();
+
+		// Create the specified number of threads and let them work on the pool of slabs
+		std::clog << "INFO: rendering on " << num_threads << " threads" << std::endl;
+		for (std::size_t i = 0; i < num_threads; i++)
 		{
-			thread_list.push_back(std::thread(
-				[this, slablist_mutex, &slabs] {
-					std::shared_ptr<poly::structures::scene_slab> slab_ptr = nullptr;
-					size_t full_size = slabs.size();
-					while (true)
-					{
-						{ // sanity check scope for the mutex
-							const std::lock_guard<std::mutex> lock(*slablist_mutex);
-							if (slabs.empty())
-							{
-								break;
-							}
-							slab_ptr = slabs.back();
-							slabs.pop_back();
-							std::cout << "\r                                         ";
-							std::cout << "\rLOADING: " << ((float)slabs.size() * 100.0f / full_size) << "% to go. " << slabs.size() << " slabs left";
+			thread_list.push_back(std::thread([this, slablist_mutex, &slabs] {
+				std::shared_ptr<poly::structures::scene_slab> slab_ptr = nullptr;
+				size_t full_size = slabs.size();
+				while (true){
+					{ // sanity check scope for the mutex
+						const std::lock_guard<std::mutex> lock(*slablist_mutex);
+						if (slabs.empty())
+						{
+							break;
 						}
-						this->render_slab(slab_ptr);
+						slab_ptr = slabs.back();
+						slabs.pop_back();
+						std::cout << "\r                                         ";
+						std::cout << "\rLOADING: " << ((float)slabs.size() * 100.0f / full_size) << "% to go. " << slabs.size() << " slabs left";
 					}
-				}));
+					this->render_slab(slab_ptr);
+				}
+			}));
 		}
 
 		// Join all the threads
@@ -116,7 +117,7 @@ namespace poly::camera
 		{
 			for (auto el : row)
 			{
-				world.m_image.push_back(el);
+				output.m_image.push_back(el);
 			}
 		}
 	}

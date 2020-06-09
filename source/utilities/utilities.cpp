@@ -1,8 +1,25 @@
+#include <iostream>
 #include "utilities/utilities.hpp"
+#include "utilities/paths.hpp"
+#include "stb_image_write.h"
 
 using namespace atlas;
 using Colour = math::Vector;
 
+
+void saveToBMP(nlohmann::json const& json, poly::utils::BMP_info& info)
+{
+	std::string filename;
+	try {
+		filename = std::string(ShaderPath).append(json["output_file"]);
+	}
+	catch (...) {
+		std::clog << "INFO: no output name specified, using default: 'output.bmp'" << std::endl;
+		filename = std::string("output.bmp");
+	}
+
+	saveToBMP(filename, info);
+}
 /**
  * Saves a BMP image file based on the given array of pixels. All pixel values
  * have to be in the range [0, 1].
@@ -15,6 +32,7 @@ using Colour = math::Vector;
 void saveToBMP(std::string const& filename,
 							 poly::utils::BMP_info& info)
 {
+	std::clog << "INFO: writing data to " << filename << std::endl;
 	std::vector<unsigned char> data(info.m_image.size() * 3);
 	int width = info.m_total_width;
 	int height = info.m_total_height;

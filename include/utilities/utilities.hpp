@@ -4,9 +4,8 @@
 
 #include <vector>
 #include <string>
-#include <stb_image.h>
-#include <stb_image_write.h>
 #include <atlas/math/math.hpp>
+#include "nlohmann/json.hpp"
 
 using Colour = atlas::math::Vector;
 
@@ -22,10 +21,8 @@ namespace poly::utils {
 	};
 }
 
-
-
-void saveToBMP(std::string const& filename,
-							 poly::utils::BMP_info& w);
+void saveToBMP(std::string const& filename, poly::utils::BMP_info& w);
+void saveToBMP(nlohmann::json const& json, poly::utils::BMP_info& w);
 
 Colour random_colour_generate();
 #endif // !UTILITY_HPP

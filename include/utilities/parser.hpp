@@ -51,5 +51,10 @@ namespace poly::utils {
 		/*
 		 * Parses camera from json data and returns a camera object
 		 */
-		poly::camera::PinholeCamera parse_camera(nlohmann::json camera_json);
+		poly::camera::PinholeCamera parse_camera(nlohmann::json& camera_json);
+
+		/*
+		 * Parses expected output and create an object for writing output to during a render
+		 */
+		poly::utils::BMP_info create_output_container(nlohmann::json& json);
 }
