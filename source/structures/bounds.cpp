@@ -11,21 +11,21 @@ namespace poly::structures
 
 	Bounds3D::Bounds3D(math::Vector _pMin, math::Vector _pMax) : pMin{_pMin}, pMax{_pMax} {}
 
-	bool Bounds3D::get_intersects(const math::Ray<math::Vector> &ray, float *hitt0, float *hitt1) const
+	bool Bounds3D::get_intersects(const math::Ray<math::Vector> &ray, double *hitt0, double*hitt1) const
 	{
-		float t0 = 0;
-		float t1 = std::numeric_limits<float>::max();
+		double t0 = 0;
+		double t1 = std::numeric_limits<float>::max();
 		for (int i = 0; i < 3; ++i)
 		{
-			float invRayDir = 1 / ray.d[i];
-			float tNear = (pMin[i] - ray.o[i]) * invRayDir;
-			float tFar = (pMax[i] - ray.o[i]) * invRayDir;
+			double invRayDir = 1 / ray.d[i];
+			double tNear = (pMin[i] - ray.o[i]) * invRayDir;
+			double tFar = (pMax[i] - ray.o[i]) * invRayDir;
 			if (tNear > tFar)
 			{
 				std::swap(tNear, tFar);
 			}
 
-			tFar *= 1.0f + 2.0f * (3.0f * (float)std::numeric_limits<float>::epsilon() * 0.5f) / (1.0f - 3.0f * (float)std::numeric_limits<float>::epsilon() * 0.5f);
+			tFar *= 1.0f + 2.0f * (3.0f * (double)std::numeric_limits<double>::epsilon() * 0.5f) / (1.0f - 3.0f * (double)std::numeric_limits<double>::epsilon() * 0.5f);
 
 			t0 = tNear > t0 ? tNear : t0;
 			t1 = tFar < t1 ? tFar : t1;

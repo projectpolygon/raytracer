@@ -19,7 +19,7 @@ namespace poly::structures {
 		Bounds3D();
 		Bounds3D(math::Vector _pMin, math::Vector _pMax);
 
-		bool get_intersects(const math::Ray<math::Vector> &ray, float *hitt0, float *hitt1) const;
+		bool get_intersects(const math::Ray<math::Vector> &ray, double*hitt0, double*hitt1) const;
 
 		math::Vector diagonal() const;
 

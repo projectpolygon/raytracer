@@ -101,7 +101,7 @@ namespace poly::utils {
 					//s->translate(parse_vector(obj["position"]));
 					s->dump_to_list(object_list);
 
-					w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 30, 0.75f, 10, 50));
+					w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 60, 0.75f, 15, -1));
 				}
 				else if (obj["type"] == "sphere") {
 					std::shared_ptr<poly::object::Sphere> s =
