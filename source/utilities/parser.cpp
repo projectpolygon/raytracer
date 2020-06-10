@@ -7,6 +7,11 @@
 #include "objects/torus.hpp"
 #include "objects/triangle.hpp"
 #include "objects/mesh.hpp"
+#include "objects/plane.hpp"
+
+#include "materials/reflective.hpp"
+
+#include "lights/ambient_occlusion.hpp"
 
 #include "structures/KDTree.hpp"
 
@@ -30,7 +35,12 @@ namespace poly::utils {
 			if (material_type == "matte") {
 				return std::make_shared<poly::material::Matte>(
 					material_json["diffuse"], Colour{parse_vector(material_json["colour"])});
-			} else {
+			} else if (material_type == "reflective") {
+				return std::make_shared<poly::material::Reflective>(material_json["reflective"],
+					material_json["diffuse"], material_json["spectral"], parse_vector(material_json["colour"]),
+					material_json["tightness"]);
+			}
+			else {
 				throw std::runtime_error("incorrect material parameters");
 			}
 		}
@@ -130,6 +140,14 @@ namespace poly::utils {
 					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
 					s->material_set(material);
 					w.m_scene.push_back(s);
+				} else if (obj["type"] == "plane") {
+					math::Normal normal{parse_vector(obj["normal"])};
+					math::Vector position{parse_vector(obj["position"])};
+					auto p = std::make_shared<poly::object::Plane>(normal, position);
+
+					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+					p->material_set(material);
+					w.m_scene.push_back(p);
 				}
 				else {
 					throw std::runtime_error("ERROR: object type not supported");
@@ -153,8 +171,18 @@ namespace poly::utils {
 					l->colour_set(parse_vector(light["colour"]));
 					l->radiance_scale(light["intensity"]);
 					w.m_ambient = l;
-				} else {
-					throw std::runtime_error("Incorrect light parameters");
+				} else if (light["type"] == "ambient_occlusion") {
+					auto sampler = std::make_shared<poly::sampler::AA_Jittered>(
+						light["sampler"]["samples"], light["sampler"]["sets"]);
+					std::shared_ptr<poly::light::AmbientOcclusion> ao = std::make_shared<poly::light::AmbientOcclusion>();
+					ao->sampler_set(sampler, light["tightness"]);
+					ao->colour_set(parse_vector(light["colour"]));
+					ao->radiance_scale(light["intensity"]);
+					ao->min_amount_set(light["min_amount"]);
+					w.m_ambient = ao;
+				}
+				else {
+					throw std::runtime_error("Incorrect light type");
 				}
 			}
 		}

@@ -31,5 +31,5 @@ namespace poly::structures {
 				return m_world->m_background;
 			}
 		}
-    }
+	}
 }
