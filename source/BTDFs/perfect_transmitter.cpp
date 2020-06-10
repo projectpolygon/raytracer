@@ -46,7 +46,7 @@ namespace poly::material
 		float temp = 1.0f - ((1.0f - cti * cti) / (eta * eta));
 		float ct2 = sqrt(temp);
 		w_t = (-w_o / eta) - (ct2 - (cti / eta)) * normal;
-		Colour retcol = (m_kt / (eta * eta)) * (Colour(1.0f, 1.0f, 1.0f) * (1.0f / (abs(glm::dot(sr.m_normal, w_t)))));
+		Colour retcol = (m_kt / (eta * eta)) * (Colour(1.0f, 1.0f, 1.0f) * (1.0f / (std::abs(glm::dot(sr.m_normal, w_t)))));
 		return retcol;
 	}
 
