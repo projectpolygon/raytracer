@@ -14,7 +14,7 @@ namespace poly::object {
                              math::Vector position);
 
         bool hit(atlas::math::Ray<math::Vector>const& R,
-                 poly::structures::ShadeRec& sr) const;
+                 poly::structures::SurfaceInteraction& sr) const;
 
         math::Vector interpolate_norm(float& beta, float& gamma) const;
 

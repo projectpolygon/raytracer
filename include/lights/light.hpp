@@ -2,11 +2,9 @@
 #ifndef LIGHT_HPP
 #define LIGHT_HPP
 
-#include "structures/shade_rec.hpp"
+#include "structures/surface_interaction.hpp"
 #include "structures/world.hpp"
 #include "objects/object.hpp"
-
-namespace poly::structures { class ShadeRec; }
 
 namespace poly::light
 {
@@ -14,20 +12,20 @@ namespace poly::light
 	{
 	public:
 		Light();
-		virtual atlas::math::Vector direction_get(poly::structures::ShadeRec &sr) = 0;
-		virtual Colour L(poly::structures::ShadeRec &sr) = 0;
+		virtual atlas::math::Vector direction_get(poly::structures::SurfaceInteraction& sr) = 0;
+		virtual Colour L(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) = 0;
 
 		void radiance_scale(float b);
 
-		void colour_set(Colour const &c);
+		void colour_set(Colour const& c);
 
 	protected:
 		float m_ls;
 		Colour m_colour;
 		float m_surface_epsilon;
 
-		virtual bool in_shadow(math::Ray<math::Vector> const &shadow_ray,
-							   poly::structures::ShadeRec const &sr);
+		virtual bool in_shadow(math::Ray<math::Vector> const& shadow_ray,
+			poly::structures::World const& world);
 	};
 } // namespace poly::light
 

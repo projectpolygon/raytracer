@@ -9,14 +9,14 @@ namespace poly::material
 		m_cd = tex;
 	}
 
-	Colour SV_LambertianBRDF::f([[maybe_unused]] poly::structures::ShadeRec const &sr,
+	Colour SV_LambertianBRDF::f([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 								[[maybe_unused]] atlas::math::Vector &w_o,
 								[[maybe_unused]] atlas::math::Vector &w_i) const
 	{
 		return m_kd * m_cd->colour_get(sr) * glm::one_over_pi<float>();
 	}
 
-	Colour SV_LambertianBRDF::rho([[maybe_unused]] poly::structures::ShadeRec const &sr,
+	Colour SV_LambertianBRDF::rho([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 								  [[maybe_unused]] atlas::math::Vector &w_o) const
 	{
 		return (Colour)(m_cd->colour_get(sr) * m_kd);

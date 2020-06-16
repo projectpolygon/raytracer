@@ -20,7 +20,7 @@ namespace poly::object
 		std::vector<double> rcoeffs_get(math::Ray<math::Vector> const &R) const;
 
 		bool hit(math::Ray<math::Vector> const &R,
-			poly::structures::ShadeRec &sr) const;
+			poly::structures::SurfaceInteraction&sr) const;
 
 		bool shadow_hit(math::Ray<math::Vector> const &R,
 			float &t) const;

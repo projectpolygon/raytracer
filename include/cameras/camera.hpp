@@ -6,7 +6,11 @@ namespace poly::camera {
 
     class Camera {
     public:
-        Camera() : m_eye{0,0,0}, m_lookat{0,0,-1}, m_up{0,1,0}, m_u{}, m_v{}, m_w{}, m_max_threads{ 1 } {}
+        Camera() 
+            : m_eye{0,0,0}, m_lookat{0,0,-1}, m_up{0,1,0}, m_u{}, m_v{}, m_w{}, m_max_threads{ 1 } 
+        {
+            // Do nothing
+        }
         virtual void render_slab(std::shared_ptr<poly::structures::scene_slab> slab) const = 0;
         virtual void render_scene(poly::structures::World& world) const = 0;
 

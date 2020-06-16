@@ -144,7 +144,7 @@ namespace poly::camera
 				// For anti-aliasing
 				for (int s = 0; s < max_num_samples; s++)
 				{
-					poly::structures::ShadeRec sr = poly::structures::ShadeRec(world);
+					poly::structures::SurfaceInteraction sr = poly::structures::SurfaceInteraction();
 					sr.m_colour = world.m_background;
 
 					std::vector<float> sample =
@@ -167,7 +167,7 @@ namespace poly::camera
 
 					if (sr.m_material)
 					{
-						average += sr.m_material->shade(sr);
+						average += sr.m_material->shade(sr, world);
 					}
 					else
 					{
@@ -207,7 +207,7 @@ namespace poly::camera
 				// For anti-aliasing
 				for (int s = 0; s < max_num_samples; s++)
 				{
-					poly::structures::ShadeRec sr = poly::structures::ShadeRec(world);
+					poly::structures::SurfaceInteraction sr;
 					sr.m_colour = world.m_background;
 					sr.depth = 0;
 
@@ -236,7 +236,7 @@ namespace poly::camera
 					// If we hit an object, it will have set the material
 					if (hit && sr.m_material)
 					{
-						average += sr.m_material->shade(sr);
+						average += sr.m_material->shade(sr, world);
 					}
 					else
 					{

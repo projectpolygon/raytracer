@@ -13,7 +13,7 @@ namespace poly::object
 	}
 
 	bool SmoothMeshUVTriangle::hit(atlas::math::Ray<math::Vector> const &R,
-					 poly::structures::ShadeRec &sr) const
+					 poly::structures::SurfaceInteraction &sr) const
 	{
 		float px = position.x;
 		float py = position.y;
@@ -81,7 +81,7 @@ namespace poly::object
 			return false;
 		}
 
-		// If this object is hit, set the shaderec with the relevant material and information about the hit point
+		// If this object is hit, set the SurfaceInteraction with the relevant material and information about the hit point
 		if (t < sr.m_tmin)
 		{
 			sr.m_ray = R;
@@ -89,8 +89,8 @@ namespace poly::object
 			sr.m_material = m_material;
 			if (m_uvs.size() == 3)
 			{
-				sr.u = interpolate_u(beta, gamma);
-				sr.v = interpolate_v(beta, gamma);
+				sr.m_u = interpolate_u(beta, gamma);
+				sr.m_v = interpolate_v(beta, gamma);
 			}
 			if (m_normals.size() == 3)
 			{

@@ -18,7 +18,7 @@ namespace poly::material {
                     float _ior,
                     float _exp);
 
-        Colour shade(poly::structures::ShadeRec& sr) const;
+        Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
     protected:
         std::shared_ptr<PerfectSpecular> m_reflected_brdf;
         std::shared_ptr<PerfectTransmitter> m_transmitted_btdf;

@@ -1,4 +1,5 @@
 #include "lights/point_light.hpp"
+#include "structures/world.hpp"
 
 namespace poly::light
 {
@@ -18,14 +19,14 @@ namespace poly::light
 		m_location = glm::normalize(location);
 	}
 
-	atlas::math::Vector PointLight::direction_get(poly::structures::ShadeRec &sr)
+	atlas::math::Vector PointLight::direction_get(poly::structures::SurfaceInteraction &sr)
 	{
 		math::Vector surface_point = sr.hitpoint_get();
 		return glm::normalize(m_location - surface_point);
 	}
 
 	bool PointLight::in_shadow(math::Ray<math::Vector> const &shadow_ray,
-							   poly::structures::ShadeRec const &sr)
+								poly::structures::World const& world)
 	{
 		float t{std::numeric_limits<float>::max()};
 
@@ -33,7 +34,7 @@ namespace poly::light
 		math::Vector line_between = m_location - shadow_ray.o;
 		float line_distance = sqrt(glm::dot(line_between, line_between));
 
-		for (std::shared_ptr<poly::object::Object> object : sr.m_world.m_scene)
+		for (std::shared_ptr<poly::object::Object> object : world.m_scene)
 		{
 			// If we hit an object with distance less than max
 			if (object->shadow_hit(shadow_ray, t) && t < line_distance)
@@ -45,14 +46,15 @@ namespace poly::light
 		return false;
 	}
 
-	Colour PointLight::L(poly::structures::ShadeRec &sr)
+	Colour PointLight::L(poly::structures::SurfaceInteraction &sr,
+		poly::structures::World const& world)
 	{
 		math::Point new_origin = sr.hitpoint_get();
 		math::Vector new_direction = glm::normalize(direction_get(sr));
 
 		math::Ray shadow_ray(new_origin + (m_surface_epsilon * new_direction),
 							 new_direction);
-		if (in_shadow(shadow_ray, sr))
+		if (in_shadow(shadow_ray, world))
 		{
 			return Colour(0.0f, 0.0f, 0.0f);
 		}

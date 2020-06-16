@@ -3,15 +3,15 @@
 
 namespace poly::light {
 
-        AmbientLight::AmbientLight() : Light() {}
+	AmbientLight::AmbientLight() : Light() {}
 
-        atlas::math::Vector AmbientLight::direction_get([[maybe_unused]] poly::structures::ShadeRec& sr)
-        {
-          return atlas::math::Vector(0.0f, 0.0f, 0.0f);
-        }
+	atlas::math::Vector AmbientLight::direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr)
+	{
+		return atlas::math::Vector(0.0f, 0.0f, 0.0f);
+	}
 
-        Colour AmbientLight::L([[maybe_unused]] poly::structures::ShadeRec& sr)
-        {
-          return m_colour * m_ls;
-        }
+	Colour AmbientLight::L([[maybe_unused]] poly::structures::SurfaceInteraction& sr, [[maybe_unused]] poly::structures::World const& world)
+	{
+		return m_colour * m_ls;
+	}
 }

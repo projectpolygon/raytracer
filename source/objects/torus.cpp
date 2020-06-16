@@ -70,12 +70,12 @@ namespace poly::object
 	}
 
 	bool Torus::hit(math::Ray<math::Vector> const &R,
-					poly::structures::ShadeRec &sr) const
+					poly::structures::SurfaceInteraction &sr) const
 	{
 		float t{std::numeric_limits<float>::max()};
 		bool intersect = this->closest_intersect_get(R, t);
 
-		// If this object is hit, set the shaderec with the relevant material and information about the hit point
+		// If this object is hit, set the SurfaceInteraction with the relevant material and information about the hit point
 		if (intersect && t < sr.m_tmin)
 		{
 			sr.m_normal = normal_get(R, t);

@@ -1,4 +1,4 @@
-#include "structures/shade_rec.hpp"
+#include "structures/surface_interaction.hpp"
 #include "BRDFs/glossy_specular.hpp"
 
 using namespace atlas;
@@ -8,7 +8,7 @@ namespace poly::material {
 	GlossySpecularBRDF::GlossySpecularBRDF()
     {
 		m_kd = 1.0f;
-		m_cd = random_colour_generate();
+		m_cd = poly::utils::random_colour_generate();
 		m_exp = 1.0f;
     }
 	
@@ -19,7 +19,7 @@ namespace poly::material {
 		m_exp = exp;
 	}
 	
-	Colour GlossySpecularBRDF::f([[maybe_unused]] poly::structures::ShadeRec const& sr,
+	Colour GlossySpecularBRDF::f([[maybe_unused]] poly::structures::SurfaceInteraction const& sr,
 		[[maybe_unused]] math::Vector& w_o,
 		[[maybe_unused]] math::Vector& w_i) const
 	{
@@ -33,7 +33,7 @@ namespace poly::material {
 		return L;
 	}
 	
-	Colour GlossySpecularBRDF::rho([[maybe_unused]] poly::structures::ShadeRec const& sr,
+	Colour GlossySpecularBRDF::rho([[maybe_unused]] poly::structures::SurfaceInteraction const& sr,
 		[[maybe_unused]] atlas::math::Vector& w_o) const
 	{
 		return Colour(0.0f, 0.0f, 0.0f);

@@ -37,7 +37,7 @@ namespace poly::texture
 		}
 	}
 
-	Colour ImageTexture::colour_get([[maybe_unused]] poly::structures::ShadeRec const &sr) const
+	Colour ImageTexture::colour_get([[maybe_unused]] poly::structures::SurfaceInteraction const &sr) const
 	{
 
 		int row, col;
@@ -47,8 +47,8 @@ namespace poly::texture
 		}
 		else
 		{
-			row = (int)(sr.v * (vres - 1)) % (vres - 1);
-			col = (int)(sr.u * (hres - 1)) % (hres - 1);
+			row = (int)(sr.m_v * (vres - 1)) % (vres - 1);
+			col = (int)(sr.m_u * (hres - 1)) % (hres - 1);
 		}
 
 		return image_data.at(row).at(col);

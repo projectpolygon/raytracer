@@ -10,7 +10,7 @@
 using Colour = atlas::math::Vector;
 
 namespace poly::utils {
-	struct BMP_info{
+	struct BMP_info {
 		int m_total_height;
 		int m_total_width;
 		int m_start_height;
@@ -18,11 +18,16 @@ namespace poly::utils {
 		int m_end_height;
 		int m_end_width;
 		std::vector<Colour> m_image;
+		BMP_info();
 	};
+
+	template<typename T, typename = std::enable_if<std::is_floating_point<T>::value>>
+	constexpr T pi = static_cast<T>(3.14159265358979323846);
+
+	void saveToBMP(std::string const& filename, poly::utils::BMP_info const& w);
+	void saveToBMP(nlohmann::json const& json, poly::utils::BMP_info const& w);
+
+	Colour random_colour_generate();
+
 }
-
-void saveToBMP(std::string const& filename, poly::utils::BMP_info& w);
-void saveToBMP(nlohmann::json const& json, poly::utils::BMP_info& w);
-
-Colour random_colour_generate();
 #endif // !UTILITY_HPP

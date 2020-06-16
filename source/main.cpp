@@ -9,6 +9,10 @@
 
 using namespace atlas;
 
+/*****************************
+---------BEGIN MAIN-----------
+******************************/
+
 int main(int argc, char** argv)
 {
 	if (argc != 2) {
