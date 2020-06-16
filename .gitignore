@@ -40,3 +40,5 @@ build
 flag.png
 include/utilities/paths.hpp
 
+*.bmp
+/.vs/VSWorkspaceState.json

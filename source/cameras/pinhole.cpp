@@ -96,6 +96,7 @@ namespace poly::camera
 							slabs.pop_back();
 							std::cout << "\r                                         ";
 							std::cout << "\rLOADING: " << ((float)slabs.size() * 100.0f / full_size) << "% to go. " << slabs.size() << " slabs left";
+							std::cout << std::flush;
 						}
 						this->render_slab(slab_ptr);
 					}
