@@ -345,7 +345,7 @@ namespace poly::structures
 	};
 
 	// INTERSECT a ray with the tree
-	bool KDTree::hit(const math::Ray<math::Vector> &ray, ShadeRec &sr) const
+	bool KDTree::hit(const math::Ray<math::Vector> &ray, SurfaceInteraction &sr) const
 	{
 		// First, check if we intersect the box at all
 		double tMin, tMax;

@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "structures/world.hpp"
 #include "lights/light.hpp"
 #include "textures/texture.hpp"
 #include "BRDFs/lambertian.hpp"
@@ -26,7 +27,7 @@ namespace poly::material
 	protected:
 		std::shared_ptr<SV_LambertianBRDF> m_diffuse;
 
-		Colour shade(poly::structures::ShadeRec &sr) const;
+		Colour shade(poly::structures::SurfaceInteraction&sr, poly::structures::World& world) const;
 	};
 } // namespace poly::material
 #endif // !SVMATTE_HPP

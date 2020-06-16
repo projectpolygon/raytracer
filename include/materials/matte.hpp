@@ -2,11 +2,12 @@
 
 #include <memory>
 
-#include <lights/light.hpp>
-#include <textures/texture.hpp>
-#include <BRDFs/lambertian.hpp>
-#include <textures/constant_colour.hpp>
-#include <textures/image_texture.hpp>
+#include "lights/light.hpp"
+#include "textures/texture.hpp"
+#include "BRDFs/lambertian.hpp"
+#include "textures/constant_colour.hpp"
+#include "textures/image_texture.hpp"
+#include "structures/world.hpp"
 
 namespace poly::material
 {
@@ -20,7 +21,7 @@ namespace poly::material
 	protected:
 		std::shared_ptr<LambertianBRDF> m_diffuse;
 
-		Colour shade(poly::structures::ShadeRec &sr) const;
+		Colour shade(poly::structures::SurfaceInteraction&sr, poly::structures::World const& world) const;
 	};
 
 } // namespace poly::material

@@ -2,7 +2,7 @@
 
 #include "objects/object.hpp"
 #include "structures/bounds.hpp"
-#include "structures/shade_rec.hpp"
+#include "structures/surface_interaction.hpp"
 
 namespace poly::object
 {
@@ -13,13 +13,13 @@ namespace poly::object
 	public:
 		Plane(math::Vector normal, math::Vector position);
 
-		bool closest_intersect_get(math::Ray<math::Vector> const &R,
-								   float &t_min) const;
-		bool hit(math::Ray<math::Vector> const &R,
-				 poly::structures::ShadeRec &sr) const;
+		bool closest_intersect_get(math::Ray<math::Vector> const& R,
+			float& t_min) const;
+		bool hit(math::Ray<math::Vector> const& R,
+			poly::structures::SurfaceInteraction& sr) const;
 
-		bool shadow_hit([[maybe_unused]] math::Ray<math::Vector> const &R,
-						[[maybe_unused]] float &t) const;
+		bool shadow_hit([[maybe_unused]] math::Ray<math::Vector> const& R,
+			[[maybe_unused]] float& t) const;
 
 	private:
 		math::Vector normal;

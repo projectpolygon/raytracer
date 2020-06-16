@@ -13,7 +13,7 @@ namespace poly::texture {
     class ImageTexture : public Texture {
     public:
         ImageTexture(std::string const& s);
-        Colour colour_get([[maybe_unused]] poly::structures::ShadeRec const& sr) const;
+        Colour colour_get([[maybe_unused]] poly::structures::SurfaceInteraction const& sr) const;
     private:
         int hres, vres;
         std::vector<std::vector<Colour>> image_data;

@@ -4,6 +4,7 @@
 
 #include "BRDFs/glossy_specular.hpp"
 #include "BRDFs/lambertian.hpp"
+#include "structures/world.hpp"
 
 namespace poly::material
 {
@@ -18,7 +19,7 @@ namespace poly::material
 		std::shared_ptr<LambertianBRDF> m_diffuse;
 		std::shared_ptr<GlossySpecularBRDF> m_specular;
 
-		virtual Colour shade(poly::structures::ShadeRec &sr) const;
+		virtual Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
 	};
 } // namespace poly::material
 #endif // !PHONGMAT_HPP

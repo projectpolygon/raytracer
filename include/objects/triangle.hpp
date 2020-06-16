@@ -3,39 +3,39 @@
 #include <atlas/math/math.hpp>
 #include <atlas/math/ray.hpp>
 #include "objects/object.hpp"
-#include "structures/shade_rec.hpp"
+#include "structures/surface_interaction.hpp"
 
 namespace poly::object {
 
-    class Triangle : public Object {
+	class Triangle : public Object {
 
-    public:
+	public:
 
-        Triangle(std::vector<math::Vector> vertices,
-                 math::Vector position);
+		Triangle(std::vector<math::Vector> vertices,
+			math::Vector position);
 
-        math::Vector normal_get() const;
+		math::Vector normal_get() const;
 
-        float t_get(const math::Ray<math::Vector>& R) const;
+		float t_get(const math::Ray<math::Vector>& R) const;
 
-        bool closest_intersect_get(math::Ray<math::Vector>const& R,
-                                   float& t_min) const;
+		bool closest_intersect_get(math::Ray<math::Vector>const& R,
+			float& t_min) const;
 
-        virtual bool hit(math::Ray<math::Vector>const& R,
-                         poly::structures::ShadeRec& sr) const;
+		virtual bool hit(math::Ray<math::Vector>const& R,
+			poly::structures::SurfaceInteraction& sr) const;
 
-        bool shadow_hit(math::Ray<math::Vector>const& R,
-                        float& t) const;
+		bool shadow_hit(math::Ray<math::Vector>const& R,
+			float& t) const;
 
-        void scale(math::Vector const& scale);
+		void scale(math::Vector const& scale);
 
-        void translate(math::Vector const& pos) ;
+		void translate(math::Vector const& pos);
 
-    protected:
+	protected:
 
-        std::vector<math::Vector> vertices;
-        math::Vector position;
+		std::vector<math::Vector> vertices;
+		math::Vector position;
 
-        void boundbox_calc();
-    };
+		void boundbox_calc();
+	};
 }

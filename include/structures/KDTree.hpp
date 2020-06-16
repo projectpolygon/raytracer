@@ -11,7 +11,7 @@ namespace poly::structures {
 	{
 	public:
 		//AcceleratorStruct();
-		virtual bool hit(const math::Ray<math::Vector> &ray, ShadeRec &sr) const = 0;
+		virtual bool hit(const math::Ray<math::Vector> &ray, SurfaceInteraction&sr) const = 0;
 		virtual bool shadow_hit(const math::Ray<math::Vector> &ray, float &t) const = 0;
 		virtual Bounds3D boundbox_get() const = 0;
 	};
@@ -62,7 +62,7 @@ namespace poly::structures {
 		struct KDToDo;
 
 		// INTERSECT a ray with the tree
-		bool hit(const math::Ray<math::Vector> &ray, ShadeRec &sr) const;
+		bool hit(const math::Ray<math::Vector> &ray, SurfaceInteraction &sr) const;
 
 		bool shadow_hit(const math::Ray<math::Vector> &ray, float &t) const;
 
