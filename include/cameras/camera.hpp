@@ -6,8 +6,7 @@ namespace poly::camera {
 
     class Camera {
     public:
-        Camera() = default;
-
+        Camera() : m_eye{0,0,0}, m_lookat{0,0,-1}, m_up{0,1,0}, m_u{}, m_v{}, m_w{}, m_max_threads{ 1 } {}
         virtual void render_slab(std::shared_ptr<poly::structures::scene_slab> slab) const = 0;
         virtual void render_scene(poly::structures::World& world) const = 0;
 
@@ -37,11 +36,17 @@ namespace poly::camera {
           this->m_w = w;
         };
 
+        void set_max_threads(std::size_t max)
+        {
+            m_max_threads = max;
+        }
+
     protected:
         atlas::math::Point m_eye;
         atlas::math::Point m_lookat;
         atlas::math::Point m_up;
         atlas::math::Vector m_u, m_v, m_w;
+        std::size_t m_max_threads;
     };
 
 }

@@ -2,202 +2,83 @@
 #include <cfloat>
 #include <memory>
 #include <zeus/timer.hpp>
+#include <nlohmann/json.hpp>
 
 #include "utilities/paths.hpp"
-#include "structures/shade_rec.hpp"
-#include "structures/world.hpp"
-#include "materials/material.hpp"
-#include "structures/view_plane.hpp"
-#include "tracers/whitted_tracer.hpp"
-#include "materials/matte.hpp"
-#include "materials/SV_matte.hpp"
-#include "samplers/jittered.hpp"
-#include "objects/triangle.hpp"
-#include "objects/smooth_uv_triangle.hpp"
-#include "objects/sphere.hpp"
-#include "materials/reflective.hpp"
-#include "materials/transparent.hpp"
-#include "objects/mesh.hpp"
-#include "objects/torus.hpp"
-#include "lights/ambient_occlusion.hpp"
-#include "lights/ambient.hpp"
-#include "lights/point_light.hpp"
-#include "lights/directional.hpp"
-#include "cameras/pinhole.hpp"
-#include "structures/KDTree.hpp"
-
-constexpr int MESH_MAX_DEPTH = 25;
-constexpr int MESH_MAX_LEAF_SIZE = 10;
+#include "utilities/parser.hpp"
 
 using namespace atlas;
 
-int main()
+int main(int argc, char** argv)
 {
+	if (argc != 2) {
+		std::cerr << "ERROR: you must specify a taskfile" << std::endl;
+		exit(1);
+	}
+
     // Time seed RNG
     srand((unsigned int)time(0));
 
-    std::shared_ptr<poly::structures::ViewPlane> vp = std::make_shared<poly::structures::ViewPlane>();
-    vp->hres = 1000;
-    vp->vres = 1000;
-    vp->max_depth = 5;
-    
-    // WORLD
-    poly::structures::World w = poly::structures::World();
-    w.m_vp = vp;
-    w.m_background = Colour(0.0f, 0.0f, 0.0f);
-    w.m_sampler = std::make_shared<poly::sampler::AA_Jittered>(9, 1);
-    w.m_slab_size = 50;
-    std::shared_ptr<poly::structures::WhittedTracer> w_tracer = std::make_shared<poly::structures::WhittedTracer>(&w);
-    w.m_tracer = w_tracer;
-    
-    // Textured triangle
-    std::vector<math::Point> points3 = { math::Point(-400.0f, -200.0f, 0.0f),
-                       math::Point(400.0f, -200.0f, 0.0f),
-                       math::Point(-400.0f,200.0f, 0.0f) };
-    std::vector<math::Vector2> uvs3 = { math::Vector2(0.0f, 0.0f),
-                       math::Vector2(1.0f,0.0f),
-                       math::Vector2(0.0, 1.0f) };
-    std::vector<math::Vector> flag_normals = { math::Vector(0.0f, 0.0f, 1.0f),
-        math::Vector(0.0f, 0.0f, 1.0f) ,
-        math::Vector(0.0f, 0.0f, 1.0f) };
-    std::shared_ptr<poly::material::SV_Matte> flag_tex
-      = std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png"));
+	/* 
+	Open the JSON file specified as the first argument to the program 
 
-    std::shared_ptr<poly::object::SmoothMeshUVTriangle> flag = std::make_shared<poly::object::SmoothMeshUVTriangle>(
-        points3,
-        uvs3,
-        flag_normals,
-        math::Vector(0.0f, -90.0f, -200.0f));
-    flag->material_set(flag_tex);
+	If the file cannot be parsed, or has incorrect parameters, the
+	program will automatically terminate with exit code 1
+	*/
+	std::clog << "INFO: reading taskfile '" << argv[1] << "' from directory '" << ShaderPath << "'"<< std::endl;
+	nlohmann::json taskfile;
+	try {
+		taskfile = poly::utils::open_json_file(std::string(ShaderPath).append(argv[1]).c_str());
+	}
+	catch (...) {
+		std::cerr << "ERROR: taskfile could not be parsed. Exiting..." << std::endl;
+		exit(1);
+	}
 
-    // Textured triangle
-    std::vector<math::Point> points4 = { math::Point(400.0f, -200.0f, 0.0f),
-        math::Point(400.0f,200.0f, 0.0f),
-        math::Point(-400.0f,200.0f, 0.0f) };
-    std::vector<math::Vector2> uvs4 = { math::Vector2(1.0f, 0.0f),
-        math::Vector2(1.0f,1.0f),
-        math::Vector2(0.0, 1.0f) };
-    std::shared_ptr<poly::object::SmoothMeshUVTriangle> flag2 = std::make_shared<poly::object::SmoothMeshUVTriangle>(
-        points4,
-        uvs4,
-        flag_normals,
-        math::Vector(0.0f, -90.0f, -200.0f));
-    flag2->material_set(flag_tex);
+	/* 
+	Create the world (objects, lights, materials, textures, image information)
+	If any object fails construction, the program will exit with code 1
+	*/
+	poly::structures::World world;
+	try{
+		world = poly::utils::create_world(taskfile);
+	}
+	catch (const nlohmann::detail::type_error& e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "ERROR: world could not be parsed. Exiting..." << std::endl;
+		exit(1);
+	}
+	
+	// Create the camera
+	poly::camera::PinholeCamera camera;
+	try {
+		camera = poly::utils::parse_camera(taskfile);
+	}
+	catch (const nlohmann::detail::type_error& e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "ERROR: camera could not be parsed. Exiting..." << std::endl;
+		exit(1);
+	}
+	
+	// Run a render on the specified number of threads
+	poly::utils::BMP_info output;
+	try {
+		output = poly::utils::BMP_info(poly::utils::create_output_container(taskfile));
+	} catch (const nlohmann::detail::type_error& e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "ERROR: output information could not be parsed" << std::endl;
+		exit(1);
+	}
 
-    // Mirrored Sphere
-    std::shared_ptr<poly::object::Sphere> mirrorsphere = std::make_shared<poly::object::Sphere>(
-        //math::Vector(0.0f, 100.0f, -100.0), 50.0f);
-        math::Vector(-90.0f, -50.0f, 100.0f), 30.0f);
-    mirrorsphere->material_set(std::make_shared<poly::material::Reflective>(0.9f, 0.05f, 0.5f, Colour(1.0f, 1.0f, 1.0f), 100.0f));
-    
-    // Transparent sphere
-    std::shared_ptr<poly::object::Sphere> bgsphere = std::make_shared<poly::object::Sphere>(
-        math::Vector(90.0f, -50.0f, 100.0f), 30.0f);
-    bgsphere->material_set(std::make_shared<poly::material::Transparent>(0.28f, 0.75f, 0.04f, 0.7f, Colour(0.1f, 0.1f, 1.0f), 1.02f, 100.0f));
+	zeus::Timer<float> render_timer = zeus::Timer<float>();
+	render_timer.start();
 
-    // Textured SUZANNE MESH
-//    Mesh m3 = Mesh(ShaderPath + std::string("suzanne.obj"),
-//        ShaderPath + std::string(""),
-//        math::Vector(0.0f, 0.0f, 0.0f));
-//    m3.material_set(std::make_shared<SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
-//    m3.scale(math::Vector(50.0f, 50.0f, 50.0f));
-//    m3.translate(math::Vector(0.0f, 120.0f, 100.0f));
-//    m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
+	camera.multithread_render_scene(world, output);
 
-    // Textured DRAGON MESH
-    poly::object::Mesh m3 = poly::object::Mesh(ShaderPath + std::string("suzanne.obj"),
-                   ShaderPath + std::string(""),
-                   math::Vector(0.0f, 0.0f, 0.0f));
-    m3.material_set(std::make_shared<poly::material::SV_Matte>(1.0f, ShaderPath + std::string("flag.png")));
-    m3.scale(math::Vector(50.0f, 50.0f, 50.0f));
-    m3.translate(math::Vector(0.0f, 120.0f, 100.0f));
-    m3.fake_uvs(); // Naively set the UV's to cover the image (normally wouldn't do this for a texture, just shows we can)
+	std::clog << "\nINFO: Time to render was: " << render_timer.elapsed() << std::endl;
 
-    // Matte Torus
-    std::shared_ptr<poly::object::Torus> torus = std::make_shared<poly::object::Torus>(math::Vector(0.0f, -60.0f, 200.0f), 20.0f, 10.0f);
-    torus->material_set(std::make_shared<poly::material::Matte>(0.8f, Colour(1.0f, 0.0f, 0.85f)));
+	// Create the required output file
+	saveToBMP(taskfile, output);
 
-    // AMBIENT LIGHTING
-    constexpr bool using_occlusion = true;
-    if (using_occlusion) {
-        // LIGHT: AMBIENT W/ OCCLUSION
-        std::shared_ptr<poly::light::AmbientOcclusion> ambocc = std::make_shared<poly::light::AmbientOcclusion>();
-        ambocc->sampler_set(std::make_shared<poly::sampler::AA_Jittered>(4, 1), 2.0f);
-        ambocc->colour_set(Colour(1.0f, 1.0f, 1.0f));
-        ambocc->radiance_scale(0.3f);
-        ambocc->min_amount_set(0.0f);
-        w.m_ambient = ambocc;
-    }
-    else {
-        // LIGHT: AMBIENT
-        std::shared_ptr<poly::light::AmbientLight> amb = std::make_shared<poly::light::AmbientLight>();
-        amb->colour_set(Colour(1.0f, 1.0f, 1.0f));
-        amb->radiance_scale(0.3f);
-        w.m_ambient = amb;
-    }
-
-    // LIGHT: POINT
-    std::shared_ptr<poly::light::PointLight> ptlt = std::make_shared<poly::light::PointLight>(
-    	math::Vector(0.0f, 100.0f, 500.0f));
-    ptlt->radiance_scale(0.8f);
-    w.m_lights.push_back(ptlt);
-
-    // LIGHT: DIRECTIONAL
-    std::shared_ptr<poly::light::DirectionalLight> dlt = std::make_shared<poly::light::DirectionalLight>();
-    dlt->radiance_scale(0.3f);
-    dlt->direction_set(math::Vector(1.0f, 1.0f, 1.0f)); 
-    //w.m_lights.push_back(dlt);
-
-    // CAMERA
-    poly::camera::PinholeCamera cam = poly::camera::PinholeCamera(400.0f);
-    cam.eye_set(atlas::math::Point(0.0f, 60.0f, 300.0f));
-    cam.lookat_set(atlas::math::Point(0.0f, 0.0f, 0.0f));
-    cam.upvec_set(atlas::math::Vector(0.0f, 1.0f, 0.0f));
-    cam.uvw_compute();
-
-    // start the timer
-    zeus::Timer<float> my_timer = zeus::Timer<float>();
-    my_timer.start();
-
-    std::vector<std::shared_ptr<poly::object::Object>> scene;
-
-    // add objects to the scene
-    scene.push_back(flag);
-    scene.push_back(flag2);
-    scene.push_back(mirrorsphere);
-    scene.push_back(bgsphere);
-    scene.push_back(torus);
-
-    constexpr bool accelerator_enabled = true;
-    if (accelerator_enabled) {
-        std::vector<std::shared_ptr<poly::object::Object>> object3_data;
-        m3.dump_to_list(object3_data);
-        scene.push_back(std::make_shared<poly::structures::KDTree>(object3_data, 80, 1, 0.5f, MESH_MAX_LEAF_SIZE, MESH_MAX_DEPTH));
-
-        // Create a KDT on the worlds' scene
-        std::shared_ptr<poly::structures::KDTree> kdt
-          = std::make_shared<poly::structures::KDTree>(scene, 80, 1, 0.5f, 5, 15);
-        w.m_scene.push_back(kdt);
-    }
-    else {
-        m3.dump_to_list(scene);
-        w.m_scene = scene;
-    }
-
-    constexpr bool mulithreading_enabled = true;
-    if (mulithreading_enabled)
-    {
-        // Render the scene using multiple threads
-        cam.multithread_render_scene(w, 4);
-    }
-    else {
-        // Render the scene using a single thread
-        cam.render_scene(w);
-    }
-
-    std::cout << "\nTime to render was: " << my_timer.elapsed() << std::endl;
-
-    saveToBMP("render.bmp", w.m_vp->hres, w.m_vp->vres, w.m_image);
-
-    return 0;
+	return 0;
 }
