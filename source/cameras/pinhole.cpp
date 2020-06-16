@@ -83,24 +83,27 @@ namespace poly::camera
 		std::clog << "INFO: rendering on " << num_threads << " threads" << std::endl;
 		for (std::size_t i = 0; i < num_threads; i++)
 		{
-			thread_list.push_back(std::thread([this, slablist_mutex, &slabs] {
-				std::shared_ptr<poly::structures::scene_slab> slab_ptr = nullptr;
-				size_t full_size = slabs.size();
-				while (true){
-					{ // sanity check scope for the mutex
-						const std::lock_guard<std::mutex> lock(*slablist_mutex);
-						if (slabs.empty())
-						{
-							break;
+			thread_list.push_back(std::thread(
+				[this, slablist_mutex, &slabs] {
+					std::shared_ptr<poly::structures::scene_slab> slab_ptr = nullptr;
+					size_t full_size = slabs.size();
+					while (true)
+					{
+						{ // sanity check scope for the mutex
+							const std::lock_guard<std::mutex> lock(*slablist_mutex);
+							if (slabs.empty())
+							{
+								break;
+							}
+							slab_ptr = slabs.back();
+							slabs.pop_back();
+							std::cout << "\r                                         ";
+							std::cout << "\rLOADING: " << ((float)slabs.size() * 100.0f / full_size) << "% to go. " << slabs.size() << " slabs left";
+							std::cout << std::flush;
 						}
-						slab_ptr = slabs.back();
-						slabs.pop_back();
-						std::cout << "\r                                         ";
-						std::cout << "\rLOADING: " << ((float)slabs.size() * 100.0f / full_size) << "% to go. " << slabs.size() << " slabs left";
+						this->render_slab(slab_ptr);
 					}
-					this->render_slab(slab_ptr);
-				}
-			}));
+				}));
 		}
 
 		// Join all the threads
