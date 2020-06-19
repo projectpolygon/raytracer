@@ -1,16 +1,16 @@
 #include <memory>
 #include "utilities/utilities.hpp"
-#include "structures/shade_rec.hpp"
+#include "structures/surface_interaction.hpp"
 #include "structures/world.hpp"
 
 namespace poly::structures
 {
 	SurfaceInteraction::SurfaceInteraction()
-		: m_material{ nullptr },
+		: m_u{},
+		m_v{}, 
+		m_material{ nullptr },
 		m_colour{ Colour(0.0f, 0.0f, 0.0f) },
-		m_normal{ math::Vector(0.0f, 0.0f, 0.0f) },
-		m_u{},
-		m_v{}
+		m_normal{}
 	{
 		// Initial distance to max object is m_tmin
 		m_tmin = std::numeric_limits<float>::max();

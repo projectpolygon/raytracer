@@ -12,10 +12,10 @@
 	"objects": [
 		{
 			"type": "mesh",
-			"object_file": "thanos.obj",
+			"object_file": "suzanne.obj",
 			"material_file": "",
 			"position": [ 0.0, 0.0, 0.0 ],
-			"scale": [ 10.0, 10.0, 10.0 ],
+			"scale": [ 100.0, 100.0, 100.0 ],
 			"material": {
 				"type": "matte",
 				"diffuse": 0.8,
@@ -26,8 +26,8 @@
 	"camera": {
 		"type": "pinhole",
 		"distance": 500.0,
-		"eye": [ 0.0, 1500.0, 3000.0 ],
-		"lookat": [ 0.0, 800.0, 0.0 ],
+		"eye": [ 0.0, 100.0, 300.0 ],
+		"lookat": [ 0.0, 0.0, 0.0 ],
 		"up": [ 0.0, 1.0, 0.0 ],
 		"sampler": {
 			"type": "jittered",
