@@ -1,0 +1,135 @@
+{
+  "image_height": 720,
+  "image_width": 1080,
+  "background": [ 0.0, 0.0, 0.0 ],
+  "max_depth": 5,
+  "max_threads": 12,
+  "slab_startx": 0,
+  "slab_starty": 0,
+  "slab_endx": 1080,
+  "slab_endy": 720,
+  "slab_size": 75,
+  "objects": [
+    {
+      "type": "plane",
+      "normal": [ 0.0, 1.0, 0.0 ],
+      "position": [ 0.0, 0.0, 0.0 ],
+      "material": {
+        "type": "matte",
+        "diffuse": 1.0,
+        "colour": [ 0.478, 0.961, 0.824 ]
+      }
+    },
+    {
+      "type": "plane",
+      "normal": [ 1.0, 0.0, 0.0 ],
+      "position": [ -100.0, 0.0, 0.0 ],
+      "material": {
+        "type": "matte",
+        "diffuse": 1.0,
+        "colour": [ 0.909, 0.961, 0.478 ]
+      }
+    },
+    {
+      "type": "plane",
+      "normal": [ -1.0, 0.0, 0.0 ],
+      "position": [ 100.0, 0.0, 0.0 ],
+      "material": {
+        "type": "matte",
+        "diffuse": 1.0,
+        "colour": [ 0.227, 0.909, 0.556 ]
+      }
+    },
+    {
+      "type": "plane",
+      "normal": [ 0.0, -1.0, 0.0 ],
+      "position": [ 0.0, 200.0, 0.0 ],
+      "material": {
+        "type": "matte",
+        "diffuse": 1.0,
+        "colour": [ 0.227, 0.407, 0.909 ]
+      }
+    },
+    {
+      "type": "plane",
+      "normal": [ 0.0, 0.0, 1.0 ],
+      "position": [ 0.0, 100.0, 300.0 ],
+      "material": {
+        "type": "matte",
+        "diffuse": 1.0,
+        "colour": [ 0.0, 0.0, 0.0 ]
+      }
+    },
+    {
+      "type": "plane",
+      "normal": [ 0.0, 0.0, -1.0 ],
+      "position": [ 0.0, 100.0, -100.0 ],
+      "material": {
+        "type": "matte",
+        "diffuse": 1.0,
+        "colour": [ 1.0, 0.0, 0.0 ]
+      }
+    },
+    {
+      "type": "sphere",
+      "centre": [ -20.0, 20.0, 150.0 ],
+      "radius": 20.0,
+      "material": {
+        "type": "reflective",
+        "reflective": 0.9,
+        "spectral": 0.05,
+        "diffuse": 0.5,
+        "colour": [ 1.0, 1.0, 1.0 ],
+        "tightness": 100.0
+      }
+    },
+    {
+      "type": "sphere",
+      "centre": [ 25.0, 20.0, 170.0 ],
+      "radius": 20.0,
+      "material": {
+        "type": "transparent",
+        "reflective": 0.28,
+        "transparent": 0.75,
+        "spectral": 0.04,
+        "diffuse": 0.7,
+        "colour": [ 0.7, 0.7, 0.7 ],
+        "index": 1.6,
+        "tightness": 100.0
+      }
+    }
+  ],
+  "camera": {
+    "type": "pinhole",
+    "distance": 500.0,
+    "eye": [ 0.0, 60.0, 300.0 ],
+    "lookat": [ 0.0, 60.0, 0.0 ],
+    "up": [ 0.0, 1.0, 0.0 ],
+    "sampler": {
+      "type": "jittered",
+      "samples": 4,
+      "sets": 1
+    }
+  },
+  "lights": [
+    {
+      "type": "point",
+      "intensity": 1.5,
+      "colour": [ 1.0, 1.0, 1.0 ],
+      "position": [ 0.0, 100.0, 150.0 ]
+    },
+    {
+      "type": "ambient_occlusion",
+      "sampler": {
+        "type": "jittered",
+        "samples": 4,
+        "sets": 1
+      },
+      "tightness": 1.0,
+      "intensity": 0.1,
+      "colour": [ 1.0, 1.0, 1.0 ],
+      "min_amount": 0.0
+    }
+  ],
+  "output_file": "task1.bmp"
+}
