@@ -18,7 +18,7 @@ namespace poly::material
 	{
 		// Render loop
 		Colour r = Colour(0.0f, 0.0f, 0.0f);
-		Colour a;
+		Colour a = Colour(0.0f, 0.0f, 0.0f);
 		atlas::math::Vector nullVec(0.0f, 0.0f, 0.0f);
 
 		if (world.m_ambient)

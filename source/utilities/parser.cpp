@@ -22,7 +22,7 @@ namespace poly::utils {
 	Creates an atlas vector object from JSON
 
 	@param vector_json the JSON formatted list of size 3 used to represent a 3D vector
-	
+
 	@return the parsed vector object
 	*/
 	math::Vector parse_vector(nlohmann::json vector_json)
@@ -38,28 +38,30 @@ Creates a new material from JSON specifiction
 
 @return the parsed Material as a shared pointer
 */
-		std::shared_ptr<poly::material::Material> parse_material(nlohmann::json material_json)
-		{
-			auto material_type = material_json["type"];
-			if (material_type == "matte") {
-				return std::make_shared<poly::material::Matte>(
-					material_json["diffuse"], Colour{parse_vector(material_json["colour"])});
-			} else if (material_type == "reflective") {
-				return std::make_shared<poly::material::Reflective>(material_json["reflective"],
-					material_json["diffuse"], material_json["spectral"], parse_vector(material_json["colour"]),
-					material_json["tightness"]);
-			} else if (material_type == "transparent") {
-				return std::make_shared<poly::material::Transparent>(material_json["reflective"],
-					 material_json["transparent"], material_json["diffuse"],
-					 material_json["spectral"],
-
-					 parse_vector(material_json["colour"]),
-					 material_json["index"], material_json["tightness"]);
-			}
-			else {
-				throw std::runtime_error("incorrect material parameters");
-			}
+	std::shared_ptr<poly::material::Material> parse_material(nlohmann::json material_json)
+	{
+		auto material_type = material_json["type"];
+		if (material_type == "matte") {
+			return std::make_shared<poly::material::Matte>(
+				material_json["diffuse"], Colour{ parse_vector(material_json["colour"]) });
 		}
+		else if (material_type == "reflective") {
+			return std::make_shared<poly::material::Reflective>(material_json["reflective"],
+				material_json["diffuse"], material_json["spectral"], parse_vector(material_json["colour"]),
+				material_json["tightness"]);
+		}
+		else if (material_type == "transparent") {
+			return std::make_shared<poly::material::Transparent>(material_json["reflective"],
+				material_json["transparent"], material_json["diffuse"],
+				material_json["spectral"],
+
+				parse_vector(material_json["colour"]),
+				material_json["refractive_index"], material_json["tightness"]);
+		}
+		else {
+			throw std::runtime_error("incorrect material parameters");
+		}
+	}
 
 	/**
 	Opens and parses a file given its name in the current directory.
@@ -121,17 +123,17 @@ Creates a new material from JSON specifiction
 		}
 	}
 
-		/*
-		 * Adds json data about object to a world object by reference
-		 */
-		void parse_objects(poly::structures::World& w, nlohmann::json& task)
-		{
-			for (auto obj : task["objects"]) {
-				if (obj["type"] == "mesh") {
-					std::string path_to_object(ShaderPath);
-					path_to_object.append(obj["object_file"]);
-					std::string path_to_material(ShaderPath);
-					path_to_material.append(obj["material_file"]);
+	/*
+	 * Adds json data about object to a world object by reference
+	 */
+	void parse_objects(poly::structures::World& w, nlohmann::json& task)
+	{
+		for (auto obj : task["objects"]) {
+			if (obj["type"] == "mesh") {
+				std::string path_to_object(ShaderPath);
+				path_to_object.append(obj["object_file"]);
+				std::string path_to_material(ShaderPath);
+				path_to_material.append(obj["material_file"]);
 
 				std::vector<std::shared_ptr<poly::object::Object>> object_list;
 
@@ -144,63 +146,73 @@ Creates a new material from JSON specifiction
 				//s->translate(parse_vector(obj["position"]));
 				s->dump_to_list(object_list);
 
-					w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 30, 0.75f, 10, 50));
-				}
-				else if (obj["type"] == "sphere") {
-					std::shared_ptr<poly::object::Sphere> s =
-						std::make_shared<poly::object::Sphere>(parse_vector(obj["centre"]), obj["radius"]);
-
-					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
-					s->material_set(material);
-					w.m_scene.push_back(s);
-				} 
-				else if (obj["type"] == "torus") {
-					std::shared_ptr<poly::object::Torus> s =
-						std::make_shared<poly::object::Torus>(parse_vector(obj["centre"]), obj["inner_radius"], obj["outer_radius"]);
+				w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 30, 0.75f, 10, 50));
+			}
+			else if (obj["type"] == "sphere") {
+				std::shared_ptr<poly::object::Sphere> s =
+					std::make_shared<poly::object::Sphere>(parse_vector(obj["centre"]), obj["radius"]);
+				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+				s->material_set(material);
+				w.m_scene.push_back(s);
+			}
+			else if (obj["type"] == "torus") {
+				std::shared_ptr<poly::object::Torus> s =
+					std::make_shared<poly::object::Torus>(parse_vector(obj["centre"]), obj["inner_radius"], obj["outer_radius"]);
 
 				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
 
-					s->material_set(material);
-					w.m_scene.push_back(s);
-				}
-				else if (obj["type"] == "triangle") {
-					//std::vector<std::vector<float>> points = obj["points"];
-					std::vector<math::Vector> points = {parse_vector(obj["points"][0]), parse_vector(obj["points"][1]), parse_vector(obj["points"][2])};
-					math::Vector position = parse_vector(obj["position"]);
-					std::shared_ptr<poly::object::Triangle> s =
-						std::make_shared<poly::object::Triangle>(points, position);
+				s->material_set(material);
+				w.m_scene.push_back(s);
+			}
+			else if (obj["type"] == "triangle") {
+				//std::vector<std::vector<float>> points = obj["points"];
+				std::vector<math::Vector> points = { parse_vector(obj["points"][0]), parse_vector(obj["points"][1]), parse_vector(obj["points"][2]) };
+				math::Vector position = parse_vector(obj["position"]);
+				std::shared_ptr<poly::object::Triangle> s =
+					std::make_shared<poly::object::Triangle>(points, position);
 
-					std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
-					s->material_set(material);
-					w.m_scene.push_back(s);
-				}
-				else {
-					throw std::runtime_error("ERROR: object type not supported");
-				}
+				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+				s->material_set(material);
+				w.m_scene.push_back(s);
+			}
+			else if (obj["type"] == "plane") {
+				math::Vector normal = parse_vector(obj["normal"]);
+				math::Vector position = parse_vector(obj["position"]);
+				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+				std::shared_ptr<poly::object::Plane> p = std::make_shared<poly::object::Plane>(normal, position);
+				p->material_set(material);
+				w.m_scene.push_back(p);
+			}
+			else {
+				std::cerr << "Type: " << obj["type"] << " not suppported" << std::endl;
+				throw std::runtime_error("ERROR: object type %s not supported");
 			}
 		}
+	}
 
-		/*
-		 * Parses a json array of lights and adds them to the world
-		 */
-		void parse_light(poly::structures::World& w, nlohmann::json& task)
-		{
-			for (auto light : task["lights"]) {
-				std::shared_ptr<poly::light::Light> l;
-				if (light["type"] == "point") {
-					l = std::make_shared<poly::light::PointLight>(parse_vector(light["position"]));
-					l->radiance_scale(light["intensity"]);
-					w.m_lights.push_back(l);
-				} else if (light["type"] == "ambient"){
-					l = std::make_shared<poly::light::AmbientLight>();
-					l->colour_set(parse_vector(light["colour"]));
-					l->radiance_scale(light["intensity"]);
-					w.m_ambient = l;
-				} else {
-					throw std::runtime_error("Incorrect light parameters");
-				}
+	/*
+	 * Parses a json array of lights and adds them to the world
+	 */
+	void parse_light(poly::structures::World& w, nlohmann::json& task)
+	{
+		for (auto light : task["lights"]) {
+			std::shared_ptr<poly::light::Light> l;
+			if (light["type"] == "point") {
+				l = std::make_shared<poly::light::PointLight>(parse_vector(light["position"]));
+				l->radiance_scale(light["intensity"]);
+				w.m_lights.push_back(l);
+			}
+			else if (light["type"] == "ambient") {
+				l = std::make_shared<poly::light::AmbientLight>();
+				l->colour_set(parse_vector(light["colour"]));
+				l->radiance_scale(light["intensity"]);
+				w.m_ambient = l;
+			}
+			else {
+				throw std::runtime_error("Incorrect light parameters");
 			}
 		}
+	}
 
 	/**
 	Creates a world given JSON parameters
@@ -209,7 +221,7 @@ Creates a new material from JSON specifiction
 
 	@throws nlohmann::detail::type_error if one or more parameters do not exist
 
-	@return poly::structures::World object 
+	@return poly::structures::World object
 	*/
 	poly::structures::World create_world(nlohmann::json& task)
 	{

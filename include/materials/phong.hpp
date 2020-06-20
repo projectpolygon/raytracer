@@ -15,11 +15,11 @@ namespace poly::material
 		Phong();
 		Phong(float f_diffuse, float f_spec, Colour c, float exp);
 
+		virtual Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
 	protected:
 		std::shared_ptr<LambertianBRDF> m_diffuse;
 		std::shared_ptr<GlossySpecularBRDF> m_specular;
 
-		virtual Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
 	};
 } // namespace poly::material
 #endif // !PHONGMAT_HPP

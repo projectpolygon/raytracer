@@ -35,16 +35,16 @@ namespace poly::material
 		// If we have internal reflection, then the ray does not transmit
 		if (m_transmitted_btdf->tot_int_refl(sr))
 		{
-			L += world.m_tracer->trace_ray(reflected_ray, sr.depth + 1);
+			L += world.m_tracer->trace_ray(reflected_ray, world, sr.depth + 1);
 		}
 		else
 		{
-			L += reflected_colour * world.m_tracer->trace_ray(reflected_ray, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_r));
+			L += reflected_colour * world.m_tracer->trace_ray(reflected_ray, world, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_r));
 
 			math::Vector w_t;
 			Colour transmitted_colour = m_transmitted_btdf->sample_f(sr, w_o, w_t);
 			math::Ray<math::Vector> transmitted_ray(sr.hitpoint_get(), w_t);
-			L += transmitted_colour * sr.m_world.m_tracer->trace_ray(transmitted_ray, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_t));
+			L += transmitted_colour * world.m_tracer->trace_ray(transmitted_ray, world, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_t));
 		}
 
 		return L;
