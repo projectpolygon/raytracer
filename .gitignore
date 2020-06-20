@@ -50,3 +50,4 @@ include/utilities/paths.hpp
 
 # dotfile configurations
 .*
+/cmake-build-debug
