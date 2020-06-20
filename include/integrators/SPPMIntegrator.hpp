@@ -1,17 +1,16 @@
-#include "integrators/SPPMIntegrator.hpp"
+#ifndef INTEGRATOR_HPP
+#define INTEGRATOR_HPP
+
+
+#include "structures/world.hpp"
 
 namespace poly::integrators {
-	SPPMIntegrator::SPPMIntegrator()
-	{
-	
-	}
+	class SPPMIntegrator {
+	public:
+		SPPMIntegrator();
+		void render(poly::structures::World const& world, poly::utils::BMP_info& output);
 
-	void SPPMIntegrator::render(poly::structures::World const& world, poly::utils::BMP_info& output)
-	{
-		(void)output;
-		(void)world;
-	
-	}
+	};
 }
 /**
 Steps:
@@ -24,3 +23,4 @@ the entire algorithm repeats for N iterations
 PSEUDOCODE FOR ALGORITHM
 
 */
+#endif // !INTEGRATOR_HPP

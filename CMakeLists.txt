@@ -81,6 +81,7 @@ source_group("source\\structures" FILES ${POLY_SOURCE_STRUCTURE_GROUP})
 source_group("source\\textures" FILES ${POLY_SOURCE_TEXTURE_GROUP})
 source_group("source\\tracers" FILES ${POLY_SOURCE_TRACER_GROUP})
 source_group("source\\utilities" FILES ${POLY_SOURCE_UTILITY_GROUP})
+source_group("source\\integrators" FILES ${POLY_SOURCE_INTEGRATOR_GROUP})
 
 # --------------------
 # Link against Atlas
