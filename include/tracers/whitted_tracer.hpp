@@ -4,6 +4,9 @@
 
 #include "tracers/tracer.hpp"
 #include "structures/world.hpp"
+#include "structures/surface_interaction.hpp"
+#include "structures/view_plane.hpp"
+#include "objects/object.hpp"
 
 namespace poly::structures {
 	class WhittedTracer : public Tracer 

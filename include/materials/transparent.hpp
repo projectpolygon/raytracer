@@ -4,6 +4,7 @@
 #include "BRDFs/perfect_specular.hpp"
 #include "BTDFs/perfect_transmitter.hpp"
 #include "materials/phong.hpp"
+#include "tracers/tracer.hpp"
 
 namespace poly::material {
 
@@ -18,6 +19,9 @@ namespace poly::material {
                     float _ior,
                     float _exp);
         Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
+
+		void trace_photon(const poly::structures::Photon& p, std::vector<poly::structures::Photon>& photons,
+						  unsigned int max_depth) const;
     protected:
         std::shared_ptr<PerfectSpecular> m_reflected_brdf;
         std::shared_ptr<PerfectTransmitter> m_transmitted_btdf;

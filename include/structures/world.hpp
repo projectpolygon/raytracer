@@ -5,18 +5,19 @@
 
 #include <memory>
 #include <vector>
-#include "samplers/sampler.hpp"
-#include "structures/view_plane.hpp"
-#include "tracers/tracer.hpp"
-#include "objects/object.hpp"
-#include "lights/light.hpp"
+#include <atlas/math/math.hpp>
 
 namespace poly::light { class Light; }
 namespace poly::object { class Object; }
+namespace poly::sampler { class Sampler; }
+namespace poly::light { class Light; }
+
+using Colour = atlas::math::Vector;
 
 namespace poly::structures {
 
     class Tracer; // avoids non-declaration in circular dependancy
+	class ViewPlane;
 
     class World {
     public:

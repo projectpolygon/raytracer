@@ -14,4 +14,9 @@ namespace poly::light {
 	{
 		return m_colour * m_ls;
 	}
+
+	math::Point AmbientLight::location() const
+    {
+	    return math::Point{0.0f, 0.0f, 0.0f};
+    }
 }

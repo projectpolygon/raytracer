@@ -44,4 +44,18 @@ namespace poly::material
 
 		return (a + r);
 	}
+
+	void Matte::trace_photon(const structures::Photon &p, std::vector<poly::structures::Photon> &photons,
+							 unsigned int max_depth) const {
+		if (p.depth() >= max_depth) {
+			photons.push_back(p);
+			return;
+		}
+
+		float partition = m_diffuse->kd();
+		float rgn = (float(rand()) / float(std::numeric_limits<int>::max()));
+		if (rgn > partition) {
+			p.reflect(partition);
+		}
+	}
 } // namespace poly::material

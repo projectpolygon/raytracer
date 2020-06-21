@@ -1,12 +1,9 @@
 #include <vector>
 #include <iostream>
+#include <thread>
 #include "utilities/utilities.hpp"
 #include "integrators/SPPMIntegrator.hpp"
-#include "structures/world.hpp"
-#include "structures/scene_slab.hpp"
-#include "structures/KDTree.hpp"
-#include "cameras/pinhole.hpp"
-#include "structures/bounds.hpp"
+
 
 std::size_t TOTAL_NUM = 0;
 std::size_t TOTAL_SLAB = 0;
@@ -48,7 +45,7 @@ namespace poly::integrators {
 
 				/* -------- SECOND PASS -------- */
 				/* ------- PHOTON POINTS ------- */
-				/* 
+				/*
 				For each light
 					shoot photons from the light
 					for each photon shot
@@ -65,6 +62,43 @@ namespace poly::integrators {
 
 		}
 
+	}
+
+	std::vector<poly::structures::Photon> photon_mapping(const poly::structures::World& world)
+	{
+		std::size_t photon_count = 100000;
+
+		std::vector<poly::structures::Photon> photons;
+
+		for (auto light: world.m_lights) {
+			for (std::size_t i{0}; i < photon_count; ++i) {
+				float x, y, z;
+				do {
+					x = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
+					y = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
+					z = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
+				} while (x * x + y * y + z * z);
+
+				math::Vector d{x, y, z};
+				math::Point o{light->location()};
+				math::Ray<math::Vector> photon_ray{o, d};
+				structures::SurfaceInteraction si;
+				bool is_hit{false};
+				for (auto obj: world.m_scene) {
+					if (obj->hit(photon_ray, si))
+						is_hit = true;
+				}
+
+				if (is_hit) {
+					poly::structures::Photon p =
+						poly::structures::Photon(si.hitpoint_get(), photon_ray,
+							si.m_normal, light->ls() / photon_count);
+
+					si.m_material->trace_photon(p, photons, world.m_vp->max_depth);
+				}
+			}
+		}
+		return photons;
 	}
 
 	std::vector<std::shared_ptr<poly::object::Object>> SPPMIntegrator::create_visible_points(std::shared_ptr<poly::structures::scene_slab> slab,

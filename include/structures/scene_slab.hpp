@@ -4,6 +4,7 @@
 #include <mutex>
 #include <memory>
 #include "structures/world.hpp"
+#include "structures/view_plane.hpp"
 
 namespace poly::structures {
 

@@ -45,4 +45,9 @@ namespace poly::material {
 
 		return (a + r);
 	}
+
+	void SV_Matte::trace_photon([[maybe_unused]] const structures::Photon &p, [[maybe_unused]] std::vector<poly::structures::Photon> &photons,
+								[[maybe_unused]] unsigned int max_depth) const {
+
+	}
 }

@@ -30,4 +30,9 @@ namespace poly::material
 		return L;
 	}
 
+	void Reflective::trace_photon(const structures::Photon &p, std::vector<poly::structures::Photon> &photons,
+								  unsigned int max_depth) const {
+		Phong::trace_photon(p, photons, max_depth);
+	}
+
 } // namespace poly::material

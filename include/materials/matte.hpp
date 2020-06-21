@@ -18,6 +18,9 @@ namespace poly::material
 		Matte();
 		Matte(float f, Colour const &c);
 
+		void trace_photon(const poly::structures::Photon& p, std::vector<poly::structures::Photon>& photons,
+						  unsigned int max_depth) const;
+
 	protected:
 		std::shared_ptr<LambertianBRDF> m_diffuse;
 

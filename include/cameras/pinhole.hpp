@@ -4,6 +4,11 @@
 #include "cameras/camera.hpp"
 #include "structures/world.hpp"
 #include "structures/scene_slab.hpp"
+#include "utilities/utilities.hpp"
+#include "structures/view_plane.hpp"
+#include "samplers/sampler.hpp"
+#include "objects/object.hpp"
+#include "structures/surface_interaction.hpp"
 #include <atlas/math/ray.hpp>
 
 namespace poly::camera {
@@ -32,7 +37,7 @@ namespace poly::camera {
         */
         void multithread_render_scene(poly::structures::World& world, poly::utils::BMP_info& output);
         void render_scene(poly::structures::World& world) const;
-        math::Ray<atlas::math::Vector> get_ray(int i, int j, poly::structures::World const& world) const;
+        atlas::math::Ray<atlas::math::Vector> get_ray(int i, int j, poly::structures::World const& world) const;
 
     private:
         void render_slab(std::shared_ptr<poly::structures::scene_slab> slab) const;

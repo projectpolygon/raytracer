@@ -1,6 +1,4 @@
-#include "structures/world.hpp"
 #include "tracers/whitted_tracer.hpp"
-#include "structures/surface_interaction.hpp"
 
 using namespace atlas;
 

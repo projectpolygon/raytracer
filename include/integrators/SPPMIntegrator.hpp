@@ -4,9 +4,14 @@
 
 #include "structures/world.hpp"
 #include "objects/object.hpp"
-#include "structures/scene_slab.hpp"
 #include "cameras/pinhole.hpp"
 #include "materials/material.hpp"
+#include "structures/scene_slab.hpp"
+#include "structures/KDTree.hpp"
+#include "cameras/pinhole.hpp"
+#include "structures/bounds.hpp"
+#include "structures/photon.hpp"
+#include "lights/light.hpp"
 
 namespace poly::integrators {
 
