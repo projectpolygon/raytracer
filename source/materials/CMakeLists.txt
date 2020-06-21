@@ -4,6 +4,8 @@ set(MATERIAL_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/reflective.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SV_matte.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/transparent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/material.cpp
+
 )
 set(POLY_SOURCE_MATERIAL_LIST ${MATERIAL_SOURCE} PARENT_SCOPE)
 target_sources(raytracer PRIVATE "${MATERIAL_SOURCE}")

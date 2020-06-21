@@ -26,7 +26,7 @@ namespace poly::structures {
 		return m_intensity;
 	}
 
-	void Photon::intensity(float intensity)
+	void Photon::intensity(const float intensity)
 	{
 		m_intensity = intensity;
 	}

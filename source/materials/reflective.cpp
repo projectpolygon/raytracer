@@ -30,8 +30,10 @@ namespace poly::material
 		return L;
 	}
 
-	void Reflective::trace_photon([[maybe_unused]] structures::Photon &p, [[maybe_unused]] std::vector<poly::structures::Photon> &photons,
-								  [[maybe_unused]] unsigned int max_depth, [[maybe_unused]] std::vector<std::shared_ptr<poly::object::Object>> scene) const {
+	void Reflective::absorb_photon(structures::Photon &photon,  std::vector<poly::structures::Photon> &photons,
+								   unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const
+	{
+
 	}
 
 } // namespace poly::material

@@ -20,8 +20,8 @@ namespace poly::material {
                     float _exp);
         Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
 
-		void trace_photon(poly::structures::Photon& p, std::vector<poly::structures::Photon>& photons,
-						  unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+		void absorb_photon(poly::structures::Photon& p, std::vector<poly::structures::Photon>& photons,
+						   unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const;
     protected:
         std::shared_ptr<PerfectSpecular> m_reflected_brdf;
         std::shared_ptr<PerfectTransmitter> m_transmitted_btdf;

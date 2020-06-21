@@ -45,9 +45,24 @@ namespace poly::material {
 		return (a + r);
 	}
 
-	void Phong::trace_photon([[maybe_unused]] structures::Photon &p, [[maybe_unused]] std::vector<poly::structures::Photon> &photons,
-							 [[maybe_unused]] unsigned int max_depth, [[maybe_unused]] std::vector<std::shared_ptr<poly::object::Object>> scene) const
+	void Phong::absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
+							  unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const
 	{
+		if (photon.depth() >= max_depth) {
+			photons.push_back(photon);
+			return;
+		}
 
+		float specular_kd = m_specular->kd();
+		float diffuse_kd = m_diffuse->kd();
+		float total = diffuse_kd + specular_kd;
+
+		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+
+		if (rgn < specular_kd) {
+			bounce_photon(photon, photons, max_depth, scene, (specular_kd / total));
+		}
+		photon.intensity(photon.intensity() * (diffuse_kd / total));
+		photons.push_back(photon);
 	}
 }
