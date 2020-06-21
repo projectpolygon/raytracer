@@ -113,7 +113,7 @@ namespace poly::integrators {
 	===============================
 	*/
 
-	VisiblePoint::VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, float amount_, std::shared_ptr<poly::material::Material> material_)
+	VisiblePoint::VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, Colour amount_, std::shared_ptr<poly::material::Material> material_)
 		: index_x{ x_ }, index_y{ y_ }, point(point_), w_i(incoming_ray_), amount{amount_}, material(material_)
 	{
 		// ensure that our bounds are set
