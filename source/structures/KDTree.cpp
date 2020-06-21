@@ -69,6 +69,9 @@ namespace poly::structures
 			std::clog << "INFO: KD-Tree max tree height not set. Auto-configuring to use " << max_tree_height << std::endl;
 		}
 
+		// Sanity check that we HAVE objects
+		assert(p.size() > 0);
+
 		// Generate the bounding for the tree
 		std::vector<Bounds3D> primBounds;
 		m_bounds = objects.at(0)->boundbox_get();
