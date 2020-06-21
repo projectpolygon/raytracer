@@ -29,4 +29,5 @@ namespace poly::material
 	{
 		return (Colour)(m_cd * m_kd);
 	}
+
 } // namespace poly::material
