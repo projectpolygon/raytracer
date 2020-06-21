@@ -18,7 +18,7 @@ namespace poly::integrators {
 	class VisiblePoint : public poly::object::Object
 	{
 	public:
-		VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, std::shared_ptr<poly::material::Material> material_);
+		VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, Colour amount_, std::shared_ptr<poly::material::Material> material_);
 		// Provided to allow compatibility with Object type
 		bool hit(math::Ray<math::Vector>const& R,
 			poly::structures::SurfaceInteraction& sr) const;
@@ -33,6 +33,9 @@ namespace poly::integrators {
 
 		// Direction of the incoming ray ( points toward the camera!)
 		math::Vector w_i;
+
+		// Amount of the photon's luminance we allow to contribute to this point
+		Colour amount;
 
 		// Material of the object that the VisiblePoint is on
 		std::shared_ptr<poly::material::Material> material;

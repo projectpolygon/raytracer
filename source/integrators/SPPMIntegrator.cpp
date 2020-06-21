@@ -133,7 +133,7 @@ namespace poly::integrators {
 				// If we have hit an object, create a visible point at the surface interaction point
 				if (hit && sr.m_material) {
 					// Add this visible point to our vector
-					visiblePoints.push_back(std::make_shared<poly::integrators::VisiblePoint>(j, i, sr.hitpoint_get(), -ray.d, sr.m_material));
+					visiblePoints.push_back(std::make_shared<poly::integrators::VisiblePoint>(j, i, sr.hitpoint_get(), -ray.d, Colour{1.0,1.0,1.0}, sr.m_material));
 				}
 
 			}
@@ -147,8 +147,8 @@ namespace poly::integrators {
 	===============================
 	*/
 
-	VisiblePoint::VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, std::shared_ptr<poly::material::Material> material_)
-		: index_x{ x_ }, index_y{y_}, point(point_), w_i(incoming_ray_), material(material_)
+	VisiblePoint::VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, Colour amount_, std::shared_ptr<poly::material::Material> material_)
+		: index_x{ x_ }, index_y{ y_ }, point(point_), w_i(incoming_ray_), amount{amount_}, material(material_)
 	{
 		// ensure that our bounds are set
 		bounds = poly::structures::Bounds3D(point, point);
