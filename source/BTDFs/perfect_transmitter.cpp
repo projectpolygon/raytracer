@@ -56,4 +56,14 @@ namespace poly::material
 	{
 		return Colour(0.0f, 0.0f, 0.0f);
 	}
+
+	float PerfectTransmitter::kt() const
+	{
+		return m_kt;
+	}
+
+	float PerfectTransmitter::ior() const
+	{
+		return m_index_refraction;
+	}
 } // namespace poly::material

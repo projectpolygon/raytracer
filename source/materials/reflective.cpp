@@ -33,7 +33,23 @@ namespace poly::material
 	void Reflective::absorb_photon(structures::Photon &photon,  std::vector<poly::structures::Photon> &photons,
 								   unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const
 	{
+		if (photon.depth() >= max_depth) {
+			photons.push_back(photon);
+			return;
+		}
 
+		float reflective_kd = m_reflected_brdf->kd();
+		float diffuse_kd = m_diffuse->kd();
+		float specular_kd = m_specular->kd();
+		float total = reflective_kd + diffuse_kd + specular_kd;
+
+		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+
+		if (rgn < reflective_kd) {
+			bounce_photon(photon, photons, max_depth, scene, (photon.intensity() * reflective_kd / total));
+		}
+		photon.intensity(photon.intensity() * (1 - (reflective_kd / total)));
+		photons.push_back(photon);
 	}
 
 } // namespace poly::material

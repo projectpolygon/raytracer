@@ -12,8 +12,9 @@ namespace poly::structures {
 
 	const atlas::math::Ray<atlas::math::Vector> Photon::reflect_ray() const
 	{
+		constexpr float e = 0.001f;
 		atlas::math::Vector wo = m_wi.d * 2.0f - glm::dot(m_wi.d, m_normal) * m_normal;
-		return atlas::math::Ray<atlas::math::Vector>{m_point, wo};
+		return atlas::math::Ray<atlas::math::Vector>{m_point + (wo * e), wo};
 	}
 
 	unsigned int Photon::depth() const
@@ -29,5 +30,20 @@ namespace poly::structures {
 	void Photon::intensity(const float intensity)
 	{
 		m_intensity = intensity;
+	}
+
+	const atlas::math::Normal Photon::normal() const
+	{
+		return m_normal;
+	}
+
+	const atlas::math::Ray<atlas::math::Vector> Photon::wi() const
+	{
+		return m_wi;
+	}
+
+	const atlas::math::Point Photon::point() const
+	{
+		return m_point;
 	}
 }

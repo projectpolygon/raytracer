@@ -22,6 +22,10 @@ namespace poly::material {
 
 		void absorb_photon(poly::structures::Photon& p, std::vector<poly::structures::Photon>& photons,
 						   unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+
+		void transmit_photon(poly::structures::Photon& p, std::vector<poly::structures::Photon>& photons,
+							 unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene,
+							 float intensity) const;
     protected:
         std::shared_ptr<PerfectSpecular> m_reflected_brdf;
         std::shared_ptr<PerfectTransmitter> m_transmitted_btdf;

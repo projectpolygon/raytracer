@@ -22,6 +22,12 @@ namespace poly::structures {
 
         unsigned int depth() const;
 
+        const atlas::math::Normal normal() const;
+
+        const atlas::math::Ray<atlas::math::Vector> wi() const;
+
+        const atlas::math::Point point() const;
+
     private:
         atlas::math::Ray<atlas::math::Vector> m_wi;
 		atlas::math::Point m_point;

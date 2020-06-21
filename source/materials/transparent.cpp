@@ -50,8 +50,61 @@ namespace poly::material
 		return L;
 	}
 
-	void Transparent::absorb_photon([[maybe_unused]] structures::Photon &p, [[maybe_unused]] std::vector<poly::structures::Photon> &photons,
-									[[maybe_unused]] unsigned int max_depth, [[maybe_unused]] std::vector<std::shared_ptr<poly::object::Object>> scene) const {
+	void Transparent::absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
+									unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const
+	{
+		if (photon.depth() >= max_depth) {
+			photons.push_back(photon);
+			return;
+		}
 
+		float transparent_kt = m_transmitted_btdf->kt();
+		float specular_kd = m_specular->kd();
+		float reflective_kd = m_reflected_brdf->kd();
+		float diffuse_kd = m_diffuse->kd();
+		float total = transparent_kt + specular_kd + reflective_kd + diffuse_kd;
+
+		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+
+		if (rgn < transparent_kt) {
+			transmit_photon(photon, photons, max_depth, scene, photon.intensity() * transparent_kt / total);
+		} else if (rgn >= transparent_kt && rgn < transparent_kt + reflective_kd) {
+			bounce_photon(photon, photons, max_depth, scene, (reflective_kd + reflective_kd) / total * photon.intensity());
+		}
+		photon.intensity(photon.intensity() * diffuse_kd / total);
+		photons.push_back(photon);
+	}
+
+	void Transparent::transmit_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
+									  unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene,
+									  float intensity) const
+	{
+		if (photon.depth() >= max_depth) {
+			photons.push_back(photon);
+			return;
+		}
+
+		poly::structures::SurfaceInteraction si;
+		si.m_normal = photon.normal();
+		atlas::math::Vector wi = photon.wi().d;
+		atlas::math::Vector wt;
+
+		m_transmitted_btdf->sample_f(si, wi, wt);
+
+		atlas::math::Ray<atlas::math::Vector> photon_ray{photon.point(), wi};
+
+		bool is_hit{false};
+		for (auto obj: scene) {
+			if (obj->hit(photon_ray, si))
+				is_hit = true;
+		}
+
+		if (is_hit) {
+			poly::structures::Photon reflected_photon = poly::structures::Photon(photon_ray,
+				si.hitpoint_get(), si.m_normal, photon.intensity() * (1 - intensity), photon.depth() + 1);
+			si.m_material->absorb_photon(reflected_photon, photons, max_depth, scene);
+		}
+		float new_intensity = photon.intensity() * intensity;
+		photon.intensity(new_intensity);
 	}
 } // namespace poly::material
