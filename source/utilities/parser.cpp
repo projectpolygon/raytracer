@@ -23,7 +23,7 @@ namespace poly::utils {
 
 	@param vector_json the JSON formatted list of size 3 used to represent a 3D vector
 
-	@return the parsed vector object
+	@returns the parsed vector object
 	*/
 	math::Vector parse_vector(nlohmann::json vector_json)
 	{
@@ -36,7 +36,7 @@ Creates a new material from JSON specifiction
 
 @param material_json the JSON formatted object used to represent the material properties
 
-@return the parsed Material as a shared pointer
+@returns the parsed Material as a shared pointer
 */
 	std::shared_ptr<poly::material::Material> parse_material(nlohmann::json material_json)
 	{
@@ -71,7 +71,7 @@ Creates a new material from JSON specifiction
 
 	@throws parse_error if json can not be parsed
 
-	@return the parsed Material as a shared pointer
+	@returns the parsed Material as a shared pointer
 	*/
 	nlohmann::json open_json_file(const char* file_handle)
 	{
@@ -102,7 +102,7 @@ Creates a new material from JSON specifiction
 
 	@throws nlohmann::detail::type_error if one or more parameters do not exist
 
-	@return
+	@returns void
 	*/
 	void parse_sampler(poly::structures::World& w, nlohmann::json& task)
 	{
@@ -221,7 +221,7 @@ Creates a new material from JSON specifiction
 
 	@throws nlohmann::detail::type_error if one or more parameters do not exist
 
-	@return poly::structures::World object
+	@returns poly::structures::World object
 	*/
 	poly::structures::World create_world(nlohmann::json& task)
 	{
@@ -287,7 +287,7 @@ Creates a new material from JSON specifiction
 
 	@throws nlohmann::detail::type_error if one or more parameters do not exist
 
-	@return poly::camera::PinholeCamera object
+	@returns poly::camera::PinholeCamera object
 	*/
 	poly::camera::PinholeCamera parse_camera(nlohmann::json& json)
 	{
@@ -332,7 +332,7 @@ Creates a new material from JSON specifiction
 
 	@throws nlohmann::detail::type_error if one or more parameters do not exist
 
-	@return poly::utils::BMP_info object
+	@returns poly::utils::BMP_info object
 	*/
 	poly::utils::BMP_info create_output_container(nlohmann::json& json)
 	{

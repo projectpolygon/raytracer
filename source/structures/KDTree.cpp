@@ -71,6 +71,7 @@ namespace poly::structures
 
 		// Generate the bounding for the tree
 		std::vector<Bounds3D> primBounds;
+		m_bounds = objects.at(0)->boundbox_get();
 		for (const std::shared_ptr<Object>& obj : objects)
 		{
 			Bounds3D b = obj->boundbox_get();
