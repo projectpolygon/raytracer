@@ -50,8 +50,8 @@ namespace poly::material
 		return L;
 	}
 
-	void Transparent::trace_photon([[maybe_unused]] const structures::Photon &p, [[maybe_unused]] std::vector<poly::structures::Photon> &photons,
-								   [[maybe_unused]] unsigned int max_depth) const {
+	void Transparent::trace_photon([[maybe_unused]] structures::Photon &p, [[maybe_unused]] std::vector<poly::structures::Photon> &photons,
+								   [[maybe_unused]] unsigned int max_depth, [[maybe_unused]] std::vector<std::shared_ptr<poly::object::Object>> scene) const {
 
 	}
 } // namespace poly::material

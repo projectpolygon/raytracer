@@ -45,17 +45,35 @@ namespace poly::material
 		return (a + r);
 	}
 
-	void Matte::trace_photon(const structures::Photon &p, std::vector<poly::structures::Photon> &photons,
-							 unsigned int max_depth) const {
-		if (p.depth() >= max_depth) {
-			photons.push_back(p);
+	void Matte::trace_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
+							 unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const {
+		if (photon.depth() >= max_depth) {
+			photons.push_back(photon);
 			return;
 		}
 
 		float partition = m_diffuse->kd();
 		float rgn = (float(rand()) / float(std::numeric_limits<int>::max()));
 		if (rgn > partition) {
-			p.reflect(partition);
+			poly::structures::SurfaceInteraction si;
+			atlas::math::Ray<atlas::math::Vector> photon_ray = photon.reflect_ray();
+			bool is_hit{false};
+
+			for (auto obj: scene) {
+				if (obj->hit(photon_ray, si))
+					is_hit = true;
+			}
+
+			if (is_hit) {
+				poly::structures::Photon reflected_photon = poly::structures::Photon(photon_ray,
+					si.hitpoint_get(), si.m_normal, photon.intensity() * (1 - partition), photon.depth() + 1);
+				si.m_material->trace_photon(reflected_photon, photons, max_depth, scene);
+			}
+			float new_intensity = photon.intensity() * partition;
+			photon.intensity(new_intensity);
+			photons.push_back(photon);
+
 		}
+		photons.push_back(photon);
 	}
 } // namespace poly::material

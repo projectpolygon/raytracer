@@ -83,6 +83,7 @@ namespace poly::integrators {
 				math::Point o{light->location()};
 				math::Ray<math::Vector> photon_ray{o, d};
 				structures::SurfaceInteraction si;
+
 				bool is_hit{false};
 				for (auto obj: world.m_scene) {
 					if (obj->hit(photon_ray, si))
@@ -90,12 +91,11 @@ namespace poly::integrators {
 				}
 
 				if (is_hit) {
-					poly::structures::Photon p =
-						poly::structures::Photon(si.hitpoint_get(), photon_ray,
-							si.m_normal, light->ls() / photon_count);
-
-					si.m_material->trace_photon(p, photons, world.m_vp->max_depth);
+					poly::structures::Photon photon = poly::structures::Photon(photon_ray,
+						si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
+					si.m_material->trace_photon(photon, photons, world.m_vp->max_depth, world.m_scene);
 				}
+
 			}
 		}
 		return photons;
