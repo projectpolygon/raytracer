@@ -19,7 +19,7 @@ namespace poly::structures
 		depth = 0;
 	}
 
-	math::Vector SurfaceInteraction::hitpoint_get() const
+	atlas::math::Vector SurfaceInteraction::hitpoint_get() const
 	{
 		return m_ray.o + m_ray.d * m_tmin;
 	}

@@ -271,4 +271,21 @@ namespace poly::camera
 			}
 		}
 	}
+
+	math::Ray<atlas::math::Vector> PinholeCamera::get_ray(int i, int j, poly::structures::World const& world) const
+	{
+		std::vector<float> sample =
+			world.m_sampler->sample_unit_square();
+
+		atlas::math::Vector x = m_u * ((float)j + (float)sample.at(0));
+		atlas::math::Vector y = m_v * ((float)i + (float)sample.at(1));
+		atlas::math::Vector z = -m_w * (float)m_d;
+
+		atlas::math::Vector direction =
+			glm::normalize((x + y + z));
+
+		atlas::math::Ray<atlas::math::Vector> ray(m_eye,
+			direction);
+		return ray;
+	}
 } // namespace poly::camera

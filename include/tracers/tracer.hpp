@@ -15,10 +15,11 @@ namespace poly::structures {
 	class Tracer {
 	public:
 		Tracer(World* world);
-		virtual Colour trace_ray([[maybe_unused]]math::Ray<math::Vector> const& ray, [[maybe_unused]] const unsigned int depth) const;
+		virtual Colour trace_ray([[maybe_unused]] math::Ray<math::Vector> const& ray, World const& world,[[maybe_unused]] const unsigned int depth) const;
+
+	private:
 		World* m_world;
-	protected:
-    };
+	};
 }
 
 #endif // !TRACER_HPP

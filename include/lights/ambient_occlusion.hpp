@@ -2,6 +2,7 @@
 
 #include <atlas/math/math.hpp>
 #include "lights/light.hpp"
+#include "samplers/sampler.hpp"
 
 namespace poly::light
 {
@@ -21,6 +22,8 @@ namespace poly::light
 		math::Vector shadow_direction_get([[maybe_unused]] poly::structures::SurfaceInteraction&sr, unsigned int sample_index);
 
 		Colour L(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world);
+
+        math::Point location() const override;
 
 	protected:
 		std::shared_ptr<poly::sampler::Sampler> m_sampler;

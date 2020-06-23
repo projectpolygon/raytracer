@@ -18,10 +18,15 @@ namespace poly::material
 		Matte();
 		Matte(float f, Colour const &c);
 
+		void absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons, unsigned int max_depth,
+						   std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+
 	protected:
 		std::shared_ptr<LambertianBRDF> m_diffuse;
 
 		Colour shade(poly::structures::SurfaceInteraction&sr, poly::structures::World const& world) const;
+
+
 	};
 
 } // namespace poly::material

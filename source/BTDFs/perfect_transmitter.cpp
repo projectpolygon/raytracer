@@ -21,6 +21,7 @@ namespace poly::material
 
 		return (1.0f - ((1.0f - cti * cti) / (eta * eta))) < 0.0f;
 	}
+
 	Colour PerfectTransmitter::f([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 								 [[maybe_unused]] atlas::math::Vector &w_o,
 								 [[maybe_unused]] atlas::math::Vector &w_i) const
@@ -54,5 +55,15 @@ namespace poly::material
 								   [[maybe_unused]] atlas::math::Vector &w_o) const
 	{
 		return Colour(0.0f, 0.0f, 0.0f);
+	}
+
+	float PerfectTransmitter::kt() const
+	{
+		return m_kt;
+	}
+
+	float PerfectTransmitter::ior() const
+	{
+		return m_index_refraction;
 	}
 } // namespace poly::material

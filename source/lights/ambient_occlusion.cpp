@@ -69,4 +69,9 @@ namespace poly::light {
 		}
 		return average / (float)num_samples;
 	}
+
+    math::Point AmbientOcclusion::location() const
+    {
+        return math::Point{0.0f, 0.0f, 0.0f};
+    }
 }

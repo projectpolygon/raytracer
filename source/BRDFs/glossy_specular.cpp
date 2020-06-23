@@ -38,4 +38,9 @@ namespace poly::material {
 	{
 		return Colour(0.0f, 0.0f, 0.0f);
 	}
+
+	float GlossySpecularBRDF::kd() const
+	{
+		return m_kd;
+	}
 }
