@@ -44,6 +44,7 @@ namespace poly::material
 			math::Vector w_t;
 			Colour transmitted_colour = m_transmitted_btdf->sample_f(sr, w_o, w_t);
 			math::Ray<math::Vector> transmitted_ray(sr.hitpoint_get(), w_t);
+
 			L += transmitted_colour * world.m_tracer->trace_ray(transmitted_ray, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_t));
 		}
 
