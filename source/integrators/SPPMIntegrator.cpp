@@ -56,6 +56,7 @@ namespace poly::integrators {
 						calculate next photon bounce, or terminate photon
 				*/
 
+				std::vector<poly::structures::Photon> photons = photon_mapping(world);
 				// Render image
 
 			}
@@ -64,8 +65,9 @@ namespace poly::integrators {
 
 	}
 
-	std::vector<poly::structures::Photon> photon_mapping(const poly::structures::World& world)
+	std::vector<poly::structures::Photon> SPPMIntegrator::photon_mapping(const poly::structures::World& world)
 	{
+		// TODO: Make configurable
 		std::size_t photon_count = 100000;
 
 		std::vector<poly::structures::Photon> photons;
@@ -77,7 +79,7 @@ namespace poly::integrators {
 					x = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
 					y = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
 					z = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
-				} while (x * x + y * y + z * z);
+				} while (x * x + y * y + z * z > 1.0f);
 
 				math::Vector d{x, y, z};
 				math::Point o{light->location()};
