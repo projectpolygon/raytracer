@@ -2,9 +2,10 @@
 #ifndef MATERIAL_HPP
 #define MATERIAL_HPP
 
-#include "structures/shade_rec.hpp"
+namespace poly::material { class Material; }
 
-namespace poly::structures { class ShadeRec; }
+#include "structures/surface_interaction.hpp"
+#include "structures/world.hpp"
 
 using namespace atlas;
 
@@ -13,7 +14,7 @@ namespace poly::material {
     class Material {
     public:
         Material() = default;
-        virtual Colour shade(poly::structures::ShadeRec& sr) const = 0;
+        virtual Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const = 0;
     };
 }
 

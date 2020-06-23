@@ -1,11 +1,11 @@
 #pragma once
 
-#include "structures/shade_rec.hpp"
+#include "structures/surface_interaction.hpp"
 
 namespace poly::texture {
-    class Texture {
-    public:
-        Texture() = default;
-        virtual Colour colour_get(poly::structures::ShadeRec const& sr) const = 0;
-    };
+	class Texture {
+	public:
+		Texture() = default;
+		virtual Colour colour_get(poly::structures::SurfaceInteraction const& sr) const = 0;
+	};
 }

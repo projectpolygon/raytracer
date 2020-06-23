@@ -15,9 +15,9 @@ namespace poly::material
 		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
 	}
 
-	Colour Reflective::shade(poly::structures::ShadeRec &sr) const
+	Colour Reflective::shade(poly::structures::SurfaceInteraction &sr, poly::structures::World& world) const
 	{
-		Colour L = Phong::shade(sr);
+		Colour L = Phong::shade(sr, world);
 		math::Vector w_o = -sr.m_ray.d;
 		math::Vector w_r;
 
@@ -25,11 +25,7 @@ namespace poly::material
 		Colour reflected_colour = m_reflected_brdf->sample_f(sr, w_o, w_r);
 		math::Ray<math::Vector> reflected_ray(sr.hitpoint_get(), w_r);
 
-		// To make sure world is not null
-		std::shared_ptr<poly::structures::Tracer> tracer = sr.m_world.m_tracer;
-		tracer->m_world = &sr.m_world;
-
-		L += reflected_colour * tracer->trace_ray(reflected_ray, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_r));
+		L += reflected_colour * world.m_tracer->trace_ray(reflected_ray, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_r));
 
 		return L;
 	}

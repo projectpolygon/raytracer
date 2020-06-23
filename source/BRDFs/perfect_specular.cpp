@@ -6,7 +6,7 @@ namespace poly::material
 	PerfectSpecular::PerfectSpecular()
 	{
 		m_kd = 1.0f;
-		m_cd = random_colour_generate();
+		m_cd = poly::utils::random_colour_generate();
 	}
 
 	PerfectSpecular::PerfectSpecular(const float kd, Colour const &colour)
@@ -15,14 +15,14 @@ namespace poly::material
 		m_cd = colour;
 	}
 
-	Colour PerfectSpecular::f([[maybe_unused]] poly::structures::ShadeRec const &sr,
+	Colour PerfectSpecular::f([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 							  [[maybe_unused]] atlas::math::Vector &w_o,
 							  [[maybe_unused]] atlas::math::Vector &w_i) const
 	{
 		return Colour(0.0f, 0.0f, 0.0f);
 	}
 
-	Colour PerfectSpecular::sample_f([[maybe_unused]] poly::structures::ShadeRec const &sr,
+	Colour PerfectSpecular::sample_f([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 									 [[maybe_unused]] atlas::math::Vector &w_o,
 									 [[maybe_unused]] atlas::math::Vector &w_r) const
 	{
@@ -31,7 +31,7 @@ namespace poly::material
 		return m_kd * m_cd / (float)(fabs(glm::dot(sr.m_normal, w_r)));
 	}
 
-	Colour PerfectSpecular::rho([[maybe_unused]] poly::structures::ShadeRec const &sr,
+	Colour PerfectSpecular::rho([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 								[[maybe_unused]] atlas::math::Vector &w_o) const
 	{
 		return Colour(0.0f, 0.0f, 0.0f);

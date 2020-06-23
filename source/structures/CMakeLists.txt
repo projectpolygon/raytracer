@@ -2,7 +2,7 @@ set(STRUCTURE_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/bounds.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/KDTree.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/scene_slab.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/shade_rec.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/surface_interaction.cpp
 )
 set(POLY_SOURCE_STRUCTURE_LIST ${STRUCTURE_SOURCE} PARENT_SCOPE)
 target_sources(raytracer PRIVATE "${STRUCTURE_SOURCE}")

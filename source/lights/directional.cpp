@@ -13,12 +13,12 @@ namespace poly::light
 		m_direction = glm::normalize(direction);
 	}
 
-	atlas::math::Vector DirectionalLight::direction_get([[maybe_unused]] poly::structures::ShadeRec &sr)
+	atlas::math::Vector DirectionalLight::direction_get([[maybe_unused]] poly::structures::SurfaceInteraction &sr)
 	{
 		return m_direction;
 	}
 
-	Colour DirectionalLight::L(poly::structures::ShadeRec &sr)
+	Colour DirectionalLight::L(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world)
 	{
 		math::Point new_origin = sr.hitpoint_get();
 		math::Vector new_direction = glm::normalize(direction_get(sr));
@@ -26,7 +26,7 @@ namespace poly::light
 		math::Ray shadow_ray(new_origin + (m_surface_epsilon * new_direction),
 							 new_direction);
 
-		if (in_shadow(shadow_ray, sr))
+		if (in_shadow(shadow_ray, world))
 		{
 			return Colour(0.0f, 0.0f, 0.0f);
 		}

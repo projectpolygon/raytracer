@@ -8,7 +8,7 @@ namespace poly::material
 	PerfectTransmitter::PerfectTransmitter() : BTDF(1.0f, 1.0f) {}
 	PerfectTransmitter::PerfectTransmitter(float kt, float _ior) : BTDF(kt, _ior) {}
 
-	bool PerfectTransmitter::tot_int_refl(poly::structures::ShadeRec const &sr) const
+	bool PerfectTransmitter::tot_int_refl(poly::structures::SurfaceInteraction const &sr) const
 	{
 		math::Vector w_o = -sr.m_ray.d;
 		float cti = glm::dot(w_o, sr.m_normal);
@@ -21,14 +21,14 @@ namespace poly::material
 
 		return (1.0f - ((1.0f - cti * cti) / (eta * eta))) < 0.0f;
 	}
-	Colour PerfectTransmitter::f([[maybe_unused]] poly::structures::ShadeRec const &sr,
+	Colour PerfectTransmitter::f([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 								 [[maybe_unused]] atlas::math::Vector &w_o,
 								 [[maybe_unused]] atlas::math::Vector &w_i) const
 	{
 		return Colour(0.0f, 0.0f, 0.0f);
 	}
 
-	Colour PerfectTransmitter::sample_f(poly::structures::ShadeRec const &sr,
+	Colour PerfectTransmitter::sample_f(poly::structures::SurfaceInteraction const &sr,
 										atlas::math::Vector &w_o,
 										atlas::math::Vector &w_t) const
 	{
@@ -50,7 +50,7 @@ namespace poly::material
 		return retcol;
 	}
 
-	Colour PerfectTransmitter::rho([[maybe_unused]] poly::structures::ShadeRec const &sr,
+	Colour PerfectTransmitter::rho([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 								   [[maybe_unused]] atlas::math::Vector &w_o) const
 	{
 		return Colour(0.0f, 0.0f, 0.0f);

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 #include "structures/KDTree.hpp"
 #include "structures/bounds.hpp"
 
@@ -51,24 +52,26 @@ namespace poly::structures
 		return aboveChild >> 2;
 	}
 
-	KDTree::KDTree(const std::vector<std::shared_ptr<poly::object::Object>> &p,
-				   int isectCost, int traversalCost,
-				   float emptyBonus, int maxPrims,
-				   int maxDepth)
+	KDTree::KDTree(const std::vector<std::shared_ptr<poly::object::Object>>& p,
+		int isectCost, int traversalCost,
+		float emptyBonus, int maxPrims,
+		int max_tree_height)
 		: intersectCost(isectCost),
-		  traversalCost(traversalCost),
-		  maxPrims(maxPrims),
-		  emptyBonus(emptyBonus),
-		  objects(p)
+		traversalCost(traversalCost),
+		maxPrims(maxPrims),
+		emptyBonus(emptyBonus),
+		objects(p)
 	{
 		m_nextFreeNode = 0;
 		m_allocatedNodes = 0;
-		if (maxDepth <= 0)
-			maxDepth = (int)std::round(8 + 1.3f * log(objects.size()) / log(2));
+		if (max_tree_height <= 0) {
+			max_tree_height = (int)std::round(8 + 1.3f * log(objects.size()) / log(2));
+			std::clog << "INFO: KD-Tree max tree height not set. Auto-configuring to use " << max_tree_height << std::endl;
+		}
 
 		// Generate the bounding for the tree
 		std::vector<Bounds3D> primBounds;
-		for (const std::shared_ptr<Object> &obj : objects)
+		for (const std::shared_ptr<Object>& obj : objects)
 		{
 			Bounds3D b = obj->boundbox_get();
 			m_bounds = union_bounds(m_bounds, b);
@@ -82,23 +85,236 @@ namespace poly::structures
 			edges[i].reset(new BoundEdge[2 * objects.size()]);
 		}
 		std::unique_ptr<int[]> prims0(new int[objects.size()]);							 // Left branches
-		std::unique_ptr<int[]> prims1(new int[((size_t)maxDepth + 1) * objects.size()]); // Right branches
+		std::unique_ptr<int[]> prims1(new int[((size_t)max_tree_height + 1) * objects.size()]); // Right branches
 
 		// Init the trackers for our objects.
 		// Must match order of the storage array
-		std::unique_ptr<int[]> primNums(new int[objects.size()]);
-		for (size_t i = 0; i < objects.size(); ++i)
-			primNums[i] = (unsigned int)i;
+		std::unique_ptr<int[]> object_indices(new int[objects.size()]);
+		for (size_t i = 0; i < objects.size(); ++i) {
+			object_indices[i] = (unsigned int)i;
+		}
 
 		// Start recursive build
 		tree_build(0,
 				   m_bounds,
 				   primBounds,
-				   primNums.get(),
+				   object_indices.get(),
 				   (int)objects.size(),
-				   maxDepth,
+				   max_tree_height,
 				   edges, prims0.get(), prims1.get(), // Working Space
 				   0);
+	}
+
+	/*
+	* Recursively build the KDTree
+	* Starts by descending to the left of each split, then traverses back up the tree 
+	* building the above branches in a depth first manner
+	*/
+	void KDTree::tree_build(int node_index,
+		const Bounds3D& node_bounds,
+		const std::vector<Bounds3D>& allPrimBounds,
+		int* node_object_indices,
+		int num_objects,
+		int depth,
+		const std::unique_ptr<BoundEdge[]> edges[3], int* below_objs_list, int* above_objs_list, // Working space
+		int useless_refine_cnt)
+	{
+		// If the next free node is outside of what we have allocated, reallocate and copy over to a 2N array
+		if (m_nextFreeNode == m_allocatedNodes)
+		{
+			int new_num_to_allocate = std::max(2 * m_allocatedNodes, 512);
+			KDNode* temp_list = (KDNode*)malloc(new_num_to_allocate * sizeof(KDNode));
+			if (m_allocatedNodes > 0)
+			{
+				std::memcpy(temp_list, m_nodes, (size_t)m_allocatedNodes * sizeof(KDNode));
+				free(m_nodes);
+			}
+			m_nodes = temp_list;
+			m_allocatedNodes = new_num_to_allocate;
+		}
+
+		++m_nextFreeNode;
+
+		// If the number of objects in this node is less than our maximum per leaf, or we are at depth 0, stop recursion
+		if (num_objects <= maxPrims || depth == 0)
+		{
+			// this node gets made into a leaf. Multiple object indices are stored in the 'all_leaf_object_indices' to keep leaves small
+			m_nodes[node_index].init_leaf(node_object_indices, num_objects, &all_leaf_object_indices);
+			return;
+		}
+
+		int bestAxis = -1, bestOffset = -1;
+		float bestCost = std::numeric_limits<float>::max(); // This might mean that no other axes are tried!!
+		float oldCost = intersectCost * float(num_objects);
+		float invTotalSA = 1 / node_bounds.surfaceArea();
+		int num_edges = 2 * num_objects;
+		math::Vector bounds_diagonal = node_bounds.pMax - node_bounds.pMin;
+
+		// The axis that we will split on
+		int axis = node_bounds.maximum_extent();
+
+		int retries = 0;
+		// first try; retries = 0; x-axis attempt
+		// second try; retries = 1; y-axis attempt
+		// third try; retries = 2; z-axis attempt
+		while (retries < 3)
+		{
+			//retrySplit:
+
+			// Initialize edges for this axis
+			for (int i = 0; i < num_objects; i++)
+			{
+				int pn = node_object_indices[i];
+				const Bounds3D& all_bounds = allPrimBounds[pn];
+				edges[axis][2 * i] = BoundEdge(all_bounds.pMin[axis], pn, true);
+				edges[axis][2 * i + 1] = BoundEdge(all_bounds.pMax[axis], pn, false);
+			}
+
+			// Sort the edges so that we encounter them in the correct order
+			std::sort(&edges[axis][0], &edges[axis][num_edges],
+				[](const BoundEdge& e0, const BoundEdge& e1) -> bool {
+					if (e0.value == e1.value)
+						return (int)e0.type < (int)e1.type;
+					else
+						return e0.value < e1.value;
+				});
+
+			// Select the split point by using the heuristic weighting
+			// adjustment can be done using higher traversal or higher
+			// overlap penalties
+			int nBelow = 0;
+			int nAbove = num_objects;
+			int num_axes = 3;
+			for (int i = 0; i < num_edges; ++i)
+			{
+
+				// If we have an end, then we have checked one full object
+				if (edges[axis][i].type == EdgeType::End)
+				{
+					--nAbove;
+				}
+
+				// If this edge is strictly inside bounds
+				float current_edge = edges[axis][i].value;
+				if (current_edge > node_bounds.pMin[axis] && current_edge < node_bounds.pMax[axis])
+				{
+					int otherAxis0 = (axis + 1) % num_axes;
+					int otherAxis1 = (axis + 2) % num_axes;
+
+					// Compute the area (volume) below and above the split
+					float area_below = 2 * (bounds_diagonal[otherAxis0] * bounds_diagonal[otherAxis1] + (current_edge - node_bounds.pMin[axis]) * (bounds_diagonal[otherAxis0] + bounds_diagonal[otherAxis1]));
+					float area_above = 2 * (bounds_diagonal[otherAxis0] * bounds_diagonal[otherAxis1] + (node_bounds.pMax[axis] - current_edge) * (bounds_diagonal[otherAxis0] + bounds_diagonal[otherAxis1]));
+
+					// Probability of being below or above
+					float pBelow = area_below * invTotalSA;
+					float pAbove = area_above * invTotalSA;
+
+					// If either is 0, then we get a small bonus for
+					// having a split that empties a large amount of area
+					float eb = (nAbove == 0 || nBelow == 0) ? emptyBonus : 0.0f;
+
+					// Compute the cost of this split.
+					float cost = traversalCost + intersectCost * (1 - eb) * (pBelow * nBelow + pAbove * nAbove);
+					if (cost < bestCost)
+					{
+						bestCost = cost;
+						bestAxis = axis;
+						bestOffset = i;
+					}
+				}
+
+				// If this edge was a starting edge, we have one below now
+				if (edges[axis][i].type == EdgeType::Start)
+				{
+					++nBelow;
+				}
+			}
+
+			/*
+			// Create a leaf if no good splits were found
+			if (bestAxis == -1 && retries < 2) {
+			  ++retries;
+			  axis = (axis + 1) % 3;
+			  goto retrySplit;
+			}
+			*/
+
+			if (bestAxis == -1 && retries < 2)
+			{ // This will never be hit! The float is ININITY...so EVERYTHING will select a best axis
+				++retries;
+				axis = (axis + 1) % num_axes;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		// If the cost of this refinement is worse than before we refined,
+		// increment the tracker so if we go too far we can stop splitting
+		if (bestCost > oldCost)
+		{
+			useless_refine_cnt++;
+		}
+
+		// If the cost for this split is 'bad' make this a leaf and be done with it
+		if ((bestCost > 4 * oldCost && num_objects < 16) || bestAxis == -1 || useless_refine_cnt >= 3)
+		{
+			m_nodes[node_index].init_leaf(node_object_indices, num_objects, &all_leaf_object_indices);
+			return;
+		}
+
+		// Move the primitives for this list into the correct side of the split
+		unsigned int num_objects_below = 0;
+		unsigned int num_objects_above = 0;
+		for (int i = 0; i < bestOffset; ++i)
+		{
+			if (edges[bestAxis][i].type == EdgeType::Start)
+			{
+				below_objs_list[num_objects_below++] = edges[bestAxis][i].primNum;
+			}
+		}
+		for (int i = bestOffset + 1; i < num_edges; ++i)
+		{
+			if (edges[bestAxis][i].type == EdgeType::End)
+			{
+				above_objs_list[num_objects_above++] = edges[bestAxis][i].primNum;
+			}
+		}
+
+		// Recurse onto the children lists and initialize
+		float split_plane = edges[bestAxis][bestOffset].value;
+		Bounds3D below_bounds = node_bounds;
+		Bounds3D above_bounds = node_bounds;
+		below_bounds.pMax[bestAxis] = split_plane;
+		above_bounds.pMin[bestAxis] = split_plane;
+
+		// Build the below subtree
+		int belowChild = node_index + 1; // Next in list gets evaluated first
+		tree_build(belowChild,
+			below_bounds,
+			allPrimBounds,
+			below_objs_list,
+			num_objects_below,
+			depth - 1,
+			edges,
+			below_objs_list,
+			above_objs_list + num_objects, // Offset because above objects are handled after
+			useless_refine_cnt);
+
+		// Build the above subtree
+		int aboveChild = m_nextFreeNode; // next in the free nodes list is the right subtree of this node
+		m_nodes[node_index].init_interior(bestAxis, aboveChild, split_plane);
+		tree_build(aboveChild,
+			above_bounds,
+			allPrimBounds,
+			above_objs_list,
+			num_objects_above,
+			depth - 1,
+			edges,
+			below_objs_list,
+			above_objs_list + num_objects,
+			useless_refine_cnt);
 	}
 
 	Bounds3D KDTree::boundbox_get() const
@@ -125,14 +341,14 @@ namespace poly::structures
 	struct KDTree::KDToDo
 	{
 		const KDNode *node;
-		float tMin, tMax;
+		double tMin, tMax;
 	};
 
 	// INTERSECT a ray with the tree
-	bool KDTree::hit(const math::Ray<math::Vector> &ray, ShadeRec &sr) const
+	bool KDTree::hit(const math::Ray<math::Vector> &ray, SurfaceInteraction &sr) const
 	{
 		// First, check if we intersect the box at all
-		float tMin, tMax;
+		double tMin, tMax;
 		if (!m_bounds.get_intersects(ray, &tMin, &tMax))
 		{
 			return false;
@@ -241,7 +457,7 @@ namespace poly::structures
 	bool KDTree::shadow_hit(const math::Ray<math::Vector> &ray, float &t) const
 	{
 		// First, check if we intersect the box at all
-		float tMin, tMax;
+		double tMin, tMax;
 		if (!m_bounds.get_intersects(ray, &tMin, &tMax))
 		{
 			return false;
@@ -345,213 +561,6 @@ namespace poly::structures
 			}
 		}
 		return hit;
-	}
-
-	void KDTree::tree_build(int node_index,
-							const Bounds3D &node_bounds,
-							const std::vector<Bounds3D> &allPrimBounds,
-							int *node_object_indices,
-							int num_objects,
-							int depth,
-							const std::unique_ptr<BoundEdge[]> edges[3], int *below_objs_list, int *above_objs_list, // Working space
-							int useless_refine_cnt)
-	{
-		// If the next free node is outside of what we have allocated, reallocate and copy over to a 2N array
-		if (m_nextFreeNode == m_allocatedNodes)
-		{
-			int new_num_to_allocate = std::max(2 * m_allocatedNodes, 512);
-			KDNode *temp_list = (KDNode *)malloc(new_num_to_allocate * sizeof(KDNode));
-			if (m_allocatedNodes > 0)
-			{
-				std::memcpy(temp_list, m_nodes, (size_t)m_allocatedNodes * sizeof(KDNode));
-				free(m_nodes);
-			}
-			m_nodes = temp_list;
-			m_allocatedNodes = new_num_to_allocate;
-		}
-
-		++m_nextFreeNode;
-
-		// If the number of objects in this node is less than our maximum per leaf, or we are at depth 0, stop recursion
-		if (num_objects <= maxPrims || depth == 0)
-		{
-			// this node gets made into a leaf. Multiple object indices are stored in the 'all_leaf_object_indices' to keep leaves small
-			m_nodes[node_index].init_leaf(node_object_indices, num_objects, &all_leaf_object_indices);
-			return;
-		}
-
-		int bestAxis = -1, bestOffset = -1;
-		float bestCost = std::numeric_limits<float>::max(); // This might mean that no other axes are tried!!
-		float oldCost = intersectCost * float(num_objects);
-		float invTotalSA = 1 / node_bounds.surfaceArea();
-		int num_edges = 2 * num_objects;
-		math::Vector bounds_diagonal = node_bounds.pMax - node_bounds.pMin;
-
-		// The axis that we will split on
-		int axis = node_bounds.maximum_extent();
-
-		int retries = 0;
-		// first try; retries = 0; x-axis attempt
-		// second try; retries = 1; y-axis attempt
-		// third try; retries = 2; z-axis attempt
-		while (retries < 3)
-		{
-			//retrySplit:
-
-			// Initialize edges for this axis
-			for (int i = 0; i < num_objects; i++)
-			{
-				int pn = node_object_indices[i];
-				const Bounds3D &all_bounds = allPrimBounds[pn];
-				edges[axis][2 * i] = BoundEdge(all_bounds.pMin[axis], pn, true);
-				edges[axis][2 * i + 1] = BoundEdge(all_bounds.pMax[axis], pn, false);
-			}
-
-			// Sort the edges so that we encounter them in the correct order
-			std::sort(&edges[axis][0], &edges[axis][num_edges],
-					  [](const BoundEdge &e0, const BoundEdge &e1) -> bool {
-						  if (e0.value == e1.value)
-							  return (int)e0.type < (int)e1.type;
-						  else
-							  return e0.value < e1.value;
-					  });
-
-			// Select the split point by using the heuristic weighting
-			// adjustment can be done using higher traversal or higher
-			// overlap penalties
-			int nBelow = 0;
-			int nAbove = num_objects;
-			int num_axes = 3;
-			for (int i = 0; i < num_edges; ++i)
-			{
-
-				// If we have an end, then we have checked one full object
-				if (edges[axis][i].type == EdgeType::End)
-				{
-					--nAbove;
-				}
-
-				// If this edge is strictly inside bounds
-				float current_edge = edges[axis][i].value;
-				if (current_edge > node_bounds.pMin[axis] && current_edge < node_bounds.pMax[axis])
-				{
-					int otherAxis0 = (axis + 1) % num_axes;
-					int otherAxis1 = (axis + 2) % num_axes;
-
-					// Compute the area (volume) below and above the split
-					float area_below = 2 * (bounds_diagonal[otherAxis0] * bounds_diagonal[otherAxis1] + (current_edge - node_bounds.pMin[axis]) * (bounds_diagonal[otherAxis0] + bounds_diagonal[otherAxis1]));
-					float area_above = 2 * (bounds_diagonal[otherAxis0] * bounds_diagonal[otherAxis1] + (node_bounds.pMax[axis] - current_edge) * (bounds_diagonal[otherAxis0] + bounds_diagonal[otherAxis1]));
-
-					// Probability of being below or above
-					float pBelow = area_below * invTotalSA;
-					float pAbove = area_above * invTotalSA;
-
-					// If either is 0, then we get a small bonus for
-					// having a split that empties a large amount of area
-					float eb = (nAbove == 0 || nBelow == 0) ? emptyBonus : 0.0f;
-
-					// Compute the cost of this split.
-					float cost = traversalCost + intersectCost * (1 - eb) * (pBelow * nBelow + pAbove * nAbove);
-					if (cost < bestCost)
-					{
-						bestCost = cost;
-						bestAxis = axis;
-						bestOffset = i;
-					}
-				}
-
-				// If this edge was a starting edge, we have one below now
-				if (edges[axis][i].type == EdgeType::Start)
-				{
-					++nBelow;
-				}
-			}
-
-			/*
-            // Create a leaf if no good splits were found
-            if (bestAxis == -1 && retries < 2) {
-              ++retries;
-              axis = (axis + 1) % 3;
-              goto retrySplit;
-            }
-            */
-
-			if (bestAxis == -1 && retries < 2)
-			{ // This will never be hit! The float is ININITY...so EVERYTHING will select a best axis
-				++retries;
-				axis = (axis + 1) % num_axes;
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		// If the cost of this refinement is worse than before we refined,
-		// increment the tracker so if we go too far we can stop splitting
-		if (bestCost > oldCost)
-		{
-			useless_refine_cnt++;
-		}
-
-		// If the cost for this split is 'bad' make this a leaf and be done with it
-		if ((bestCost > 4 * oldCost && num_objects < 16) || bestAxis == -1 || useless_refine_cnt >= 3)
-		{
-			m_nodes[node_index].init_leaf(node_object_indices, num_objects, &all_leaf_object_indices);
-			return;
-		}
-
-		// Move the primitives for this list into the correct side of the split
-		unsigned int num_objects_below = 0;
-		unsigned int num_objects_above = 0;
-		for (int i = 0; i < bestOffset; ++i)
-		{
-			if (edges[bestAxis][i].type == EdgeType::Start)
-			{
-				below_objs_list[num_objects_below++] = edges[bestAxis][i].primNum;
-			}
-		}
-		for (int i = bestOffset + 1; i < num_edges; ++i)
-		{
-			if (edges[bestAxis][i].type == EdgeType::End)
-			{
-				above_objs_list[num_objects_above++] = edges[bestAxis][i].primNum;
-			}
-		}
-
-		// Recurse onto the children lists and initialize
-		float split_plane = edges[bestAxis][bestOffset].value;
-		Bounds3D below_bounds = node_bounds;
-		Bounds3D above_bounds = node_bounds;
-		below_bounds.pMax[bestAxis] = split_plane;
-		above_bounds.pMin[bestAxis] = split_plane;
-
-		// Build the below subtree
-		int belowChild = node_index + 1; // Next in list gets evaluated first
-		tree_build(belowChild,
-				   below_bounds,
-				   allPrimBounds,
-				   below_objs_list,
-				   num_objects_below,
-				   depth - 1,
-				   edges,
-				   below_objs_list,
-				   above_objs_list + num_objects, // Offset because above objects are handled after
-				   useless_refine_cnt);
-
-		// Build the above subtree
-		int aboveChild = m_nextFreeNode; // next in the free nodes list is the right subtree of this node
-		m_nodes[node_index].init_interior(bestAxis, aboveChild, split_plane);
-		tree_build(aboveChild,
-				   above_bounds,
-				   allPrimBounds,
-				   above_objs_list,
-				   num_objects_above,
-				   depth - 1,
-				   edges,
-				   below_objs_list,
-				   above_objs_list + num_objects,
-				   useless_refine_cnt);
 	}
 
 } // namespace poly::structures

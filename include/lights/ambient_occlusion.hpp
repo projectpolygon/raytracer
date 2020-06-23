@@ -15,12 +15,12 @@ namespace poly::light
 
 		void sampler_set(std::shared_ptr<poly::sampler::Sampler> s_ptr, float tightness);
 
-		math::Vector direction_get([[maybe_unused]] poly::structures::ShadeRec &sr);
+		math::Vector direction_get([[maybe_unused]] poly::structures::SurfaceInteraction&sr);
 
 		// Specific to ambient occlusion, we need access to samples mapped to hemisphere
-		math::Vector shadow_direction_get([[maybe_unused]] poly::structures::ShadeRec &sr, unsigned int sample_index);
+		math::Vector shadow_direction_get([[maybe_unused]] poly::structures::SurfaceInteraction&sr, unsigned int sample_index);
 
-		Colour L(poly::structures::ShadeRec &sr);
+		Colour L(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world);
 
 	protected:
 		std::shared_ptr<poly::sampler::Sampler> m_sampler;

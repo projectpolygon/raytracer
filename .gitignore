@@ -42,6 +42,8 @@ flag.png
 *.obj
 include/utilities/paths.hpp
 
+*.bmp
+/.vs/VSWorkspaceState.json
 
 # Renders
 *.bmp

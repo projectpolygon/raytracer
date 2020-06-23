@@ -1,9 +1,8 @@
-#include "samplers/jittered.hpp"
 #include <math.h>
 #include <assert.h>
-
-template<typename T, typename = std::enable_if<std::is_floating_point<T>::value>>
-constexpr T poly_pi = static_cast<T>(3.14159265358979323846);
+#include "samplers/jittered.hpp"
+#include "utilities/utilities.hpp"
+#include <zeus/constants.hpp>
 
 namespace poly::sampler
 {
@@ -67,18 +66,18 @@ namespace poly::sampler
 
 	void AA_Jittered::map_samples_to_hemisphere(const float e)
 	{
-		int size = (int)samples.size();
+		std::size_t size = samples.size();
 		hemisphere_samples.reserve(num_samples * (size_t)num_sets);
-		for (int i = 0; i < size; i++)
+		for (std::size_t i = 0; i < size; i++)
 		{
-			float cos_phi = (float)cos(2.0f * poly_pi<float> * samples.at(i).at(0));
-			float sin_phi = (float)sin(2.0f * poly_pi<float> * samples.at(i).at(0));
-			float cos_theta = (float)pow((float)(1.0f - samples.at(i).at(1)),
-										 (float)(1.0f / (e + 1.0f)));
-			float sin_theta = (float)sqrt(1.0f - (cos_theta * (float)cos_theta));
+			float cos_phi = static_cast<float>(cos(2.0f * poly::utils::pi<float> * static_cast<float>(samples.at(i).at(0))));
+			float sin_phi = static_cast<float>(sin(2.0f * poly::utils::pi<float> * static_cast<float>(samples.at(i).at(0))));
+			float cos_theta = static_cast<float>(pow(1.0f - static_cast<float>(samples.at(i).at(1)), (1.0f / (e + 1.0f))));
+			float sin_theta = static_cast<float>(sqrt(1.0f - (cos_theta * cos_theta)));
 			float pu = sin_theta * cos_phi;
 			float pv = sin_theta * sin_phi;
 			float pw = cos_theta;
+			
 
 			hemisphere_samples.push_back(std::vector<float>{pu, pv, pw});
 		}
