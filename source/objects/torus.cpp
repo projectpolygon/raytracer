@@ -22,12 +22,12 @@ namespace poly::object
 				center.z + _a + _b));
 	}
 
-	poly::structures::Bounds3D Torus::boundbox_get() const
+	poly::structures::Bounds3D Torus::get_boundbox() const
 	{
 		return bounds;
 	}
 
-	math::Vector Torus::normal_get(math::Ray<math::Vector> const &R,
+	math::Vector Torus::get_normal(math::Ray<math::Vector> const &R,
 								   float t) const
 	{
 		math::Vector point = (R.o - center) + t * R.d;
@@ -40,7 +40,7 @@ namespace poly::object
 		return normal;
 	}
 
-	std::vector<double> Torus::rcoeffs_get(math::Ray<math::Vector> const &R) const
+	std::vector<double> Torus::get_rcoeffs(math::Ray<math::Vector> const &R) const
 	{
 		math::Vector O = R.o;
 		math::Vector D = glm::normalize(R.d);
@@ -73,12 +73,12 @@ namespace poly::object
 					poly::structures::SurfaceInteraction &sr) const
 	{
 		float t{std::numeric_limits<float>::max()};
-		bool intersect = this->closest_intersect_get(R, t);
+		bool intersect = this->get_closest_intersect(R, t);
 
 		// If this object is hit, set the SurfaceInteraction with the relevant material and information about the hit point
 		if (intersect && t < sr.m_tmin)
 		{
-			sr.m_normal = normal_get(R, t);
+			sr.m_normal = get_normal(R, t);
 			sr.m_ray = R;
 			sr.m_tmin = t;
 			sr.m_material = m_material;
@@ -91,7 +91,7 @@ namespace poly::object
 						   float &t) const
 	{
 		float temp_t;
-		if (this->closest_intersect_get(R, temp_t) && temp_t < t && t > m_epsilon)
+		if (this->get_closest_intersect(R, temp_t) && temp_t < t && t > m_epsilon)
 		{
 			t = temp_t;
 			return true;
@@ -102,10 +102,10 @@ namespace poly::object
 		}
 	}
 
-	bool Torus::closest_intersect_get(math::Ray<math::Vector> const &R,
+	bool Torus::get_closest_intersect(math::Ray<math::Vector> const &R,
 									  float &t_min) const
 	{
-		std::vector<double> coeffs = rcoeffs_get(R);
+		std::vector<double> coeffs = get_rcoeffs(R);
 		std::vector<double> roots;
 		math::solve_quartic(coeffs, roots);
 

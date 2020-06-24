@@ -5,7 +5,7 @@ namespace poly::light {
 
 	AmbientLight::AmbientLight() : Light() {}
 
-	atlas::math::Vector AmbientLight::direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr)
+	atlas::math::Vector AmbientLight::get_direction([[maybe_unused]] poly::structures::SurfaceInteraction& sr)
 	{
 		return atlas::math::Vector(0.0f, 0.0f, 0.0f);
 	}

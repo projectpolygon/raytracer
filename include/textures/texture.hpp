@@ -6,6 +6,6 @@ namespace poly::texture {
 	class Texture {
 	public:
 		Texture() = default;
-		virtual Colour colour_get(poly::structures::SurfaceInteraction const& sr) const = 0;
+		virtual Colour get_colour(poly::structures::SurfaceInteraction const& sr) const = 0;
 	};
 }

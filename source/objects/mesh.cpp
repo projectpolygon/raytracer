@@ -81,7 +81,7 @@ namespace poly::object
 		}
 	}
 
-	std::vector<std::shared_ptr<SmoothMeshUVTriangle>> &Mesh::repr_get()
+	std::vector<std::shared_ptr<SmoothMeshUVTriangle>> &Mesh::get_repr()
 	{
 		return m_triangles;
 	}

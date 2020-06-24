@@ -27,7 +27,7 @@ namespace poly::object {
 			poly::structures::SurfaceInteraction& sr) const = 0;
 		virtual bool shadow_hit(math::Ray<math::Vector>const& R, float& t) const = 0;
 
-		virtual poly::structures::Bounds3D boundbox_get() const
+		virtual poly::structures::Bounds3D get_boundbox() const
 		{
 			return bounds;
 		}

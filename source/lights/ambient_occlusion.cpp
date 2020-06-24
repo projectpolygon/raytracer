@@ -18,13 +18,13 @@ namespace poly::light {
 		m_sampler->map_samples_to_hemisphere(tightness);
 	}
 
-	math::Vector AmbientOcclusion::direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr)
+	math::Vector AmbientOcclusion::get_direction([[maybe_unused]] poly::structures::SurfaceInteraction& sr)
 	{
 		return math::Vector(0.0f, 0.0f, 0.0f);
 	}
 
 	// Specific to ambient occlusion, we need access to samples mapped to hemisphere
-	math::Vector AmbientOcclusion::shadow_direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr, unsigned int sample_index)
+	math::Vector AmbientOcclusion::get_shadow_direction([[maybe_unused]] poly::structures::SurfaceInteraction& sr, unsigned int sample_index)
 	{
 		// Take any one index of our samplers samples
 		// This enables us to have multiple threads access the samples
@@ -49,14 +49,14 @@ namespace poly::light {
 			return m_colour * m_ls;
 		}
 
-		int num_samples = m_sampler->num_samples_get();
+		int num_samples = m_sampler->get_num_samples();
 		Colour average(0.0f, 0.0f, 0.0f);
 
 		// Update the hitpoint coordinate system
-		math::Point new_origin = sr.hitpoint_get();
+		math::Point new_origin = sr.get_hitpoint();
 
 		for (int i = 0; i < num_samples; i++) {
-			math::Vector new_dir = glm::normalize(shadow_direction_get(sr, i));
+			math::Vector new_dir = glm::normalize(get_shadow_direction(sr, i));
 			math::Ray shadow_ray(new_origin, new_dir);
 
 			// in_shadow consumes the bulk of the processing power

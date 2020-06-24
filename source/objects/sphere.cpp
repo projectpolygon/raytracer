@@ -21,13 +21,13 @@ namespace poly::object {
               position.z + r));
         }
 
-        poly::structures::Bounds3D Sphere::boundbox_get() const
+        poly::structures::Bounds3D Sphere::get_boundbox() const
         {
           return bounds;
         }
 
-        math::Vector Sphere::normal_get(math::Ray<math::Vector>const& R,
-                                float t) const
+        math::Vector Sphere::get_normal(math::Ray<math::Vector>const& R,
+										float t) const
         {
           math::Vector point = R.o + t * R.d;
           return glm::normalize(point - C);
@@ -37,11 +37,11 @@ namespace poly::object {
                  poly::structures::SurfaceInteraction& sr) const
         {
           float t{ std::numeric_limits<float>::max() };
-          bool intersect = this->closest_intersect_get(R, t);
+          bool intersect = this->get_closest_intersect(R, t);
 
           // If this object is hit, set the SurfaceInteraction with the relevant material and information about the hit point
           if (intersect && t < sr.m_tmin) {
-            sr.m_normal = normal_get(R, t);
+            sr.m_normal = get_normal(R, t);
             sr.m_ray = R;
             sr.m_tmin = t;
             sr.m_material = m_material;
@@ -54,7 +54,7 @@ namespace poly::object {
                         float& t) const
         {
           float temp_t;
-          if (this->closest_intersect_get(R, temp_t) && temp_t < t && temp_t > m_epsilon) {
+          if (this->get_closest_intersect(R, temp_t) && temp_t < t && temp_t > m_epsilon) {
             t = temp_t;
             return true;
           }
@@ -62,8 +62,8 @@ namespace poly::object {
           //return this->closest_intersect_get(R,t);
         }
 
-        bool Sphere::closest_intersect_get(const math::Ray<math::Vector>& R,
-                                   float& t_min) const
+        bool Sphere::get_closest_intersect(const math::Ray<math::Vector>& R,
+										   float& t_min) const
         {
           float a = (float)glm::dot(R.d, R.d);
           float b = (float)2.0f * glm::dot(R.d, R.o - this->C);
