@@ -4,6 +4,7 @@ ProjectPolygon Raytracer
 ## Objects
 Objects can be rendered by adding the following objects to the "objects" list in the taskfile
 ### Spheres
+```
 {
 	"type": "sphere",
 	"centre": [ 0.0, 0.0, 150.0 ],
@@ -14,8 +15,10 @@ Objects can be rendered by adding the following objects to the "objects" list in
 		    "colour": [ 0.0, 0.0, 1.0 ]
 	}
 }
+```
 
 ### Torus
+```
 {
 	"type": "torus",
 	"centre": [ 0.0, 0.0, 150.0 ],
@@ -27,8 +30,10 @@ Objects can be rendered by adding the following objects to the "objects" list in
 		"colour": [ 1.0, 0.0, 0.0 ]
 	}
 }
+```
 
 ### Triangle
+```
 {
 	"type": "triangle",
 	"points": [
@@ -43,8 +48,10 @@ Objects can be rendered by adding the following objects to the "objects" list in
 		    "colour": [ 0.0, 0.0, 1.0 ]
 	}
 }
+```
 
 ### Mesh
+```
 {
 	"type": "mesh",
 	"object_file": "suzanne.obj",
@@ -57,3 +64,4 @@ Objects can be rendered by adding the following objects to the "objects" list in
 		"colour": [ 0.0, 0.0, 1.0 ]
 	}
 }
+```
