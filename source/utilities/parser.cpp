@@ -7,6 +7,12 @@
 #include "objects/torus.hpp"
 #include "objects/triangle.hpp"
 #include "objects/mesh.hpp"
+#include "objects/plane.hpp"
+
+#include "materials/reflective.hpp"
+#include "materials/transparent.hpp"
+
+#include "lights/ambient_occlusion.hpp"
 
 #include "structures/KDTree.hpp"
 
@@ -16,7 +22,7 @@ namespace poly::utils {
 	Creates an atlas vector object from JSON
 
 	@param vector_json the JSON formatted list of size 3 used to represent a 3D vector
-	
+
 	@return the parsed vector object
 	*/
 	math::Vector parse_vector(nlohmann::json vector_json)
@@ -37,7 +43,18 @@ namespace poly::utils {
 		auto material_type = material_json["type"];
 		if (material_type == "matte") {
 			return std::make_shared<poly::material::Matte>(
-				material_json["diffuse"], Colour{ parse_vector(material_json["colour"]) });
+				material_json["diffuse"], Colour{parse_vector(material_json["colour"])});
+		} else if (material_type == "reflective") {
+			return std::make_shared<poly::material::Reflective>(material_json["reflective"],
+				material_json["diffuse"], material_json["spectral"], parse_vector(material_json["colour"]),
+				material_json["tightness"]);
+		} else if (material_type == "transparent") {
+			return std::make_shared<poly::material::Transparent>(material_json["reflective"],
+				 material_json["transparent"], material_json["diffuse"],
+				 material_json["spectral"],
+
+				 parse_vector(material_json["colour"]),
+				 material_json["index"], material_json["tightness"]);
 		}
 		else {
 			throw std::runtime_error("incorrect material parameters");
@@ -116,6 +133,7 @@ namespace poly::utils {
 	*/
 	void parse_objects(poly::structures::World& w, nlohmann::json& task)
 	{
+		std::vector<std::shared_ptr<poly::object::Object>> scene;
 		for (auto obj : task["objects"]) {
 			if (obj["type"] == "mesh") {
 				std::string path_to_object(ShaderPath);
@@ -134,7 +152,7 @@ namespace poly::utils {
 				//s->translate(parse_vector(obj["position"]));
 				s->dump_to_list(object_list);
 
-				w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 60, 0.75f, 15, -1));
+				scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 30, 0.75f, 10, 50));
 			}
 			else if (obj["type"] == "sphere") {
 				std::shared_ptr<poly::object::Sphere> s =
@@ -142,7 +160,7 @@ namespace poly::utils {
 
 				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
 				s->material_set(material);
-				w.m_scene.push_back(s);
+				scene.push_back(s);
 			}
 			else if (obj["type"] == "torus") {
 				std::shared_ptr<poly::object::Torus> s =
@@ -151,23 +169,33 @@ namespace poly::utils {
 				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
 
 				s->material_set(material);
-				w.m_scene.push_back(s);
+				scene.push_back(s);
 			}
 			else if (obj["type"] == "triangle") {
 				//std::vector<std::vector<float>> points = obj["points"];
-				std::vector<math::Vector> points = { parse_vector(obj["points"][0]), parse_vector(obj["points"][1]), parse_vector(obj["points"][2]) };
+				std::vector<math::Vector> points = {parse_vector(obj["points"][0]), parse_vector(obj["points"][1]), parse_vector(obj["points"][2])};
 				math::Vector position = parse_vector(obj["position"]);
 				std::shared_ptr<poly::object::Triangle> s =
 					std::make_shared<poly::object::Triangle>(points, position);
 
 				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
 				s->material_set(material);
-				w.m_scene.push_back(s);
+				scene.push_back(s);
+			} else if (obj["type"] == "plane") {
+				math::Normal normal{parse_vector(obj["normal"])};
+				math::Vector position{parse_vector(obj["position"])};
+				auto p = std::make_shared<poly::object::Plane>(normal, position);
+
+				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+				p->material_set(material);
+				scene.push_back(p);
 			}
 			else {
 				throw std::runtime_error("ERROR: object type not supported");
 			}
 		}
+
+		w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(scene, 80, 1, 0.5f, 5, 15));
 	}
 
 	/**
@@ -180,6 +208,7 @@ namespace poly::utils {
 
 	@return
 	*/
+
 	void parse_light(poly::structures::World& w, nlohmann::json& task)
 	{
 		for (auto light : task["lights"]) {
@@ -188,15 +217,23 @@ namespace poly::utils {
 				l = std::make_shared<poly::light::PointLight>(parse_vector(light["position"]));
 				l->radiance_scale(light["intensity"]);
 				w.m_lights.push_back(l);
-			}
-			else if (light["type"] == "ambient") {
+			} else if (light["type"] == "ambient"){
 				l = std::make_shared<poly::light::AmbientLight>();
 				l->colour_set(parse_vector(light["colour"]));
 				l->radiance_scale(light["intensity"]);
 				w.m_ambient = l;
+			} else if (light["type"] == "ambient_occlusion") {
+				auto sampler = std::make_shared<poly::sampler::AA_Jittered>(
+					light["sampler"]["samples"], light["sampler"]["sets"]);
+				std::shared_ptr<poly::light::AmbientOcclusion> ao = std::make_shared<poly::light::AmbientOcclusion>();
+				ao->sampler_set(sampler, light["tightness"]);
+				ao->colour_set(parse_vector(light["colour"]));
+				ao->radiance_scale(light["intensity"]);
+				ao->min_amount_set(light["min_amount"]);
+				w.m_ambient = ao;
 			}
 			else {
-				throw std::runtime_error("Incorrect light parameters");
+				throw std::runtime_error("Incorrect light type");
 			}
 		}
 	}
@@ -208,7 +245,7 @@ namespace poly::utils {
 
 	@throws nlohmann::detail::type_error if one or more parameters do not exist
 
-	@return poly::structures::World object 
+	@return poly::structures::World object
 	*/
 	poly::structures::World create_world(nlohmann::json& task)
 	{
