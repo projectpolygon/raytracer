@@ -22,9 +22,5 @@ namespace poly::material {
 
 		Colour rho([[maybe_unused]] poly::structures::SurfaceInteraction const& sr,
 			[[maybe_unused]] atlas::math::Vector& w_o) const;
-
-		float kt() const;
-
-		float ior() const;
 	};
 }

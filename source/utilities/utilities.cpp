@@ -2,7 +2,6 @@
 #include "utilities/utilities.hpp"
 #include "utilities/paths.hpp"
 #include "stb_image_write.h"
-#include "structures/world.hpp"
 
 using namespace atlas;
 using Colour = math::Vector;

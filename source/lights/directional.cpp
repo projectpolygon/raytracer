@@ -36,10 +36,4 @@ namespace poly::light
 		}
 	}
 
-    // TODO: Define a location for the directional light to be
-    math::Point DirectionalLight::location() const
-    {
-        return math::Point{0.0f, 0.0f, 0.0f};
-    }
-
 } // namespace poly::light

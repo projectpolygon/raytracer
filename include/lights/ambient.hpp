@@ -16,7 +16,5 @@ namespace poly::light
 		atlas::math::Vector direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr);
 
 		Colour L([[maybe_unused]] poly::structures::SurfaceInteraction& sr, poly::structures::World const& world);
-
-        math::Point location() const override;
 	};
 } // namespace poly::light

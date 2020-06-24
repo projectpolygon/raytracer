@@ -6,7 +6,6 @@
 
 #include "utilities/paths.hpp"
 #include "utilities/parser.hpp"
-#include "integrators/SPPMIntegrator.hpp"
 
 using namespace atlas;
 
@@ -78,16 +77,12 @@ int main(int argc, char** argv)
 	zeus::Timer<float> render_timer = zeus::Timer<float>();
 	render_timer.start();
 
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper;
-	stoch_prog_phot_mapper.render(world, camera, output);
-
-	//camera.multithread_render_scene(world, output);
-
+	camera.multithread_render_scene(world, output);
 
 	std::clog << "\nINFO: Time to render was: " << render_timer.elapsed() << std::endl;
 
 	// Create the required output file
-	// saveToBMP(taskfile, output);
+	saveToBMP(taskfile, output);
 
 	return 0;
 }

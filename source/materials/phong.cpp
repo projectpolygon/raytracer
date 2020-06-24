@@ -20,7 +20,7 @@ namespace poly::material {
 	Colour Phong::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const {
 		// Render loop
 		Colour r = Colour(0.0f, 0.0f, 0.0f);
-		Colour a = Colour(0.0f, 0.0f, 0.0f);
+		Colour a;
 		atlas::math::Vector nullVec(0.0f, 0.0f, 0.0f);
 
 		if (world.m_ambient) {
@@ -40,29 +40,11 @@ namespace poly::material {
 					* L
 					* angle);
 			}
+			else {
+				r += Colour(0.0f, 0.0f, 0.0f);
+			}
 		}
 
 		return (a + r);
-	}
-
-	void Phong::absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
-							  unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const
-	{
-		if (photon.depth() >= max_depth) {
-			photons.push_back(photon);
-			return;
-		}
-
-		float specular_kd = m_specular->kd();
-		float diffuse_kd = m_diffuse->kd();
-		float total = diffuse_kd + specular_kd;
-
-		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
-
-		if (rgn < specular_kd) {
-			bounce_photon(photon, photons, max_depth, scene, (specular_kd / total));
-		}
-		photon.intensity(photon.intensity() * (diffuse_kd / total));
-		photons.push_back(photon);
 	}
 }

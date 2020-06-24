@@ -7,13 +7,8 @@ namespace poly::structures {
 	class SurfaceInteraction;
 }
 
-namespace poly::material { class Material; }
-
 #include <atlas/math/ray.hpp>
-#include <atlas/math/math.hpp>
-#include <memory>
-
-using Colour = atlas::math::Vector;
+#include "materials/material.hpp"
 
 namespace poly::structures {
 	class SurfaceInteraction {

@@ -37,9 +37,4 @@ namespace poly::material
 		return Colour(0.0f, 0.0f, 0.0f);
 	}
 
-	float PerfectSpecular::kd() const
-	{
-		return m_kd;
-	}
-
 } // namespace poly::material

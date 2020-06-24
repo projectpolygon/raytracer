@@ -14,13 +14,10 @@ namespace poly::light
 		Light();
 		virtual atlas::math::Vector direction_get(poly::structures::SurfaceInteraction& sr) = 0;
 		virtual Colour L(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) = 0;
-		float ls() const;
 
 		void radiance_scale(float b);
 
 		void colour_set(Colour const& c);
-
-		virtual math::Point location() const = 0;
 
 	protected:
 		float m_ls;

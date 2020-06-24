@@ -28,9 +28,4 @@ namespace poly::light
 		}
 		return false;
 	}
-
-	float Light::ls() const
-	{
-		return m_ls;
-	}
 } // namespace poly::light

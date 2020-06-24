@@ -66,9 +66,4 @@ namespace poly::light
 		}
 	}
 
-    math::Point PointLight::location() const
-    {
-        return m_location;
-    }
-
 } // namespace poly::light

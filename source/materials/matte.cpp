@@ -18,7 +18,7 @@ namespace poly::material
 	{
 		// Render loop
 		Colour r = Colour(0.0f, 0.0f, 0.0f);
-		Colour a = Colour(0.0f, 0.0f, 0.0f);
+		Colour a;
 		atlas::math::Vector nullVec(0.0f, 0.0f, 0.0f);
 
 		if (world.m_ambient)
@@ -43,20 +43,5 @@ namespace poly::material
 		}
 
 		return (a + r);
-	}
-
-	void Matte::absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
-							  unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const {
-		if (photon.depth() >= max_depth) {
-			photons.push_back(photon);
-			return;
-		}
-
-		float partition = m_diffuse->kd();
-		float rgn = (float(rand()) / float(std::numeric_limits<int>::max()));
-		if (rgn > partition) {
-			bounce_photon(photon, photons, max_depth, scene, partition);
-		}
-		photons.push_back(photon);
 	}
 } // namespace poly::material
