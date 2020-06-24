@@ -106,8 +106,8 @@
     "lookat": [ 0.0, 60.0, 0.0 ],
     "up": [ 0.0, 1.0, 0.0 ],
     "sampler": {
-      "type": "jittered",
       "samples": 4,
+      "type": "jittered",
       "sets": 1
     }
   },
