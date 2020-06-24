@@ -3,7 +3,7 @@
   "image_width": 1080,
   "background": [ 0.0, 0.0, 0.0 ],
   "max_depth": 5,
-  "max_threads": 12,
+  "max_threads": 1,
   "slab_startx": 0,
   "slab_starty": 0,
   "slab_endx": 1080,
@@ -62,7 +62,7 @@
     },
     {
       "type": "plane",
-      "normal": [ 0.0, 0.0, -1.0 ],
+      "normal": [ 0.0, 0.0, 1.0 ],
       "position": [ 0.0, 100.0, -100.0 ],
       "material": {
         "type": "matte",
@@ -78,7 +78,7 @@
         "type": "reflective",
         "reflective": 0.9,
         "spectral": 0.05,
-        "diffuse": 0.5,
+        "diffuse": 0.25,
         "colour": [ 1.0, 1.0, 1.0 ],
         "tightness": 100.0
       }
@@ -89,12 +89,12 @@
       "radius": 20.0,
       "material": {
         "type": "transparent",
-        "reflective": 0.28,
+        "reflective": 0.1,
         "transparent": 0.75,
         "spectral": 0.04,
-        "diffuse": 0.7,
-        "colour": [ 0.7, 0.7, 0.7 ],
-        "index": 1.6,
+        "diffuse": 0.05,
+        "colour": [ 0.25, 0.25, 0.95 ],
+        "refractive_index": 1.03,
         "tightness": 100.0
       }
     }
@@ -106,29 +106,17 @@
     "lookat": [ 0.0, 60.0, 0.0 ],
     "up": [ 0.0, 1.0, 0.0 ],
     "sampler": {
-      "type": "jittered",
       "samples": 4,
+      "type": "jittered",
       "sets": 1
     }
   },
   "lights": [
     {
       "type": "point",
-      "intensity": 1.5,
+      "intensity": 2,
       "colour": [ 1.0, 1.0, 1.0 ],
       "position": [ 0.0, 100.0, 150.0 ]
-    },
-    {
-      "type": "ambient_occlusion",
-      "sampler": {
-        "type": "jittered",
-        "samples": 4,
-        "sets": 1
-      },
-      "tightness": 1.0,
-      "intensity": 0.1,
-      "colour": [ 1.0, 1.0, 1.0 ],
-      "min_amount": 0.0
     }
   ],
   "output_file": "task1.bmp"

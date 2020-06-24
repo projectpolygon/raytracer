@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atlas/math/math.hpp>
+#include "light.hpp"
 #include "structures/surface_interaction.hpp"
 
 namespace poly::light {

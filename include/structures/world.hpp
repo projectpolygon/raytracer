@@ -5,16 +5,16 @@
 
 #include <memory>
 #include <vector>
+#include <atlas/math/math.hpp>
 #include "samplers/sampler.hpp"
 #include "structures/view_plane.hpp"
-#include "tracers/tracer.hpp"
-#include "objects/object.hpp"
-#include "lights/light.hpp"
 
 namespace poly::light { class Light; }
 namespace poly::object { class Object; }
 
 namespace poly::structures {
+
+	using Colour = atlas::math::Vector;
 
     class Tracer; // avoids non-declaration in circular dependancy
 

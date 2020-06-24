@@ -11,6 +11,8 @@ using namespace atlas;
 
 namespace poly::material {
 
+	using Colour = math::Vector;
+
     class Material {
     public:
         Material() = default;

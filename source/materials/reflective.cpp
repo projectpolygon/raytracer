@@ -15,7 +15,7 @@ namespace poly::material
 		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
 	}
 
-	Colour Reflective::shade(poly::structures::SurfaceInteraction &sr, poly::structures::World& world) const
+	Colour Reflective::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const
 	{
 		Colour L = Phong::shade(sr, world);
 		math::Vector w_o = -sr.m_ray.d;

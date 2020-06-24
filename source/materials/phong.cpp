@@ -20,7 +20,7 @@ namespace poly::material {
 	Colour Phong::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const {
 		// Render loop
 		Colour r = Colour(0.0f, 0.0f, 0.0f);
-		Colour a;
+		Colour a = {0.0f, 0.0f, 0.0f};
 		atlas::math::Vector nullVec(0.0f, 0.0f, 0.0f);
 
 		if (world.m_ambient) {
@@ -39,9 +39,6 @@ namespace poly::material {
 					+ m_specular->f(sr, w_o, w_i))
 					* L
 					* angle);
-			}
-			else {
-				r += Colour(0.0f, 0.0f, 0.0f);
 			}
 		}
 
