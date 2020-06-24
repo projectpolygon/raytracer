@@ -18,7 +18,7 @@ namespace poly::material
 	{
 		// Render loop
 		Colour r = Colour(0.0f, 0.0f, 0.0f);
-		Colour a;
+		Colour a = {0.0f, 0.0f, 0.0f};
 		atlas::math::Vector nullVec(0.0f, 0.0f, 0.0f);
 
 		if (world.m_ambient)
@@ -35,10 +35,6 @@ namespace poly::material
 			if (angle > 0)
 			{
 				r += (brdf * L * angle);
-			}
-			else
-			{
-				r += Colour(0.0f, 0.0f, 0.0f);
 			}
 		}
 

@@ -1,14 +1,19 @@
 #ifndef PINHOLE_HPP
 #define PINHOLE_HPP
 
+#include "utilities/utilities.hpp"
 #include "cameras/camera.hpp"
 #include "structures/world.hpp"
 #include "structures/scene_slab.hpp"
+#include "structures/surface_interaction.hpp"
+#include "objects/object.hpp"
 
 namespace poly::camera {
 
     class PinholeCamera : public Camera {
     public:
+
+    	using Colour = atlas::math::Vector;
 
         /*
         * Distance from eye to coordinate grid (larger means tighter rays)
