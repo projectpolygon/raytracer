@@ -3,7 +3,7 @@
   "image_width": 1080,
   "background": [ 0.0, 0.0, 0.0 ],
   "max_depth": 5,
-  "max_threads": 1,
+  "max_threads": 12,
   "slab_startx": 0,
   "slab_starty": 0,
   "slab_endx": 1080,
