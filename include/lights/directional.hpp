@@ -14,7 +14,7 @@ namespace poly::light {
 
 		void direction_set(atlas::math::Vector const& direction);
 
-		atlas::math::Vector direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr);
+		atlas::math::Vector get_direction([[maybe_unused]] poly::structures::SurfaceInteraction& sr);
 
 		Colour L(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world);
 

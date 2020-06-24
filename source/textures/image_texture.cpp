@@ -37,13 +37,13 @@ namespace poly::texture
 		}
 	}
 
-	Colour ImageTexture::colour_get([[maybe_unused]] poly::structures::SurfaceInteraction const &sr) const
+	Colour ImageTexture::get_colour([[maybe_unused]] poly::structures::SurfaceInteraction const &sr) const
 	{
 
 		int row, col;
 		if (mapper)
 		{
-			mapper->texel_coord_get(sr.hitpoint_get(), hres, vres, row, col);
+			mapper->get_texel_coord(sr.get_hitpoint(), hres, vres, row, col);
 		}
 		else
 		{

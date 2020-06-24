@@ -12,7 +12,7 @@ namespace poly::object
 		boundbox_calc();
 	}
 
-	math::Vector Triangle::normal_get() const
+	math::Vector Triangle::get_normal() const
 	{
 		math::Vector dir1 = vertices.at(0) - vertices.at(1);
 		math::Vector dir2 = vertices.at(0) - vertices.at(2);
@@ -22,7 +22,7 @@ namespace poly::object
 		return normal;
 	}
 
-	float Triangle::t_get(const math::Ray<math::Vector> &R) const
+	float Triangle::get_t(const math::Ray<math::Vector> &R) const
 	{
 		double px = position.x;
 		double py = position.y;
@@ -88,10 +88,10 @@ namespace poly::object
 		return (float)t;
 	}
 
-	bool Triangle::closest_intersect_get(math::Ray<math::Vector> const &R,
-							   float &t_min) const
+	bool Triangle::get_closest_intersect(math::Ray<math::Vector> const &R,
+										 float &t_min) const
 	{
-		float t = t_get(R);
+		float t = get_t(R);
 		if (t > m_epsilon)
 		{
 			t_min = t;
@@ -104,12 +104,12 @@ namespace poly::object
 							   poly::structures::SurfaceInteraction &sr) const
 	{
 		float t{std::numeric_limits<float>::max()};
-		bool intersect = this->closest_intersect_get(R, t);
+		bool intersect = this->get_closest_intersect(R, t);
 
 		// If this object is hit, set the SurfaceInteraction with the relevant material and information about the hit point
 		if (intersect && t < sr.m_tmin)
 		{
-			sr.m_normal = normal_get(); // Override
+			sr.m_normal = get_normal(); // Override
 			sr.m_ray = R;
 			sr.m_tmin = t;
 			sr.m_material = m_material;
@@ -121,7 +121,7 @@ namespace poly::object
 	bool Triangle::shadow_hit(math::Ray<math::Vector> const &R,
 							  float &t) const
 	{
-		bool hit = this->closest_intersect_get(R, t);
+		bool hit = this->get_closest_intersect(R, t);
 		if (hit && t > m_epsilon)
 		{
 			return hit;

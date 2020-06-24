@@ -139,7 +139,7 @@ namespace poly::camera
 				Colour average = Colour(0.0f, 0.0f, 0.0f);
 				unsigned int count = 0;
 				//for(std::vector<double> sample : subsamples){
-				int max_num_samples = world.m_sampler->num_samples_get();
+				int max_num_samples = world.m_sampler->get_num_samples();
 
 				// For anti-aliasing
 				for (int s = 0; s < max_num_samples; s++)
@@ -202,7 +202,7 @@ namespace poly::camera
 			{
 				Colour average = Colour(0.0f, 0.0f, 0.0f);
 				unsigned int count = 0;
-				int max_num_samples = world.m_sampler->num_samples_get();
+				int max_num_samples = world.m_sampler->get_num_samples();
 
 				// For anti-aliasing
 				for (int s = 0; s < max_num_samples; s++)

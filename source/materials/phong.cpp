@@ -31,7 +31,7 @@ namespace poly::material {
 		math::Vector w_o = -sr.m_ray.d;
 		for (std::shared_ptr<poly::light::Light> light : world.m_lights) {
 			Colour L = light->L(sr, world);
-			math::Vector w_i = light->direction_get(sr);
+			math::Vector w_i = light->get_direction(sr);
 
 			float angle = glm::dot(sr.m_normal, w_i);
 			if (angle >= 0) {

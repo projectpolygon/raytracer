@@ -13,7 +13,7 @@ namespace poly::light
 	public:
 		AmbientLight();
 
-		atlas::math::Vector direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr);
+		atlas::math::Vector get_direction([[maybe_unused]] poly::structures::SurfaceInteraction& sr);
 
 		Colour L([[maybe_unused]] poly::structures::SurfaceInteraction& sr, poly::structures::World const& world);
 	};
