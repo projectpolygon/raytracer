@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 	*/
 	poly::structures::World world;
 	try{
-		world = poly::utils::create_world(taskfile);
+		poly::utils::create_world(taskfile, world);
 	}
 	catch (const nlohmann::detail::type_error& e) {
 		std::cerr << e.what() << std::endl;

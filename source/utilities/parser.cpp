@@ -207,9 +207,8 @@ namespace poly::utils {
 	@throws nlohmann::detail::type_error if one or more parameters do not exist
 	@returns poly::structures::World object
 	*/
-	poly::structures::World create_world(nlohmann::json& task)
+	void create_world(nlohmann::json& task, poly::structures::World& w)
 	{
-		poly::structures::World w;
 
 		std::shared_ptr<poly::structures::ViewPlane> vp = std::make_shared<poly::structures::ViewPlane>();
 		try {
@@ -260,8 +259,6 @@ namespace poly::utils {
 			std::wcerr << e.what() << std::endl;
 			exit(1);
 		}
-
-		return w;
 	}
 
 	/**

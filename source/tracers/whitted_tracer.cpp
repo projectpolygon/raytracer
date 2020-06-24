@@ -5,7 +5,7 @@
 using namespace atlas;
 
 namespace poly::structures {
-	WhittedTracer::WhittedTracer(poly::structures::World& world_) : Tracer(world_), m_world{ world_ } { }
+	WhittedTracer::WhittedTracer(poly::structures::World& world_) : Tracer(world_) { }
 
 	Colour WhittedTracer::trace_ray(math::Ray<math::Vector> const& ray, const unsigned int depth) const
 	{
