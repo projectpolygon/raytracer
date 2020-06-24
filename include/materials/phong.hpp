@@ -5,6 +5,7 @@
 #include "BRDFs/glossy_specular.hpp"
 #include "BRDFs/lambertian.hpp"
 #include "structures/world.hpp"
+#include "lights/light.hpp"
 
 namespace poly::material
 {

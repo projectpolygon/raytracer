@@ -27,6 +27,9 @@ namespace poly::material {
 			a = m_diffuse->rho(sr, nullVec)
 				* world.m_ambient->L(sr, world);
 		}
+		else {
+			a = m_diffuse->rho(sr, nullVec);
+		}
 
 		for (std::shared_ptr<poly::light::Light> light : world.m_lights) {
 			Colour brdf = m_diffuse->f(sr, nullVec, nullVec);

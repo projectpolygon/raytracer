@@ -114,7 +114,7 @@
   "lights": [
     {
       "type": "point",
-      "intensity": 2,
+      "intensity": 1,
       "colour": [ 1.0, 1.0, 1.0 ],
       "position": [ 0.0, 100.0, 150.0 ]
     }

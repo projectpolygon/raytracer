@@ -224,7 +224,7 @@ namespace poly::utils {
 		}
 
 		w.m_vp = vp;
-		w.m_tracer = std::make_shared<poly::structures::WhittedTracer>(&w);
+		w.m_tracer = std::make_shared<poly::structures::WhittedTracer>(w);
 		w.m_scene = std::vector<std::shared_ptr<poly::object::Object>>();
 		w.m_start_width = task["slab_startx"];
 		w.m_start_height = task["slab_starty"];
