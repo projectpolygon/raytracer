@@ -1,6 +1,8 @@
 # raytracer
 ProjectPolygon Raytracer
 
+[![CodeFactor](https://www.codefactor.io/repository/github/projectpolygon/raytracer/badge/master?s=f87b3bf21de25a2ad3cbfb1c2882c2bb7c40d0bf)](https://www.codefactor.io/repository/github/projectpolygon/raytracer/overview/master)
+
 ## Objects
 Objects can be rendered by adding the following objects to the "objects" list in the taskfile
 ### Spheres
