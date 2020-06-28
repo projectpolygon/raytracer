@@ -1,6 +1,7 @@
 #ifndef POLY_KDTREE_HPP
 #define POLY_KDTREE_HPP
 
+#include <vector>
 #include <atlas/math/ray.hpp>
 #include <atlas/math/math.hpp>
 #include "objects/object.hpp"
@@ -70,6 +71,8 @@ namespace poly::structures {
 		bool hit(const math::Ray<math::Vector>& ray, SurfaceInteraction& sr) const;
 
 		bool shadow_hit(const math::Ray<math::Vector>& ray, float& t) const;
+
+		std::vector<std::shared_ptr<poly::object::Object>> get_nearest_to_point(atlas::math::Point const& hitpoint, float radius_to_check, std::size_t max_num_points) const;
 
 	private:
 		const int intersectCost, traversalCost, maxPrims;

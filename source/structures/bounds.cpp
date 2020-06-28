@@ -11,6 +11,14 @@ namespace poly::structures
 
 	Bounds3D::Bounds3D(atlas::math::Vector _pMin, atlas::math::Vector _pMax) : pMin{_pMin}, pMax{_pMax} {}
 
+	bool Bounds3D::inside_bounds(atlas::math::Point const& point) const
+	{
+		if (point.x > pMax.x || point.x < pMin.x || point.y > pMax.y || point.y < pMin.y || point.z > pMax.z || point.z < pMin.z) {
+			return false;
+		}
+		return true;
+	}
+
 	bool Bounds3D::get_intersects(const atlas::math::Ray<atlas::math::Vector> &ray, double *hitt0, double*hitt1) const
 	{
 		double t0 = 0;

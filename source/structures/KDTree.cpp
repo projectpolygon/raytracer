@@ -567,4 +567,107 @@ namespace poly::structures
 		return hit;
 	}
 
+	std::vector<std::shared_ptr<poly::object::Object>> KDTree::get_nearest_to_point(atlas::math::Point const& hitpoint, float radius_to_check, std::size_t max_num_points) const
+	{
+		std::vector<std::shared_ptr<poly::object::Object>> nearest_objects;
+
+		// First, check if we are inside the box at all
+		//double tMin, tMax;
+		if (!m_bounds.inside_bounds(hitpoint))
+		{
+			return nearest_objects;
+		}
+
+		constexpr int maxTodo = 512;
+		KDToDo todo[maxTodo];
+		int todoPos = 0;
+
+		const KDNode* node = &m_nodes[0];
+		while (node != nullptr)
+		{
+			//if (ray.tMax < tMin) break; // Our rays go forever
+			// While we aren't at a leaf, go down the list
+			if (!node->IsLeaf())
+			{
+				int axis = node->SplitAxis();
+				float dist_to_split = std::abs(node->SplitPos() - hitpoint[axis]);
+
+				const KDNode* firstChild;
+				const KDNode* secondChild;
+
+				int belowFirst = hitpoint[axis] < node->SplitPos();
+
+				// If we are below first, then we are starting below the split plane
+				if (belowFirst)
+				{
+					firstChild = node + 1;
+					secondChild = &m_nodes[node->AboveChild()];
+				}
+				else
+				{
+					firstChild = &m_nodes[node->AboveChild()];
+					secondChild = node + 1;
+				}
+
+				// Depending on where in the box the split occurs, we may not need to check the whole volume
+				if (dist_to_split > radius_to_check || dist_to_split <= 0)
+				{
+					// Second is not within range, do not check it
+					node = firstChild;
+				}
+				else
+				{
+					// Split happens in between. Need to check both sides
+					todo[todoPos].node = secondChild;
+					todoPos++;
+
+					node = firstChild;
+				}
+			}
+			else
+			{
+				// This node is a leaf, need to check if we hit any of the contained objects
+				int number_objects_in_node = node->nPrimitives();
+				
+				atlas::math::Ray ray(hitpoint, atlas::math::Vector(0.0,0.0,0.0));
+				poly::structures::SurfaceInteraction sr;
+
+				if (number_objects_in_node == 1)
+				{
+					const std::shared_ptr<Object>& obj = objects.at(node->onePrimitive);
+					if (obj->hit(ray, sr))
+					{
+						nearest_objects.push_back(obj);
+					}
+				}
+				else
+				{
+					for (int i = 0; i < number_objects_in_node; ++i)
+					{
+						int index = all_leaf_object_indices[(size_t)node->offset_in_object_indices + i];
+						const std::shared_ptr<Object>& obj = objects.at(index);
+						if (obj->hit(ray, sr))
+						{
+							nearest_objects.push_back(obj);
+						}
+					}
+				}
+
+				// No need to go further down this branch.
+				// Retrieve the next branch start
+				if (todoPos > 0 && nearest_objects.size() < max_num_points)
+				{
+					todoPos--;
+					node = todo[todoPos].node;
+				}
+				else
+				{
+					// None left. We're done
+					break;
+				}
+			}
+		}
+		return nearest_objects;
+	}
+
 } // namespace poly::structures

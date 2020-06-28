@@ -128,8 +128,7 @@ namespace poly::integrators {
 				}
 
 				if (is_hit) {
-					poly::structures::Photon photon = poly::structures::Photon(photon_ray,
-						si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
+					poly::structures::Photon photon = poly::structures::Photon(photon_ray, si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
 					si.m_material->absorb_photon(photon, vp_tree, world.m_vp->max_depth, world);
 				}
 

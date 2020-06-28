@@ -52,6 +52,10 @@ namespace poly::material
 							  unsigned int max_depth, poly::structures::World const& world) const {
 		if (photon.depth() >= max_depth) {
 			//photons.push_back(photon);
+			//std::vector<std::shared_ptr<poly::object::VisiblePoint>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point, 2.0f, 5);
+			//for (auto vp : nearby_VPs) {
+				//vp->add_contribution(photon);
+			//}
 			// Add contribution to nearby VP's
 			return;
 		}
