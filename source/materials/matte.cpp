@@ -68,4 +68,22 @@ namespace poly::material
 		// Add contribution to nearby VP's
 		//photons.push_back(photon);
 	}
+
+	void Matte::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point, structures::SurfaceInteraction &si,
+							   structures::World &world) const
+	{
+		(void) visible_point;
+		(void) si;
+		(void) world;
+	}
+
+	poly::material::InteractionType Matte::sample_interation()
+	{
+		float partition = m_diffuse->kd();
+		float rgn = (float(rand()) / float(std::numeric_limits<int>::max()));
+		if (rgn > partition) {
+			return poly::material::InteractionType::REFLECT;
+		}
+		return poly::material::InteractionType::ABSORB;
+	}
 } // namespace poly::material

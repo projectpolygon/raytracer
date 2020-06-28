@@ -51,4 +51,12 @@ namespace poly::material {
 								 [[maybe_unused]] unsigned int max_depth, [[maybe_unused]] std::vector<std::shared_ptr<poly::object::Object>> scene) const {
 
 	}
+
+	void SV_Matte::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point,
+									   structures::SurfaceInteraction &si, structures::World &world) const
+	{
+		(void) visible_point;
+		(void) si;
+		(void) world;
+	}
 }

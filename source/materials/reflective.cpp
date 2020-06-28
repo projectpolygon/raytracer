@@ -52,4 +52,12 @@ namespace poly::material
 		//photons.push_back(photon);
 	}
 
+	void Reflective::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point,
+										 structures::SurfaceInteraction &si, structures::World &world) const
+	{
+		(void) visible_point;
+		(void) si;
+		(void) world;
+	}
+
 } // namespace poly::material

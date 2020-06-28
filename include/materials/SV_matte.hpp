@@ -26,6 +26,9 @@ namespace poly::material
 
 		void absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
 						   std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+		virtual void handle_vision_point(std::shared_ptr<poly::object::Object>& visible_point,
+										 poly::structures::SurfaceInteraction& si,
+										 poly::structures::World& world) const;
 
 	protected:
 		std::shared_ptr<SV_LambertianBRDF> m_diffuse;
