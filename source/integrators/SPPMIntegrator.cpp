@@ -45,6 +45,8 @@ namespace poly::integrators {
 
 				/* -------- SECOND PASS -------- */
 				/* ------- PHOTON POINTS ------- */
+				photon_mapping(world, visible_point_tree, output);
+
 				/*
 				For each light
 					shoot photons from the light
@@ -55,9 +57,6 @@ namespace poly::integrators {
 							add photon to each of the N points (update using pointer to location on film inside the VisiblePoint
 						calculate next photon bounce, or terminate photon
 				*/
-
-				std::vector<poly::structures::Photon> photons = photon_mapping(world, visible_point_tree);
-				// Render image
 			}
 		}
 	}
@@ -102,7 +101,7 @@ namespace poly::integrators {
 		return visiblePoints;
 	}
 
-	std::vector<poly::structures::Photon> SPPMIntegrator::photon_mapping(const poly::structures::World& world, poly::structures::KDTree const& vp_tree)
+	void SPPMIntegrator::photon_mapping(const poly::structures::World& world, poly::structures::KDTree const& vp_tree, poly::utils::BMP_info& output)
 	{
 		// TODO: Make configurable
 		std::size_t photon_count = 100000;
