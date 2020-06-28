@@ -10,6 +10,7 @@ namespace poly::structures {
 				   m_wi{ray}, m_point{point}, m_normal{normal}, m_intensity{intensity}, m_depth{depth}
     {}
 
+    // Takes the incoming vector (wi) and produces the outgoing vector (wo)
 	const atlas::math::Ray<atlas::math::Vector> Photon::reflect_ray() const
 	{
 		constexpr float e = 0.001f;

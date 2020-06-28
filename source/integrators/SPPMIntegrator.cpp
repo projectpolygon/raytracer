@@ -95,6 +95,7 @@ namespace poly::integrators {
 				if (is_hit) {
 					poly::structures::Photon photon = poly::structures::Photon(photon_ray,
 						si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
+					// NOTE: If it does bounce, then this call will become recursive
 					si.m_material->absorb_photon(photon, photons, world.m_vp->max_depth, world.m_scene);
 				}
 
