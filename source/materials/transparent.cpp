@@ -64,11 +64,12 @@ namespace poly::material
 		float diffuse_kd = m_diffuse->kd();
 		float total = transparent_kt + specular_kd + reflective_kd + diffuse_kd;
 
-		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+		// Random number in the range 0 to total
+		float random_number = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
 
-		if (rgn < transparent_kt) {
+		if (random_number < transparent_kt) {
 			transmit_photon(photon, photons, max_depth, scene, photon.intensity() * transparent_kt / total);
-		} else if (rgn >= transparent_kt && rgn < transparent_kt + reflective_kd) {
+		} else if (random_number >= transparent_kt && random_number < transparent_kt + reflective_kd) {
 			bounce_photon(photon, photons, max_depth, scene, (reflective_kd + reflective_kd) / total * photon.intensity());
 		}
 		photon.intensity(photon.intensity() * diffuse_kd / total);
