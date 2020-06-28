@@ -56,51 +56,10 @@ namespace poly::integrators {
 						calculate next photon bounce, or terminate photon
 				*/
 
-				std::vector<poly::structures::Photon> photons = photon_mapping(world);
+				std::vector<poly::structures::Photon> photons = photon_mapping(world, visible_point_tree);
 				// Render image
-
-			}
-
-		}
-
-	}
-
-	std::vector<poly::structures::Photon> SPPMIntegrator::photon_mapping(const poly::structures::World& world)
-	{
-		// TODO: Make configurable
-		std::size_t photon_count = 100000;
-
-		std::vector<poly::structures::Photon> photons;
-
-		for (auto light: world.m_lights) {
-			for (std::size_t i{0}; i < photon_count; ++i) {
-				float x, y, z;
-				do {
-					x = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
-					y = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
-					z = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
-				} while (x * x + y * y + z * z > 1.0f);
-
-				math::Vector d{x, y, z};
-				math::Point o{light->location()};
-				math::Ray<math::Vector> photon_ray{o, d};
-				structures::SurfaceInteraction si;
-
-				bool is_hit{false};
-				for (auto obj: world.m_scene) {
-					if (obj->hit(photon_ray, si))
-						is_hit = true;
-				}
-
-				if (is_hit) {
-					poly::structures::Photon photon = poly::structures::Photon(photon_ray,
-						si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
-					si.m_material->absorb_photon(photon, photons, world.m_vp->max_depth, world.m_scene);
-				}
-
 			}
 		}
-		return photons;
 	}
 
 	std::vector<std::shared_ptr<poly::object::Object>> SPPMIntegrator::create_visible_points(std::shared_ptr<poly::structures::scene_slab> slab,
@@ -141,6 +100,44 @@ namespace poly::integrators {
 			}
 		}
 		return visiblePoints;
+	}
+
+	std::vector<poly::structures::Photon> SPPMIntegrator::photon_mapping(const poly::structures::World& world, poly::structures::KDTree const& vp_tree)
+	{
+		// TODO: Make configurable
+		std::size_t photon_count = 100000;
+
+		std::vector<poly::structures::Photon> photons;
+
+		for (auto light : world.m_lights) {
+			for (std::size_t i{ 0 }; i < photon_count; ++i) {
+				float x, y, z;
+				do {
+					x = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
+					y = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
+					z = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
+				} while (x * x + y * y + z * z > 1.0f);
+
+				math::Vector d{ x, y, z };
+				math::Point o{ light->location() };
+				math::Ray<math::Vector> photon_ray{ o, d };
+				structures::SurfaceInteraction si;
+
+				bool is_hit{ false };
+				for (auto obj : world.m_scene) {
+					if (obj->hit(photon_ray, si))
+						is_hit = true;
+				}
+
+				if (is_hit) {
+					poly::structures::Photon photon = poly::structures::Photon(photon_ray,
+						si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
+					si.m_material->absorb_photon(photon, photons, world.m_vp->max_depth, world.m_scene);
+				}
+
+			}
+		}
+		return photons;
 	}
 
 	/*

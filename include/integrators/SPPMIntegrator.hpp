@@ -51,7 +51,7 @@ namespace poly::integrators {
 			poly::camera::PinholeCamera const& camera, 
 			std::shared_ptr<poly::structures::World> world);
 
-		std::vector<poly::structures::Photon> photon_mapping(const structures::World &world);
+		std::vector<poly::structures::Photon> photon_mapping(const structures::World &world, poly::structures::KDTree const& vp_tree);
 	};
 }
 /**
