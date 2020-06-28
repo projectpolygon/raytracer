@@ -5,13 +5,13 @@ namespace poly::structures
 
 	Bounds3D::Bounds3D()
 	{
-		pMin = math::Vector(0.0f, 0.0f, 0.0f);
-		pMax = math::Vector(0.0f, 0.0f, 0.0f);
+		pMin = atlas::math::Vector(0.0f, 0.0f, 0.0f);
+		pMax = atlas::math::Vector(0.0f, 0.0f, 0.0f);
 	}
 
-	Bounds3D::Bounds3D(math::Vector _pMin, math::Vector _pMax) : pMin{_pMin}, pMax{_pMax} {}
+	Bounds3D::Bounds3D(atlas::math::Vector _pMin, atlas::math::Vector _pMax) : pMin{_pMin}, pMax{_pMax} {}
 
-	bool Bounds3D::get_intersects(const math::Ray<math::Vector> &ray, double *hitt0, double*hitt1) const
+	bool Bounds3D::get_intersects(const atlas::math::Ray<atlas::math::Vector> &ray, double *hitt0, double*hitt1) const
 	{
 		double t0 = 0;
 		double t1 = std::numeric_limits<float>::max();
@@ -45,20 +45,20 @@ namespace poly::structures
 		return true;
 	}
 
-	math::Vector Bounds3D::diagonal() const
+	atlas::math::Vector Bounds3D::diagonal() const
 	{
 		return pMax - pMin;
 	}
 
 	float Bounds3D::surfaceArea() const
 	{
-		math::Vector d = Bounds3D::diagonal();
+		atlas::math::Vector d = Bounds3D::diagonal();
 		return 2 * (d.x * d.y + d.x * d.z + d.y * d.z);
 	}
 
 	int Bounds3D::maximum_extent() const
 	{
-		math::Vector d = Bounds3D::diagonal();
+		atlas::math::Vector d = Bounds3D::diagonal();
 		if (d.x > d.y && d.x > d.z)
 			return 0;
 		else if (d.y > d.z)

@@ -1,5 +1,7 @@
+#include <atlas/math/math.hpp>
 #include "lights/point_light.hpp"
 #include "structures/world.hpp"
+#include "objects/object.hpp"
 
 namespace poly::light
 {
@@ -9,7 +11,7 @@ namespace poly::light
 		m_location = atlas::math::Vector(0.0f, 0.0f, 0.0f);
 	}
 
-	PointLight::PointLight(math::Vector const &location) : Light()
+	PointLight::PointLight(atlas::math::Vector const &location) : Light()
 	{
 		m_location = location;
 	}
@@ -21,17 +23,17 @@ namespace poly::light
 
 	atlas::math::Vector PointLight::direction_get(poly::structures::SurfaceInteraction &sr)
 	{
-		math::Vector surface_point = sr.hitpoint_get();
+		atlas::math::Vector surface_point = sr.hitpoint_get();
 		return glm::normalize(m_location - surface_point);
 	}
 
-	bool PointLight::in_shadow(math::Ray<math::Vector> const &shadow_ray,
+	bool PointLight::in_shadow(atlas::math::Ray<atlas::math::Vector> const &shadow_ray,
 								poly::structures::World const& world)
 	{
 		float t{std::numeric_limits<float>::max()};
 
 		// Max distance between hitpoint and light
-		math::Vector line_between = m_location - shadow_ray.o;
+		atlas::math::Vector line_between = m_location - shadow_ray.o;
 		float line_distance = sqrt(glm::dot(line_between, line_between));
 
 		for (std::shared_ptr<poly::object::Object> object : world.m_scene)

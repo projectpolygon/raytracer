@@ -5,8 +5,8 @@
 #include <vector>
 #include <memory>
 #include <atlas/utils/load_obj_file.hpp>
-#include "objects/triangle.hpp"
 #include "objects/smooth_uv_triangle.hpp"
+#include "utilities/utilities.hpp"
 
 namespace poly::object {
 

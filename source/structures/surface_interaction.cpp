@@ -1,7 +1,5 @@
 #include <memory>
-#include "utilities/utilities.hpp"
 #include "structures/surface_interaction.hpp"
-#include "structures/world.hpp"
 
 namespace poly::structures
 {
@@ -9,7 +7,7 @@ namespace poly::structures
 		: m_u{},
 		m_v{}, 
 		m_material{ nullptr },
-		m_colour{ Colour(0.0f, 0.0f, 0.0f) },
+		m_colour{ atlas::math::Vector(0.0f, 0.0f, 0.0f) },
 		m_normal{}
 	{
 		// Initial distance to max object is m_tmin

@@ -24,7 +24,7 @@ namespace poly::material
 
 		SV_Matte(float f, std::string const &s);
 
-		void absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons, unsigned int max_depth,
+		void absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
 						   std::vector<std::shared_ptr<poly::object::Object>> scene) const;
 
 	protected:

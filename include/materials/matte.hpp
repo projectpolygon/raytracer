@@ -5,8 +5,7 @@
 #include "lights/light.hpp"
 #include "textures/texture.hpp"
 #include "BRDFs/lambertian.hpp"
-#include "textures/constant_colour.hpp"
-#include "textures/image_texture.hpp"
+#include "structures/KDTree.hpp"
 #include "structures/world.hpp"
 
 namespace poly::material
@@ -18,8 +17,8 @@ namespace poly::material
 		Matte();
 		Matte(float f, Colour const &c);
 
-		void absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons, unsigned int max_depth,
-						   std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+		void absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
+			poly::structures::World const& world) const;
 
 	protected:
 		std::shared_ptr<LambertianBRDF> m_diffuse;

@@ -50,11 +50,12 @@ namespace poly::material
 		return L;
 	}
 
-	void Transparent::absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
-									unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const
+	void Transparent::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
+									unsigned int max_depth, poly::structures::World& world) const
 	{
 		if (photon.depth() >= max_depth) {
-			photons.push_back(photon);
+			//photons.push_back(photon);
+			// Add photons contribution to VP
 			return;
 		}
 
@@ -68,20 +69,22 @@ namespace poly::material
 		float random_number = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
 
 		if (random_number < transparent_kt) {
-			transmit_photon(photon, photons, max_depth, scene, photon.intensity() * transparent_kt / total);
+			transmit_photon(photon, vp_tree, max_depth, world, photon.intensity() * transparent_kt / total);
 		} else if (random_number >= transparent_kt && random_number < transparent_kt + reflective_kd) {
-			bounce_photon(photon, photons, max_depth, scene, (reflective_kd + reflective_kd) / total * photon.intensity());
+			bounce_photon(photon, vp_tree, max_depth, world, (reflective_kd + reflective_kd) / total * photon.intensity());
 		}
 		photon.intensity(photon.intensity() * diffuse_kd / total);
-		photons.push_back(photon);
+		// Add photon contribution to VP
+		//photons.push_back(photon);
 	}
 
-	void Transparent::transmit_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
-									  unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene,
+	void Transparent::transmit_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
+									  unsigned int max_depth, poly::structures::World& world,
 									  float intensity) const
 	{
 		if (photon.depth() >= max_depth) {
-			photons.push_back(photon);
+			//photons.push_back(photon);
+			// Add photon contribution to VP
 			return;
 		}
 
@@ -94,16 +97,18 @@ namespace poly::material
 
 		atlas::math::Ray<atlas::math::Vector> photon_ray{photon.point(), wi};
 
+		// Send the transmitted ray through the scene
 		bool is_hit{false};
-		for (auto obj: scene) {
+		for (auto obj: world.m_scene) {
 			if (obj->hit(photon_ray, si))
 				is_hit = true;
 		}
 
+		// If we hit an object, possibly generate new rays, otherwise, simply change the photons intensity 
 		if (is_hit) {
 			poly::structures::Photon reflected_photon = poly::structures::Photon(photon_ray,
 				si.hitpoint_get(), si.m_normal, photon.intensity() * (1 - intensity), photon.depth() + 1);
-			si.m_material->absorb_photon(reflected_photon, photons, max_depth, scene);
+			si.m_material->absorb_photon(reflected_photon, vp_tree, max_depth, world);
 		}
 		float new_intensity = photon.intensity() * intensity;
 		photon.intensity(new_intensity);

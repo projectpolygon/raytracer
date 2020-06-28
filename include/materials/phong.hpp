@@ -6,6 +6,7 @@
 #include "BRDFs/lambertian.hpp"
 #include "structures/world.hpp"
 #include "materials/material.hpp"
+#include "structures/KDTree.hpp"
 #include "lights/light.hpp"
 
 namespace poly::material
@@ -18,8 +19,8 @@ namespace poly::material
 		Phong(float f_diffuse, float f_spec, Colour c, float exp);
 
 		virtual Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
-		void absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons, unsigned int max_depth,
-						   std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+		void absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
+			poly::structures::World const& world) const;
 	protected:
 		std::shared_ptr<LambertianBRDF> m_diffuse;
 		std::shared_ptr<GlossySpecularBRDF> m_specular;

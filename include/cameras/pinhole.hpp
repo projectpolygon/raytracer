@@ -1,15 +1,11 @@
 #ifndef PINHOLE_HPP
 #define PINHOLE_HPP
 
+#include <atlas/math/ray.hpp>
 #include "cameras/camera.hpp"
 #include "structures/world.hpp"
 #include "structures/scene_slab.hpp"
 #include "utilities/utilities.hpp"
-#include "structures/view_plane.hpp"
-#include "samplers/sampler.hpp"
-#include "objects/object.hpp"
-#include "structures/surface_interaction.hpp"
-#include <atlas/math/ray.hpp>
 
 namespace poly::camera {
 

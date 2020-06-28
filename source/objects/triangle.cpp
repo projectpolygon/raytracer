@@ -1,3 +1,5 @@
+#define POLY_KDTREE_HPP
+#include "structures/KDTree.hpp"
 #include "objects/triangle.hpp"
 
 namespace poly::object

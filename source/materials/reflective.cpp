@@ -30,11 +30,11 @@ namespace poly::material
 		return L;
 	}
 
-	void Reflective::absorb_photon(structures::Photon &photon,  std::vector<poly::structures::Photon> &photons,
-								   unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const
+	void Reflective::absorb_photon(structures::Photon &photon, poly::structures::KDTree &vp_tree,
+								   unsigned int max_depth, poly::structures::World& world) const
 	{
 		if (photon.depth() >= max_depth) {
-			photons.push_back(photon);
+			//photons.push_back(photon);
 			return;
 		}
 
@@ -46,10 +46,10 @@ namespace poly::material
 		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
 
 		if (rgn < reflective_kd) {
-			bounce_photon(photon, photons, max_depth, scene, (photon.intensity() * reflective_kd / total));
+			bounce_photon(photon, vp_tree, max_depth, world, (photon.intensity() * reflective_kd / total));
 		}
 		photon.intensity(photon.intensity() * (1 - (reflective_kd / total)));
-		photons.push_back(photon);
+		//photons.push_back(photon);
 	}
 
 } // namespace poly::material

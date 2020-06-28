@@ -1,4 +1,5 @@
 #include "materials/SV_matte.hpp"
+#include "objects/object.hpp"
 
 namespace poly::material {
 
@@ -46,7 +47,7 @@ namespace poly::material {
 		return (a + r);
 	}
 
-	void SV_Matte::absorb_photon([[maybe_unused]] structures::Photon &p, [[maybe_unused]] std::vector<poly::structures::Photon> &photons,
+	void SV_Matte::absorb_photon([[maybe_unused]] structures::Photon &p, [[maybe_unused]] poly::structures::KDTree& vp_tree,
 								 [[maybe_unused]] unsigned int max_depth, [[maybe_unused]] std::vector<std::shared_ptr<poly::object::Object>> scene) const {
 
 	}

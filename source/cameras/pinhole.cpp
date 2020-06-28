@@ -1,6 +1,8 @@
 #include <iostream>
 #include <thread>
 #include "cameras/pinhole.hpp"
+#include "samplers/sampler.hpp"
+#include "structures/surface_interaction.hpp"
 
 namespace poly::camera
 {

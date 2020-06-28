@@ -1,5 +1,8 @@
 #include "lights/light.hpp"
 #include "structures/world.hpp"
+#include "objects/object.hpp"
+
+namespace poly::object { class Object; }
 
 namespace poly::light
 {

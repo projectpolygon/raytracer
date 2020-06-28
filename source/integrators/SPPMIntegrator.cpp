@@ -41,11 +41,10 @@ namespace poly::integrators {
 				/* -------- FIRST PASS -------- */
 				/* ------ VISIBLE POINTS ------ */
 				std::vector<std::shared_ptr<poly::object::Object>> visible_points = create_visible_points(slab, camera, world_ptr);
-				poly::structures::KDTree visible_point_tree(visible_points, 80, 30, 0.75f, 10, 50);
 
 				/* -------- SECOND PASS -------- */
 				/* ------- PHOTON POINTS ------- */
-				photon_mapping(world, visible_point_tree, output);
+				photon_mapping(world, visible_points, output);
 
 				/*
 				For each light
@@ -101,12 +100,12 @@ namespace poly::integrators {
 		return visiblePoints;
 	}
 
-	void SPPMIntegrator::photon_mapping(const poly::structures::World& world, poly::structures::KDTree const& vp_tree, poly::utils::BMP_info& output)
+	void SPPMIntegrator::photon_mapping(const poly::structures::World& world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list, poly::utils::BMP_info& output)
 	{
+		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, 50);
+
 		// TODO: Make configurable
 		std::size_t photon_count = 100000;
-
-		std::vector<poly::structures::Photon> photons;
 
 		for (auto light : world.m_lights) {
 			for (std::size_t i{ 0 }; i < photon_count; ++i) {
@@ -131,12 +130,13 @@ namespace poly::integrators {
 				if (is_hit) {
 					poly::structures::Photon photon = poly::structures::Photon(photon_ray,
 						si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
-					si.m_material->absorb_photon(photon, photons, world.m_vp->max_depth, world.m_scene);
+					si.m_material->absorb_photon(photon, vp_tree, world.m_vp->max_depth, world);
 				}
 
 			}
 		}
-		return photons;
+		(void)output.m_image;
+		// Add output to image
 	}
 
 	/*

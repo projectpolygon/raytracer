@@ -1,17 +1,12 @@
-#pragma once
+#ifndef POLY_SURFACEINTERACTION_HPP
+#define POLY_SURFACEINTERACTION_HPP
 
-#ifndef SURFACEINTERACTION_HPP
-#define SURFACEINTERACTION_HPP
-
-namespace poly::structures {
-	class SurfaceInteraction;
-}
-
-namespace poly::material { class Material; }
-
+#include <memory>
 #include <atlas/math/ray.hpp>
 #include <atlas/math/math.hpp>
-#include <memory>
+#include "materials/material.hpp"
+
+namespace poly::material { class Material; }
 
 using Colour = atlas::math::Vector;
 

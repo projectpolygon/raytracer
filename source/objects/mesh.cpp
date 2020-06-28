@@ -1,12 +1,12 @@
-#include "objects/mesh.hpp"
 #include <iostream>
+#include "structures/KDTree.hpp"
+#include "objects/mesh.hpp"
 
 using namespace atlas;
 
-namespace poly::object
-{
+namespace poly::object {
 
-	Mesh::Mesh(std::string const &filename, std::string const &mat_path, math::Vector position)
+	Mesh::Mesh(std::string const& filename, std::string const& mat_path, math::Vector position)
 	{
 		m_position = position;
 		std::optional<atlas::utils::ObjMesh> opt_mesh = atlas::utils::load_obj_mesh(filename, mat_path);
@@ -48,7 +48,7 @@ namespace poly::object
 		}
 	}
 
-	void Mesh::material_set(std::shared_ptr<poly::material::Material> const &material)
+	void Mesh::material_set(std::shared_ptr<poly::material::Material> const& material)
 	{
 		for (auto triangle : m_triangles)
 		{
@@ -56,7 +56,7 @@ namespace poly::object
 		}
 	}
 
-	void Mesh::translate(math::Vector const &position)
+	void Mesh::translate(math::Vector const& position)
 	{
 		for (auto triangle : m_triangles)
 		{
@@ -64,7 +64,7 @@ namespace poly::object
 		}
 	}
 
-	void Mesh::scale(math::Vector const &scale)
+	void Mesh::scale(math::Vector const& scale)
 	{
 		for (auto triangle : m_triangles)
 		{
@@ -74,19 +74,19 @@ namespace poly::object
 
 	void Mesh::fake_uvs()
 	{
-		std::vector<math::Vector2> fake = {math::Vector2(0.0f, 0.0f), math::Vector2(1.0f, 0.0f), math::Vector2(0.5f, 1.0f)};
+		std::vector<math::Vector2> fake = { math::Vector2(0.0f, 0.0f), math::Vector2(1.0f, 0.0f), math::Vector2(0.5f, 1.0f) };
 		for (auto triangle : m_triangles)
 		{
 			triangle->set_uvs(fake);
 		}
 	}
 
-	std::vector<std::shared_ptr<SmoothMeshUVTriangle>> &Mesh::repr_get()
+	std::vector<std::shared_ptr<SmoothMeshUVTriangle>>& Mesh::repr_get()
 	{
 		return m_triangles;
 	}
 
-	void Mesh::dump_to_list(std::vector<std::shared_ptr<Object>> &list)
+	void Mesh::dump_to_list(std::vector<std::shared_ptr<Object>>& list)
 	{
 		for (auto tri : m_triangles)
 		{

@@ -18,7 +18,7 @@ namespace poly::light {
 
 		Colour L(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world);
 
-        math::Point location() const override;
+        atlas::math::Point location() const override;
 
 	protected:
 		atlas::math::Vector m_direction;

@@ -1,11 +1,14 @@
 #pragma once
 
-#include "objects/object.hpp"
 #include <atlas/math/math.hpp>
-#include "structures/bounds.hpp"
 
-namespace poly::object
-{
+#include "objects/object.hpp"
+#include "structures/bounds.hpp"
+//#include "structures/surface_interaction.hpp"
+
+namespace poly::object { class Object; }
+
+namespace poly::object {
 
 	class Torus : public Object
 	{
@@ -15,18 +18,18 @@ namespace poly::object
 
 		poly::structures::Bounds3D boundbox_get() const;
 
-		math::Vector normal_get(math::Ray<math::Vector> const &R, float t) const;
+		math::Vector normal_get(math::Ray<math::Vector> const& R, float t) const;
 
-		std::vector<double> rcoeffs_get(math::Ray<math::Vector> const &R) const;
+		std::vector<double> rcoeffs_get(math::Ray<math::Vector> const& R) const;
 
-		bool hit(math::Ray<math::Vector> const &R,
-			poly::structures::SurfaceInteraction&sr) const;
+		bool hit(math::Ray<math::Vector> const& R,
+			poly::structures::SurfaceInteraction& sr) const;
 
-		bool shadow_hit(math::Ray<math::Vector> const &R,
-			float &t) const;
+		bool shadow_hit(math::Ray<math::Vector> const& R,
+			float& t) const;
 
-		bool closest_intersect_get(math::Ray<math::Vector> const &R,
-			float &t_min) const;
+		bool closest_intersect_get(math::Ray<math::Vector> const& R,
+			float& t_min) const;
 
 	private:
 		float m_a;

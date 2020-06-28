@@ -8,25 +8,25 @@
 
 namespace poly::material {
 
-    class Reflective : public Phong {
-    public:
-        
-        Reflective();
-        
-        Reflective(const float amount_refl,
-                   float f_diffuse,
-                   float f_spec,
-                   Colour const& _colour,
-                   float _exp);
+	class Reflective : public Phong {
+	public:
 
-        Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
+		Reflective();
 
-		void absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons, unsigned int max_depth,
-						   std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+		Reflective(const float amount_refl,
+			float f_diffuse,
+			float f_spec,
+			Colour const& _colour,
+			float _exp);
 
-    protected:
-        std::shared_ptr<PerfectSpecular> m_reflected_brdf;
-    };
+		Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
+
+		void absorb_photon(structures::Photon& photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
+			poly::structures::World& world) const;
+
+	protected:
+		std::shared_ptr<PerfectSpecular> m_reflected_brdf;
+	};
 
 }
 

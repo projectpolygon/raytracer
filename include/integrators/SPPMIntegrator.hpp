@@ -1,13 +1,11 @@
 #ifndef INTEGRATOR_HPP
 #define INTEGRATOR_HPP
 
-
+//#include "objects/object.hpp"
 #include "structures/world.hpp"
-#include "objects/object.hpp"
 #include "cameras/pinhole.hpp"
 #include "materials/material.hpp"
 #include "structures/scene_slab.hpp"
-#include "structures/KDTree.hpp"
 #include "cameras/pinhole.hpp"
 #include "structures/bounds.hpp"
 #include "structures/photon.hpp"
@@ -29,10 +27,10 @@ namespace poly::integrators {
 		int index_y; // Along the y axis
 
 		// Point where the VisiblePoint was created
-		math::Point point;
+		atlas::math::Point point;
 
 		// Direction of the incoming ray ( points toward the camera!)
-		math::Vector w_i;
+		atlas::math::Vector w_i;
 
 		// Amount of the photon's luminance we allow to contribute to this point
 		Colour amount;
@@ -51,7 +49,7 @@ namespace poly::integrators {
 			poly::camera::PinholeCamera const& camera, 
 			std::shared_ptr<poly::structures::World> world);
 
-		void photon_mapping(const structures::World &world, poly::structures::KDTree const& vp_tree, poly::utils::BMP_info& output);
+		void photon_mapping(const structures::World &world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list, poly::utils::BMP_info& output);
 	};
 }
 /**

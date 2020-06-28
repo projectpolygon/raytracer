@@ -1,4 +1,7 @@
 #include "materials/matte.hpp"
+#include "structures/KDTree.hpp"
+#include "textures/image_texture.hpp"
+#include "textures/constant_colour.hpp"
 
 namespace poly::material
 {
@@ -45,18 +48,20 @@ namespace poly::material
 		return (a + r);
 	}
 
-	void Matte::absorb_photon(structures::Photon &photon, std::vector<poly::structures::Photon> &photons,
-							  unsigned int max_depth, std::vector<std::shared_ptr<poly::object::Object>> scene) const {
+	void Matte::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
+							  unsigned int max_depth, poly::structures::World const& world) const {
 		if (photon.depth() >= max_depth) {
-			photons.push_back(photon);
+			//photons.push_back(photon);
+			// Add contribution to nearby VP's
 			return;
 		}
 
 		float partition = m_diffuse->kd();
 		float rgn = (float(rand()) / float(std::numeric_limits<int>::max()));
 		if (rgn > partition) {
-			bounce_photon(photon, photons, max_depth, scene, partition);
+			bounce_photon(photon, vp_tree, max_depth, world, partition);
 		}
-		photons.push_back(photon);
+		// Add contribution to nearby VP's
+		//photons.push_back(photon);
 	}
 } // namespace poly::material

@@ -6,8 +6,9 @@
 #include "structures/bounds.hpp"
 #include "structures/surface_interaction.hpp"
 
-namespace poly::object
-{
+namespace poly::object { class Object; }
+
+namespace poly::object {
 
 	class Sphere : public Object
 	{
