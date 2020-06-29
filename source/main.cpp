@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 	zeus::Timer<float> render_timer = zeus::Timer<float>();
 	render_timer.start();
 
-//#define //USE_PM
+#define USE_PM
 
 #ifdef USE_PM
 	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper;

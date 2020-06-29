@@ -2,6 +2,20 @@
 
 namespace poly::material {
 
+	Material::Material() 
+		: m_type{ ABSORB }
+	{
+	
+	}
+
+	Colour Material::sample_f([[maybe_unused]]poly::structures::SurfaceInteraction const& sr,
+		[[maybe_unused]] atlas::math::Vector& w_o,
+		[[maybe_unused]] atlas::math::Vector& w_t) const
+	{
+		return Colour{};
+	}
+
+	/*
 	void poly::material::Material::bounce_photon(structures::Photon& photon, poly::structures::KDTree& vp_tree,
 		unsigned int max_depth, poly::structures::World const& world, float object_colour_intensity) const {
 		poly::structures::SurfaceInteraction si;
@@ -21,4 +35,5 @@ namespace poly::material {
 		float new_intensity = photon.intensity() * object_colour_intensity;
 		photon.intensity(new_intensity);
 	}
+	*/
 }

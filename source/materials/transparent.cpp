@@ -7,6 +7,7 @@ namespace poly::material
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>();
 		m_transmitted_btdf = std::make_shared<PerfectTransmitter>();
+		m_type = TRANSMIT;
 	}
 
 	Transparent::Transparent(const float amount_refl,
@@ -20,6 +21,14 @@ namespace poly::material
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
 		m_transmitted_btdf = std::make_shared<PerfectTransmitter>(amount_trans, _ior);
+		m_type = TRANSMIT;
+	}
+
+	Colour Transparent::sample_f(poly::structures::SurfaceInteraction const& sr,
+		atlas::math::Vector& w_o,
+		atlas::math::Vector& w_t) const
+	{
+		return m_transmitted_btdf->sample_f(sr, w_o, w_t);
 	}
 
 	Colour Transparent::shade(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world) const
@@ -50,6 +59,23 @@ namespace poly::material
 		return L;
 	}
 
+	float Transparent::get_diffuse_strength() const
+	{
+		return m_diffuse->kd();
+	}
+	float Transparent::get_specular_strength() const
+	{
+		return m_specular->kd();
+	}
+	float Transparent::get_reflective_strength() const
+	{
+		return m_reflected_brdf->kd();
+	}
+	float Transparent::get_refractive_strength() const
+	{
+		return m_transmitted_btdf->kt();
+	}
+	/*
 	void Transparent::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
 									unsigned int max_depth, poly::structures::World& world) const
 	{
@@ -113,7 +139,7 @@ namespace poly::material
 		float new_intensity = photon.intensity() * intensity;
 		photon.intensity(new_intensity);
 	}
-
+	*/
 	void Transparent::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point,
 										  structures::SurfaceInteraction &si, structures::World &world) const
 	{

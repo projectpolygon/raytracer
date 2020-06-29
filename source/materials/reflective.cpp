@@ -6,13 +6,15 @@ namespace poly::material
 	Reflective::Reflective()
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>();
+		m_type = REFLECT;
 	}
 
 	Reflective::Reflective(const float amount_refl, float f_diffuse,
-	float f_spec, Colour const &_colour, float _exp)
+		float f_spec, Colour const& _colour, float _exp)
 		: Phong(f_diffuse, f_spec, _colour, _exp)
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
+		m_type = REFLECT;
 	}
 
 	Colour Reflective::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const
@@ -30,6 +32,23 @@ namespace poly::material
 		return L;
 	}
 
+	float Reflective::get_diffuse_strength() const
+	{
+		return m_diffuse->kd();
+	}
+	float Reflective::get_specular_strength() const
+	{
+		return m_specular->kd();
+	}
+	float Reflective::get_reflective_strength() const
+	{
+		return m_reflected_brdf->kd();
+	}
+	float Reflective::get_refractive_strength() const
+	{
+		return 0.0f;
+	}
+	/*
 	void Reflective::absorb_photon(structures::Photon &photon, poly::structures::KDTree &vp_tree,
 								   unsigned int max_depth, poly::structures::World& world) const
 	{
@@ -50,7 +69,7 @@ namespace poly::material
 		}
 		photon.intensity(photon.intensity() * (1 - (reflective_kd / total)));
 		//photons.push_back(photon);
-	}
+	}*/
 
 	void Reflective::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point,
 										 structures::SurfaceInteraction &si, structures::World &world) const

@@ -11,10 +11,12 @@ namespace poly::material
 		m_diffuse = std::make_shared<LambertianBRDF>(
 			1.0f,
 			poly::utils::random_colour_generate());
+		m_type = ABSORB;
 	}
 	Matte::Matte(float f, Colour const &c)
 	{
 		m_diffuse = std::make_shared<LambertianBRDF>(f, c);
+		m_type = ABSORB;
 	}
 
 	Colour Matte::shade(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world) const
@@ -48,14 +50,31 @@ namespace poly::material
 		return (a + r);
 	}
 
+	float Matte::get_diffuse_strength() const
+	{
+		return m_diffuse->kd();
+	}
+	float Matte::get_specular_strength() const
+	{
+		return 0.0f;
+	}
+	float Matte::get_reflective_strength() const
+	{
+		return 0.0f;
+	}
+	float Matte::get_refractive_strength() const
+	{
+		return 0.0f;
+	}
+	/*
 	void Matte::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
 							  unsigned int max_depth, poly::structures::World const& world) const {
 		if (photon.depth() >= max_depth) {
 			//photons.push_back(photon);
-			//std::vector<std::shared_ptr<poly::object::VisiblePoint>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point, 2.0f, 5);
-			//for (auto vp : nearby_VPs) {
-				//vp->add_contribution(photon);
-			//}
+			std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point, 2.0f, 5);
+			for (auto vp : nearby_VPs) {
+				vp->add_contribution(photon);
+			}
 			// Add contribution to nearby VP's
 			return;
 		}
@@ -68,7 +87,7 @@ namespace poly::material
 		// Add contribution to nearby VP's
 		//photons.push_back(photon);
 	}
-
+	*/
 	void Matte::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point, structures::SurfaceInteraction &si,
 							   structures::World &world) const
 	{
@@ -76,7 +95,7 @@ namespace poly::material
 		(void) si;
 		(void) world;
 	}
-
+	/*
 	poly::material::InteractionType Matte::sample_interation()
 	{
 		float partition = m_diffuse->kd();
@@ -85,5 +104,5 @@ namespace poly::material
 			return poly::material::InteractionType::REFLECT;
 		}
 		return poly::material::InteractionType::ABSORB;
-	}
+	}*/
 } // namespace poly::material

@@ -1,6 +1,7 @@
 #ifndef MATERIAL_HPP
 #define MATERIAL_HPP
 
+#include <atlas/math/math.hpp>
 #include "structures/photon.hpp"
 #include "structures/world.hpp"
 #include "structures/KDTree.hpp"
@@ -12,15 +13,27 @@ namespace poly::structures { class Photon; }
 namespace poly::material {
 
 	enum InteractionType {
+		ABSORB,
 		REFLECT,
 		TRANSMIT,
-		ABSORB
-	};
+		NUM_INTERACTION_TYPES
+	}; // TODO possibly move this somewhere else?
 
 	class Material {
 	public:
-		Material() = default;
+		Material();
 		virtual atlas::math::Vector shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const = 0;
+		
+		enum InteractionType m_type;
+
+		virtual float get_diffuse_strength() const = 0;
+		virtual float get_specular_strength() const = 0;
+		virtual float get_reflective_strength() const = 0;
+		virtual float get_refractive_strength() const = 0;
+
+		atlas::math::Vector sample_f(poly::structures::SurfaceInteraction const& sr, atlas::math::Vector& w_o, atlas::math::Vector& w_t) const;
+		
+		/*
 		virtual void absorb_photon(poly::structures::Photon& photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
 			poly::structures::World const& world) const = 0;
 		virtual void bounce_photon(poly::structures::Photon& photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
@@ -28,6 +41,7 @@ namespace poly::material {
 		virtual void handle_vision_point(std::shared_ptr<poly::object::Object>& visible_point,
 			poly::structures::SurfaceInteraction& si,
 			poly::structures::World& world) const = 0;
+		*/
 	};
 }
 

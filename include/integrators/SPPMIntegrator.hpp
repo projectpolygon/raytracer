@@ -21,6 +21,7 @@ namespace poly::integrators {
 		bool hit(math::Ray<math::Vector>const& R,
 			poly::structures::SurfaceInteraction& sr) const;
 		bool shadow_hit(math::Ray<math::Vector>const& R, float& t) const;
+		void add_contribution(poly::structures::Photon const& photon) override;
 
 		// Originating Pixels
 		int index_x; // Along the x axis

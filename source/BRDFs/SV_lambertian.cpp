@@ -21,4 +21,9 @@ namespace poly::material
 	{
 		return (Colour)(m_cd->colour_get(sr) * m_kd);
 	}
+
+	float SV_LambertianBRDF::kd() 
+	{
+		return m_kd;
+	}
 } // namespace poly::material

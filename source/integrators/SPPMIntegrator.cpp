@@ -4,6 +4,32 @@
 #include "utilities/utilities.hpp"
 #include "integrators/SPPMIntegrator.hpp"
 
+void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
+	poly::structures::Photon& photon,
+	poly::structures::KDTree& vp_tree,
+	std::size_t max_depth,
+	poly::structures::World const& world);
+
+void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
+	poly::structures::Photon& photon,
+	poly::structures::KDTree& vp_tree,
+	std::size_t max_depth,
+	poly::structures::World const& world,
+	float colour_change);
+
+void bounce_photon(std::shared_ptr<poly::material::Material> current_material,
+	poly::structures::Photon& photon,
+	poly::structures::KDTree& vp_tree,
+	std::size_t max_depth,
+	poly::structures::World const& world,
+	float object_colour_intensity);
+
+enum {
+	ABSORB,
+	REFLECT,
+	TRANSMIT,
+	NUM_INTERACTION_TYPES
+};
 
 std::size_t TOTAL_NUM = 0;
 std::size_t TOTAL_SLAB = 0;
@@ -111,9 +137,9 @@ namespace poly::integrators {
 			for (std::size_t i{ 0 }; i < photon_count; ++i) {
 				float x, y, z;
 				do {
-					x = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
-					y = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
-					z = 2.0f * (float(rand()) / float(std::numeric_limits<int>::max())) - 1.0f;
+					x = 2.0f * ((((float)(rand() % 1000)) / 1000.0f)) - 1.0f;
+					y = 2.0f * ((((float)(rand() % 1000)) / 1000.0f)) - 1.0f;
+					z = 2.0f * ((((float)(rand() % 1000)) / 1000.0f)) - 1.0f;
 				} while (x * x + y * y + z * z > 1.0f);
 
 				math::Vector d{ x, y, z };
@@ -129,7 +155,8 @@ namespace poly::integrators {
 
 				if (is_hit) {
 					poly::structures::Photon photon = poly::structures::Photon(photon_ray, si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
-					si.m_material->absorb_photon(photon, vp_tree, world.m_vp->max_depth, world);
+					//si.m_material->absorb_photon(photon, vp_tree, world.m_vp->max_depth, world);
+					absorb_photon(si.m_material, photon, vp_tree, (std::size_t)world.m_vp->max_depth, world);
 				}
 
 			}
@@ -158,6 +185,12 @@ namespace poly::integrators {
 	{
 		return false;
 	}
+	void VisiblePoint::add_contribution(poly::structures::Photon const& photon)
+	{
+		(void)photon;
+	}
+
+
 }
 /**
 Steps:
@@ -170,3 +203,135 @@ the entire algorithm repeats for N iterations
 PSEUDOCODE FOR ALGORITHM
 
 */
+void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
+	poly::structures::Photon& photon,
+	poly::structures::KDTree& vp_tree,
+	std::size_t max_depth,
+	poly::structures::World const& world)
+{
+	// If the max depth for recursion is reached, stop here
+	if (photon.depth() >= max_depth) {
+		//photons.push_back(photon);
+		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 2.0f, 5);
+		for (auto vp : nearby_VPs) {
+			vp->add_contribution(photon);
+		}
+		// Add contribution to nearby VP's
+		return;
+	}
+
+	if (current_material->m_type == ABSORB) {
+		// Assess whether or not this should be bounced by taking the intensity of the diffuse component of the material
+		float partition = current_material->get_diffuse_strength();
+		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())); // TODO: fix this, it is not portable
+		if (rgn > partition) {
+			// Bounce the photon off this material
+			bounce_photon(current_material, photon, vp_tree, max_depth, world, partition);
+		}
+		// TODO: Add contribution to nearby VP's if no bounce!!!
+	}
+	else if (current_material->m_type == REFLECT) {
+		float specular_kd = current_material->get_specular_strength();
+		float reflective_kd = current_material->get_reflective_strength();
+		float diffuse_kd = current_material->get_diffuse_strength();
+		float total = reflective_kd + diffuse_kd + specular_kd;
+
+		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+
+		if (rgn < reflective_kd) {
+			bounce_photon(current_material, photon, vp_tree, max_depth, world, (photon.intensity() * reflective_kd / total));
+		}
+		photon.intensity(photon.intensity() * (1 - (reflective_kd / total)));
+		//photons.push_back(photon);
+	}
+	else if (current_material->m_type == TRANSMIT) {
+
+		float transparent_kt = current_material->get_refractive_strength();
+		float specular_kd = current_material->get_specular_strength();
+		float reflective_kd = current_material->get_reflective_strength();
+		float diffuse_kd = current_material->get_diffuse_strength();
+		float total = transparent_kt + specular_kd + reflective_kd + diffuse_kd;
+
+		// Random number in the range 0 to total
+		float random_number = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+
+		if (random_number < transparent_kt) {
+			transmit_photon(current_material, photon, vp_tree, max_depth, world, photon.intensity() * transparent_kt / total);
+		}
+		else if (random_number >= transparent_kt && random_number < transparent_kt + reflective_kd) {
+			bounce_photon(current_material, photon, vp_tree, max_depth, world, (reflective_kd + reflective_kd) / total * photon.intensity());
+		}
+		photon.intensity(photon.intensity() * diffuse_kd / total);
+		// Add photon contribution to VP
+	}
+}
+
+void bounce_photon(std::shared_ptr<poly::material::Material> current_material,
+	poly::structures::Photon& photon,
+	poly::structures::KDTree& vp_tree,
+	std::size_t max_depth,
+	poly::structures::World const& world,
+	float object_colour_intensity)
+{
+	poly::structures::SurfaceInteraction si;
+	// Get the new ray direction from the photon
+	atlas::math::Ray<atlas::math::Vector> photon_ray = photon.reflect_ray();
+
+	// Hit new objects with this ray
+	bool is_hit{ false };
+	for (auto obj : world.m_scene) {
+		if (obj->hit(photon_ray, si))
+		{
+			is_hit = true;
+		}
+	}
+
+	// If we hit an object, get its material and propogate this photon
+	if (is_hit) {
+		poly::structures::Photon reflected_photon = poly::structures::Photon(photon_ray,
+			si.hitpoint_get(),
+			si.m_normal,
+			photon.intensity() * (1 - object_colour_intensity),
+			photon.depth() + 1);
+		absorb_photon(si.m_material, reflected_photon, vp_tree, max_depth, world);
+	}
+	float new_intensity = photon.intensity() * object_colour_intensity;
+	photon.intensity(new_intensity);
+}
+
+void transmit_photon(std::shared_ptr<poly::material::Material> current_material, 
+	poly::structures::Photon& photon, 
+	poly::structures::KDTree& vp_tree, 
+	std::size_t max_depth, 
+	poly::structures::World const& world, 
+	float colour_change)
+{
+	poly::structures::SurfaceInteraction si;
+	si.m_normal = photon.normal();
+	atlas::math::Vector wi = photon.wi().d;
+	atlas::math::Vector wt;
+
+	current_material->sample_f(si, wi, wt);
+	//m_transmitted_btdf->sample_f(si, wi, wt);
+
+	atlas::math::Ray<atlas::math::Vector> photon_ray{ photon.point(), wt }; // This was using wi instead of wt before the switch to functions in this class
+
+	// Send the transmitted ray through the scene
+	bool is_hit{ false };
+	for (auto obj : world.m_scene) {
+		if (obj->hit(photon_ray, si))
+			is_hit = true;
+	}
+
+	// If we hit an object, possibly generate new rays, otherwise, simply change the photons intensity 
+	if (is_hit) {
+		poly::structures::Photon reflected_photon = poly::structures::Photon(photon_ray,
+			si.hitpoint_get(),
+			si.m_normal,
+			photon.intensity() * (1 - colour_change),
+			photon.depth() + 1);
+		absorb_photon(si.m_material, reflected_photon, vp_tree, max_depth, world);
+	}
+	float new_intensity = photon.intensity() * colour_change;
+	photon.intensity(new_intensity);
+}

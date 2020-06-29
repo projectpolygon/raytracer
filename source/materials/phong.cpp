@@ -10,11 +10,13 @@ namespace poly::material {
 			1.0f,
 			poly::utils::random_colour_generate(),
 			1.0f);
+		m_type = ABSORB;
 	}
 	Phong::Phong(float f_diffuse, float f_spec, Colour c, float exp)
 	{
 		m_diffuse = std::make_shared<LambertianBRDF>(f_diffuse, c);
 		m_specular = std::make_shared<GlossySpecularBRDF>(f_spec, c, exp);
+		m_type = ABSORB;
 	}
 
 	Colour Phong::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const {
@@ -45,6 +47,23 @@ namespace poly::material {
 		return (a + r);
 	}
 
+	float Phong::get_diffuse_strength() const
+	{
+		return m_diffuse->kd();
+	}
+	float Phong::get_specular_strength() const
+	{
+		return m_specular->kd();
+	}
+	float Phong::get_reflective_strength() const
+	{
+		return 0.0f;
+	}
+	float Phong::get_refractive_strength() const
+	{
+		return 0.0f;
+	}
+	/*
 	void Phong::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
 							  unsigned int max_depth, poly::structures::World const& world) const
 	{
@@ -65,7 +84,7 @@ namespace poly::material {
 		photon.intensity(photon.intensity() * (diffuse_kd / total));
 		//photons.push_back(photon);
 	}
-
+	*/
 	void Phong::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point, structures::SurfaceInteraction &si,
 							   structures::World &world) const
 	{

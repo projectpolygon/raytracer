@@ -20,6 +20,10 @@ namespace poly::material {
 			float _exp);
 
 		Colour shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const;
+		virtual float get_diffuse_strength() const;
+		virtual float get_specular_strength() const;
+		virtual float get_reflective_strength() const;
+		virtual float get_refractive_strength() const;
 
 		void absorb_photon(structures::Photon& photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
 			poly::structures::World& world) const;
