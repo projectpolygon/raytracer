@@ -7,24 +7,24 @@
 #include "structures/KDTree.hpp"
 
 namespace poly::structures { class KDTree; }
-namespace poly::structures { class SurfaceInteraction; }
+namespace poly::structures { class SurfaceInteraction; enum class InteractionType; }
 namespace poly::structures { class Photon; }
 
 namespace poly::material {
 
-	enum InteractionType {
+	/*enum InteractionType {
 		ABSORB,
 		REFLECT,
 		TRANSMIT,
 		NUM_INTERACTION_TYPES
-	}; // TODO possibly move this somewhere else?
+	}; // TODO possibly move this somewhere else?*/
 
 	class Material {
 	public:
 		Material();
 		virtual atlas::math::Vector shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const = 0;
 		
-		enum InteractionType m_type;
+		enum poly::structures::InteractionType m_type;
 
 		virtual float get_diffuse_strength() const = 0;
 		virtual float get_specular_strength() const = 0;

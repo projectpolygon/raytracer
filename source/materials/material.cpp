@@ -3,7 +3,7 @@
 namespace poly::material {
 
 	Material::Material() 
-		: m_type{ ABSORB }
+		: m_type{ poly::structures::InteractionType::ABSORB }
 	{
 	
 	}

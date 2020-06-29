@@ -24,6 +24,14 @@ namespace poly::structures {
 		SurfaceInteraction();
 		atlas::math::Vector hitpoint_get() const;
 	};
+
+	enum class InteractionType {
+		ABSORB,
+		REFLECT,
+		TRANSMIT,
+		NUM_INTERACTION_TYPES
+	};
+
 }
 
 #endif // !SURFACEINTERACTION_HPP

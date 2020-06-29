@@ -7,7 +7,7 @@ namespace poly::material
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>();
 		m_transmitted_btdf = std::make_shared<PerfectTransmitter>();
-		m_type = TRANSMIT;
+		m_type = poly::structures::InteractionType::TRANSMIT;
 	}
 
 	Transparent::Transparent(const float amount_refl,
@@ -21,7 +21,7 @@ namespace poly::material
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
 		m_transmitted_btdf = std::make_shared<PerfectTransmitter>(amount_trans, _ior);
-		m_type = TRANSMIT;
+		m_type = poly::structures::InteractionType::TRANSMIT;
 	}
 
 	Colour Transparent::sample_f(poly::structures::SurfaceInteraction const& sr,

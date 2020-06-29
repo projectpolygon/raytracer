@@ -11,12 +11,12 @@ namespace poly::material
 		m_diffuse = std::make_shared<LambertianBRDF>(
 			1.0f,
 			poly::utils::random_colour_generate());
-		m_type = ABSORB;
+		m_type = poly::structures::InteractionType::ABSORB;
 	}
 	Matte::Matte(float f, Colour const &c)
 	{
 		m_diffuse = std::make_shared<LambertianBRDF>(f, c);
-		m_type = ABSORB;
+		m_type = poly::structures::InteractionType::ABSORB;
 	}
 
 	Colour Matte::shade(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world) const

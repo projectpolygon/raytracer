@@ -24,12 +24,13 @@ void bounce_photon(std::shared_ptr<poly::material::Material> current_material,
 	poly::structures::World const& world,
 	float object_colour_intensity);
 
+/*
 enum {
 	ABSORB,
 	REFLECT,
 	TRANSMIT,
 	NUM_INTERACTION_TYPES
-};
+};*/
 
 std::size_t TOTAL_NUM = 0;
 std::size_t TOTAL_SLAB = 0;
@@ -194,10 +195,11 @@ namespace poly::integrators {
 		for (auto light : world.m_lights) {
 			for (std::size_t i{ 0 }; i < photon_count; ++i) {
 				float x, y, z;
+				constexpr unsigned int modulo = 100000;
 				do {
-					x = 2.0f * ((((float)(rand() % 1000)) / 1000.0f)) - 1.0f;
-					y = 2.0f * ((((float)(rand() % 1000)) / 1000.0f)) - 1.0f;
-					z = 2.0f * ((((float)(rand() % 1000)) / 1000.0f)) - 1.0f;
+					x = 2.0f * ((((float)(rand() % modulo)) / 100000.0f)) - 1.0f;
+					y = 2.0f * ((((float)(rand() % modulo)) / 100000.0f)) - 1.0f;
+					z = 2.0f * ((((float)(rand() % modulo)) / 100000.0f)) - 1.0f;
 				} while (x * x + y * y + z * z > 1.0f);
 
 				math::Vector d{ x, y, z };
@@ -290,7 +292,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		return;
 	}
 
-	if (current_material->m_type == ABSORB) {
+	if (current_material->m_type == poly::structures::InteractionType::ABSORB) {
 		// Assess whether or not this should be bounced by taking the intensity of the diffuse component of the material
 		float partition = current_material->get_diffuse_strength();
 		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())); // TODO: fix this, it is not portable
@@ -305,7 +307,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		}
 		return;
 	}
-	else if (current_material->m_type == REFLECT) {
+	else if (current_material->m_type == poly::structures::InteractionType::REFLECT) {
 		float specular_kd = current_material->get_specular_strength();
 		float reflective_kd = current_material->get_reflective_strength();
 		float diffuse_kd = current_material->get_diffuse_strength();
@@ -319,7 +321,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		photon.intensity(photon.intensity() * (1 - (reflective_kd / total)));
 		//photons.push_back(photon);
 	}
-	else if (current_material->m_type == TRANSMIT) {
+	else if (current_material->m_type == poly::structures::InteractionType::TRANSMIT) {
 
 		float transparent_kt = current_material->get_refractive_strength();
 		float specular_kd = current_material->get_specular_strength();
@@ -341,7 +343,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 	}
 }
 
-void bounce_photon(std::shared_ptr<poly::material::Material> current_material,
+void bounce_photon([[maybe_unused]]std::shared_ptr<poly::material::Material> current_material,
 	poly::structures::Photon& photon,
 	poly::structures::KDTree& vp_tree,
 	std::size_t max_depth,

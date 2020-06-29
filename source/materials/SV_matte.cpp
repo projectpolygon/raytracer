@@ -6,19 +6,19 @@ namespace poly::material {
 	SV_Matte::SV_Matte(float f, std::shared_ptr<poly::texture::Texture> tex)
 	{
 		m_diffuse = std::make_shared<SV_LambertianBRDF>(f, tex);
-		m_type = ABSORB;
+		m_type = poly::structures::InteractionType::ABSORB;
 	}
 
 	SV_Matte::SV_Matte(float f, Colour const& c)
 	{
 		m_diffuse = std::make_shared<SV_LambertianBRDF>(f, std::make_shared<poly::texture::ConstantColour>(c));
-		m_type = ABSORB;
+		m_type = poly::structures::InteractionType::ABSORB;
 	}
 
 	SV_Matte::SV_Matte(float f, std::string const& s)
 	{
 		m_diffuse = std::make_shared<SV_LambertianBRDF>(f, std::make_shared<poly::texture::ImageTexture>(s));
-		m_type = ABSORB;
+		m_type = poly::structures::InteractionType::ABSORB;
 	}
 
 	Colour SV_Matte::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World& world) const {

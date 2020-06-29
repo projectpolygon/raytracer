@@ -10,13 +10,13 @@ namespace poly::material {
 			1.0f,
 			poly::utils::random_colour_generate(),
 			1.0f);
-		m_type = ABSORB;
+		m_type = poly::structures::InteractionType::ABSORB;
 	}
 	Phong::Phong(float f_diffuse, float f_spec, Colour c, float exp)
 	{
 		m_diffuse = std::make_shared<LambertianBRDF>(f_diffuse, c);
 		m_specular = std::make_shared<GlossySpecularBRDF>(f_spec, c, exp);
-		m_type = ABSORB;
+		m_type = poly::structures::InteractionType::ABSORB;
 	}
 
 	Colour Phong::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const {

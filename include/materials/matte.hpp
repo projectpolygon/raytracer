@@ -30,7 +30,7 @@ namespace poly::material
 										 poly::structures::SurfaceInteraction& si,
 										 poly::structures::World& world) const;
 
-		poly::material::InteractionType sample_interation();
+		poly::structures::InteractionType sample_interation();
 
 	protected:
 		std::shared_ptr<LambertianBRDF> m_diffuse;

@@ -6,7 +6,7 @@ namespace poly::material
 	Reflective::Reflective()
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>();
-		m_type = REFLECT;
+		m_type = poly::structures::InteractionType::REFLECT;
 	}
 
 	Reflective::Reflective(const float amount_refl, float f_diffuse,
@@ -14,7 +14,7 @@ namespace poly::material
 		: Phong(f_diffuse, f_spec, _colour, _exp)
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
-		m_type = REFLECT;
+		m_type = poly::structures::InteractionType::REFLECT;
 	}
 
 	Colour Reflective::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const
