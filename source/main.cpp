@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 #define USE_PM
 
 #ifdef USE_PM
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper;
+	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(50);
 	stoch_prog_phot_mapper.render(world, camera, output);
 #endif // USE_PM
 
@@ -90,9 +90,9 @@ int main(int argc, char** argv)
 	// Create the required output file
 	camera.multithread_render_scene(world, output);
 	std::clog << "\nINFO: Time to render was: " << render_timer.elapsed() << std::endl;
-	saveToBMP(taskfile, output);
+	
 #endif // !USE_PM
-
+	saveToBMP(taskfile, output);
 
 	return 0;
 }

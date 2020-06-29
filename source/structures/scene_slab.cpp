@@ -64,16 +64,16 @@ namespace poly::structures
 			slab_width = static_cast<int>(preferred_slab_size);
 
 			// Check that we aren't flying off the bottom of our image
-			if (i + slab_height > end_y)
+			if (i + slab_height > corrected_end_y)
 			{
-				slab_height = end_y - i;
+				slab_height = corrected_end_y - i;
 			}
 
 			for (int j = corrected_start_x; j < corrected_end_x; j += static_cast<int>(preferred_slab_size))
 			{
-				if (j + slab_width > end_x)
+				if (j + slab_width > corrected_end_x)
 				{
-					slab_width = end_x - j;
+					slab_width = corrected_end_x - j;
 				}
 
 				std::shared_ptr<poly::structures::scene_slab> new_ti = std::make_shared<poly::structures::scene_slab>(

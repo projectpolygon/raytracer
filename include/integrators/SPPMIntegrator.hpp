@@ -16,7 +16,7 @@ namespace poly::integrators {
 	class VisiblePoint : public poly::object::Object
 	{
 	public:
-		VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, Colour amount_, std::shared_ptr<poly::material::Material> material_);
+		VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, Colour amount_, std::shared_ptr<poly::material::Material> material_, std::shared_ptr<poly::structures::scene_slab> slab);
 		// Provided to allow compatibility with Object type
 		bool hit(math::Ray<math::Vector>const& R,
 			poly::structures::SurfaceInteraction& sr) const;
@@ -38,19 +38,22 @@ namespace poly::integrators {
 
 		// Material of the object that the VisiblePoint is on
 		std::shared_ptr<poly::material::Material> material;
+
+		// Slab where the data should be stored
+		std::shared_ptr<poly::structures::scene_slab> m_slab;
 	};
 
 	class SPPMIntegrator {
 	public:
-		SPPMIntegrator();
+		SPPMIntegrator(std::size_t);
 		void render(poly::structures::World const& world, poly::camera::PinholeCamera const& camera, poly::utils::BMP_info& output);
 	private:
-
+		std::size_t m_number_iterations;
 		std::vector<std::shared_ptr<poly::object::Object>> create_visible_points(std::shared_ptr<poly::structures::scene_slab> slab,
 			poly::camera::PinholeCamera const& camera, 
 			std::shared_ptr<poly::structures::World> world);
 
-		void photon_mapping(const structures::World &world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list, poly::utils::BMP_info& output);
+		void photon_mapping(const structures::World &world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list);
 	};
 }
 /**

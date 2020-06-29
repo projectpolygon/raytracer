@@ -35,16 +35,16 @@ std::size_t TOTAL_NUM = 0;
 std::size_t TOTAL_SLAB = 0;
 
 namespace poly::integrators {
-	SPPMIntegrator::SPPMIntegrator()
+	SPPMIntegrator::SPPMIntegrator(std::size_t num_iterations)
+		:m_number_iterations{num_iterations}
 	{
 	
 	}
 
 	void SPPMIntegrator::render(poly::structures::World const& world, poly::camera::PinholeCamera const& camera, poly::utils::BMP_info& output)
 	{
-		(void)output;
-
 		// First, create our list of slabs to render with
+		output.m_image.clear();
 		std::shared_ptr<std::vector<std::vector<Colour>>> storage = std::make_shared<std::vector<std::vector<Colour>>>(world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
 		std::shared_ptr<std::mutex> storage_mutex = std::make_shared<std::mutex>();
 		std::vector<std::thread> thread_list;
@@ -58,11 +58,15 @@ namespace poly::integrators {
 			storage_mutex,
 			storage);
 
+		//// Create a square of working space equivalent to the size of our image
+		//std::vector<std::vector<Colour>> working_space = std::vector<std::vector<Colour>>(
+		//	static_cast<std::size_t>(output.m_end_height) - output.m_start_height,
+		//	std::vector<Colour>(static_cast<std::size_t>(output.m_end_width) - output.m_start_width));
+
 		for (auto slab : slabs) {
 
 			// Repeat the illumination pass for num_iterations
-			std::size_t num_iterations = 1;
-			for (std::size_t iteration{}; iteration < num_iterations; ++iteration) {
+			for (std::size_t iteration{}; iteration < m_number_iterations; ++iteration) {
 
 				/* -------- FIRST PASS -------- */
 				/* ------ VISIBLE POINTS ------ */
@@ -70,7 +74,7 @@ namespace poly::integrators {
 
 				/* -------- SECOND PASS -------- */
 				/* ------- PHOTON POINTS ------- */
-				photon_mapping(world, visible_points, output);
+				//photon_mapping(world, visible_points);
 
 				/*
 				For each light
@@ -82,6 +86,43 @@ namespace poly::integrators {
 							add photon to each of the N points (update using pointer to location on film inside the VisiblePoint
 						calculate next photon bounce, or terminate photon
 				*/
+				/*for (int i = slab->start_y; i < slab->end_y; i++)
+				{
+					const std::lock_guard<std::mutex> lock(*storage_mutex);
+					for (int j = slab->start_x; j < slab->end_x; j++)
+					{
+
+						//// 0,0 is in the center of the screen
+						int row = (int)i + (int)(world.m_vp->vres / 2);
+						int col = (int)j + (int)(world.m_vp->hres / 2);
+
+						// Align the temp slab with the overall scene
+						int row_0_indexed = (int)i - slab->start_y;
+						int col_0_indexed = (int)j - slab->start_x;
+
+						// Copy out info to the final storage location
+						std::size_t storage_height = storage->size();
+						std::size_t storage_width= storage->at(0).size();
+
+						std::size_t slab_height = slab->storage->size();
+						std::size_t slab_width = slab->storage->at(0).size();
+						(void)storage_height;
+						(void)storage_width;
+						(void)slab_height;
+						(void)slab_width;
+
+						storage->at(world.m_vp->vres - row - 1).at(col) = slab->storage->at(row_0_indexed).at(col_0_indexed);
+					}
+				}*/
+			}
+		}
+
+		// reformat the 2D vector into a single dimensional array
+		for (auto row : *(storage))
+		{
+			for (auto el : row)
+			{
+				output.m_image.push_back(el);
 			}
 		}
 	}
@@ -90,7 +131,7 @@ namespace poly::integrators {
 		poly::camera::PinholeCamera const& camera,
 		std::shared_ptr<poly::structures::World> world)
 	{
-		std::size_t total_number_of_pixels = slab->storage->size() * slab->storage->size();
+		int total_number_of_pixels = (slab->end_x - slab->start_x) * (slab->end_y - slab->start_y); //slab->storage->size() * slab->storage->at(0).size();
 		
 		// Create an array of visible points (so that it can be placed in the KD tree!)
 		std::vector<std::shared_ptr<poly::object::Object>> visiblePoints;
@@ -114,11 +155,23 @@ namespace poly::integrators {
 						hit = true;
 					}
 				}
+
+				int row_0_indexed = (int)i + (slab->world->m_vp->vres)/2;//slab->start_y;
+				int col_0_indexed = (int)j + (slab->world->m_vp->hres)/2; //slab->start_x;
+
+				Colour average_factor = Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
 				
 				// If we have hit an object, create a visible point at the surface interaction point
 				if (hit && sr.m_material) {
+					
+					// Shade the point directly
+					slab->storage->at(slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += (sr.m_material->shade(sr, *(slab->world))) * average_factor;
+
 					// Add this visible point to our vector
-					visiblePoints.push_back(std::make_shared<poly::integrators::VisiblePoint>(j, i, sr.hitpoint_get(), -ray.d, Colour{1.0,1.0,1.0}, sr.m_material));
+					visiblePoints.push_back(std::make_shared<poly::integrators::VisiblePoint>(j, i, sr.hitpoint_get(), -ray.d, Colour{1.0,1.0,1.0}, sr.m_material, slab));
+				}
+				else {
+					slab->storage->at(slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += world->m_background * average_factor;;
 				}
 
 			}
@@ -126,7 +179,7 @@ namespace poly::integrators {
 		return visiblePoints;
 	}
 
-	void SPPMIntegrator::photon_mapping(const poly::structures::World& world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list, poly::utils::BMP_info& output)
+	void SPPMIntegrator::photon_mapping(const poly::structures::World& world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list)
 	{
 		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, 50);
 
@@ -161,8 +214,6 @@ namespace poly::integrators {
 
 			}
 		}
-		(void)output.m_image;
-		// Add output to image
 	}
 
 	/*
@@ -171,8 +222,15 @@ namespace poly::integrators {
 	===============================
 	*/
 
-	VisiblePoint::VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, Colour amount_, std::shared_ptr<poly::material::Material> material_)
-		: index_x{ x_ }, index_y{ y_ }, point(point_), w_i(incoming_ray_), amount{amount_}, material(material_)
+	VisiblePoint::VisiblePoint(
+		int x_, 
+		int y_, 
+		math::Point const& point_, 
+		math::Vector const& incoming_ray_, 
+		Colour amount_, 
+		std::shared_ptr<poly::material::Material> material_,
+		std::shared_ptr<poly::structures::scene_slab> slab)
+		: index_x{ x_ }, index_y{ y_ }, point(point_), w_i(incoming_ray_), amount{ amount_ }, material(material_), m_slab{slab}
 	{
 		// ensure that our bounds are set
 		bounds = poly::structures::Bounds3D(point, point);
