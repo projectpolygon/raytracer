@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 #define USE_PM
 
 #ifdef USE_PM
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(50);
+	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(1);
 	stoch_prog_phot_mapper.render(world, camera, output);
 #endif // USE_PM
 

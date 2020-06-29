@@ -62,7 +62,8 @@ namespace poly::integrators {
 		//std::vector<std::vector<Colour>> working_space = std::vector<std::vector<Colour>>(
 		//	static_cast<std::size_t>(output.m_end_height) - output.m_start_height,
 		//	std::vector<Colour>(static_cast<std::size_t>(output.m_end_width) - output.m_start_width));
-
+		std::size_t current_completion_state = 0;
+		std::size_t end_complete_state = slabs.size() * m_number_iterations;
 		for (auto slab : slabs) {
 
 			// Repeat the illumination pass for num_iterations
@@ -74,7 +75,7 @@ namespace poly::integrators {
 
 				/* -------- SECOND PASS -------- */
 				/* ------- PHOTON POINTS ------- */
-				//photon_mapping(world, visible_points);
+				photon_mapping(world, visible_points);
 
 				/*
 				For each light
@@ -114,6 +115,10 @@ namespace poly::integrators {
 						storage->at(world.m_vp->vres - row - 1).at(col) = slab->storage->at(row_0_indexed).at(col_0_indexed);
 					}
 				}*/
+				std::cout << "\r                                         ";
+				std::cout << "\rLOADING: " << ((float)current_completion_state * 100.0f / end_complete_state) << "% complete. ";
+				std::cout << std::flush;
+				current_completion_state++;
 			}
 		}
 
@@ -165,10 +170,10 @@ namespace poly::integrators {
 				if (hit && sr.m_material) {
 					
 					// Shade the point directly
-					slab->storage->at(slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += (sr.m_material->shade(sr, *(slab->world))) * average_factor;
+					//slab->storage->at(slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += (sr.m_material->shade(sr, *(slab->world))) * average_factor;
 
 					// Add this visible point to our vector
-					visiblePoints.push_back(std::make_shared<poly::integrators::VisiblePoint>(j, i, sr.hitpoint_get(), -ray.d, Colour{1.0,1.0,1.0}, sr.m_material, slab));
+					visiblePoints.push_back(std::make_shared<poly::integrators::VisiblePoint>(j, i, sr.hitpoint_get(), -ray.d, Colour(1.0,1.0,1.0), sr.m_material, slab));
 				}
 				else {
 					slab->storage->at(slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += world->m_background * average_factor;;
@@ -237,7 +242,7 @@ namespace poly::integrators {
 	}
 	bool VisiblePoint::hit([[maybe_unused]]math::Ray<math::Vector> const& R, [[maybe_unused]] poly::structures::SurfaceInteraction& sr) const
 	{
-		return false;
+		return true;
 	}
 	bool VisiblePoint::shadow_hit([[maybe_unused]] math::Ray<math::Vector> const& R, [[maybe_unused]] float& t) const
 	{
@@ -245,7 +250,14 @@ namespace poly::integrators {
 	}
 	void VisiblePoint::add_contribution(poly::structures::Photon const& photon)
 	{
-		(void)photon;
+		//std::cout << "WOWEE" << std::endl;
+		int row_0_indexed = (int)index_y + (m_slab->world->m_vp->vres) / 2;//slab->start_y;
+		int col_0_indexed = (int)index_x + (m_slab->world->m_vp->hres) / 2; //slab->start_x;
+		float intensity = photon.intensity();
+		(void)(intensity);
+
+		m_slab->storage->at(m_slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += Colour(1.0f, 1.0f, 1.0f) * 1.0f;//intensity;
+		//(void)photon;
 	}
 
 
@@ -270,7 +282,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 	// If the max depth for recursion is reached, stop here
 	if (photon.depth() >= max_depth) {
 		//photons.push_back(photon);
-		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 2.0f, 5);
+		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 1.0f, 10);
 		for (auto vp : nearby_VPs) {
 			vp->add_contribution(photon);
 		}
@@ -287,6 +299,11 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 			bounce_photon(current_material, photon, vp_tree, max_depth, world, partition);
 		}
 		// TODO: Add contribution to nearby VP's if no bounce!!!
+		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 10.0f, 5);
+		for (auto vp : nearby_VPs) {
+			vp->add_contribution(photon);
+		}
+		return;
 	}
 	else if (current_material->m_type == REFLECT) {
 		float specular_kd = current_material->get_specular_strength();

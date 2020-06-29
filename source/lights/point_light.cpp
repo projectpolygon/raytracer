@@ -11,26 +11,26 @@ namespace poly::light
 		m_location = atlas::math::Vector(0.0f, 0.0f, 0.0f);
 	}
 
-	PointLight::PointLight(atlas::math::Vector const &location) : Light()
+	PointLight::PointLight(atlas::math::Vector const& location) : Light()
 	{
 		m_location = location;
 	}
 
-	void PointLight::location_set(atlas::math::Point const &location)
+	void PointLight::location_set(atlas::math::Point const& location)
 	{
 		m_location = glm::normalize(location);
 	}
 
-	atlas::math::Vector PointLight::direction_get(poly::structures::SurfaceInteraction &sr)
+	atlas::math::Vector PointLight::direction_get(poly::structures::SurfaceInteraction& sr)
 	{
 		atlas::math::Vector surface_point = sr.hitpoint_get();
 		return glm::normalize(m_location - surface_point);
 	}
 
-	bool PointLight::in_shadow(atlas::math::Ray<atlas::math::Vector> const &shadow_ray,
-								poly::structures::World const& world)
+	bool PointLight::in_shadow(atlas::math::Ray<atlas::math::Vector> const& shadow_ray,
+		poly::structures::World const& world)
 	{
-		float t{std::numeric_limits<float>::max()};
+		float t{ std::numeric_limits<float>::max() };
 
 		// Max distance between hitpoint and light
 		atlas::math::Vector line_between = m_location - shadow_ray.o;
@@ -48,14 +48,14 @@ namespace poly::light
 		return false;
 	}
 
-	Colour PointLight::L(poly::structures::SurfaceInteraction &sr,
+	Colour PointLight::L(poly::structures::SurfaceInteraction& sr,
 		poly::structures::World const& world)
 	{
 		math::Point new_origin = sr.hitpoint_get();
 		math::Vector new_direction = glm::normalize(direction_get(sr));
 
 		math::Ray shadow_ray(new_origin + (m_surface_epsilon * new_direction),
-							 new_direction);
+			new_direction);
 		if (in_shadow(shadow_ray, world))
 		{
 			return Colour(0.0f, 0.0f, 0.0f);
@@ -68,9 +68,9 @@ namespace poly::light
 		}
 	}
 
-    math::Point PointLight::location() const
-    {
-        return m_location;
-    }
+	math::Point PointLight::location() const
+	{
+		return m_location;
+	}
 
 } // namespace poly::light
