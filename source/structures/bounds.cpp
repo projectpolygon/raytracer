@@ -11,11 +11,11 @@ namespace poly::structures
 
 	Bounds3D::Bounds3D(atlas::math::Vector _pMin, atlas::math::Vector _pMax) : pMin{_pMin}, pMax{_pMax} {}
 
-	bool Bounds3D::inside_bounds(atlas::math::Point const& point) const
+	bool Bounds3D::inside_bounds(atlas::math::Point const& point, float max_dist_to_check) const
 	{
-		if (point.x > pMax.x || point.x < pMin.x 
-			|| point.y > pMax.y || point.y < pMin.y 
-			|| point.z > pMax.z || point.z < pMin.z) {
+		if (point.x > pMax.x + max_dist_to_check || point.x < pMin.x - max_dist_to_check
+			|| point.y > pMax.y + max_dist_to_check || point.y < pMin.y - max_dist_to_check
+			|| point.z > pMax.z + max_dist_to_check || point.z < pMin.z - max_dist_to_check) {
 			return false;
 		}
 		return true;

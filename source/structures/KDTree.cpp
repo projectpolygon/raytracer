@@ -574,7 +574,7 @@ namespace poly::structures
 
 		// First, check if we are inside the box at all
 		//double tMin, tMax;
-		if (!m_bounds.inside_bounds(hitpoint))
+		if (!m_bounds.inside_bounds(hitpoint, radius_to_check))
 		{
 			return nearest_objects;
 		}

@@ -18,7 +18,7 @@ namespace poly::structures {
 
 		Bounds3D();
 		Bounds3D(atlas::math::Vector _pMin, math::Vector _pMax);
-		bool inside_bounds(atlas::math::Point const& point) const;
+		bool inside_bounds(atlas::math::Point const& point, float max_dist_to_check = 0.0f) const;
 		bool get_intersects(const atlas::math::Ray<atlas::math::Vector> &ray, double*hitt0, double*hitt1) const;
 
 		atlas::math::Vector diagonal() const;

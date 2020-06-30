@@ -212,7 +212,9 @@ namespace poly::integrators {
 		std::shared_ptr<poly::structures::scene_slab> slab)
 		: index_x{ x_ }, index_y{ y_ }, point(point_), w_i(incoming_ray_), amount{ amount_ }, material(material_), m_slab{slab}
 	{
+		//atlas::math::Vector padding{ 10.0f,10.0f,10.0f };
 		// ensure that our bounds are set
+		//bounds = poly::structures::Bounds3D(point - padding, point + padding);
 		bounds = poly::structures::Bounds3D(point, point);
 	}
 	bool VisiblePoint::hit([[maybe_unused]]math::Ray<math::Vector> const& R, [[maybe_unused]] poly::structures::SurfaceInteraction& sr) const
