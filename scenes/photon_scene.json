@@ -8,7 +8,7 @@
   "slab_starty": 0,
   "slab_endx": 1080,
   "slab_endy": 720,
-  "slab_size": 75,
+  "slab_size": 1080,
   "objects": [
     {
       "type": "plane",
@@ -94,7 +94,7 @@
         "spectral": 0.04,
         "diffuse": 0.05,
         "colour": [ 0.25, 0.25, 0.95 ],
-        "refractive_index": 1.03,
+        "refractive_index": 1.13,
         "tightness": 100.0
       }
     }

@@ -13,7 +13,9 @@ namespace poly::structures
 
 	bool Bounds3D::inside_bounds(atlas::math::Point const& point) const
 	{
-		if (point.x > pMax.x || point.x < pMin.x || point.y > pMax.y || point.y < pMin.y || point.z > pMax.z || point.z < pMin.z) {
+		if (point.x > pMax.x || point.x < pMin.x 
+			|| point.y > pMax.y || point.y < pMin.y 
+			|| point.z > pMax.z || point.z < pMin.z) {
 			return false;
 		}
 		return true;

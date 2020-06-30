@@ -69,7 +69,7 @@ namespace poly::integrators {
 
 			// Repeat the illumination pass for num_iterations
 			for (std::size_t iteration{}; iteration < m_number_iterations; ++iteration) {
-
+				
 				/* -------- FIRST PASS -------- */
 				/* ------ VISIBLE POINTS ------ */
 				std::vector<std::shared_ptr<poly::object::Object>> visible_points = create_visible_points(slab, camera, world_ptr);
@@ -88,36 +88,9 @@ namespace poly::integrators {
 							add photon to each of the N points (update using pointer to location on film inside the VisiblePoint
 						calculate next photon bounce, or terminate photon
 				*/
-				/*for (int i = slab->start_y; i < slab->end_y; i++)
-				{
-					const std::lock_guard<std::mutex> lock(*storage_mutex);
-					for (int j = slab->start_x; j < slab->end_x; j++)
-					{
 
-						//// 0,0 is in the center of the screen
-						int row = (int)i + (int)(world.m_vp->vres / 2);
-						int col = (int)j + (int)(world.m_vp->hres / 2);
-
-						// Align the temp slab with the overall scene
-						int row_0_indexed = (int)i - slab->start_y;
-						int col_0_indexed = (int)j - slab->start_x;
-
-						// Copy out info to the final storage location
-						std::size_t storage_height = storage->size();
-						std::size_t storage_width= storage->at(0).size();
-
-						std::size_t slab_height = slab->storage->size();
-						std::size_t slab_width = slab->storage->at(0).size();
-						(void)storage_height;
-						(void)storage_width;
-						(void)slab_height;
-						(void)slab_width;
-
-						storage->at(world.m_vp->vres - row - 1).at(col) = slab->storage->at(row_0_indexed).at(col_0_indexed);
-					}
-				}*/
 				std::cout << "\r                                         ";
-				std::cout << "\rLOADING: " << ((float)current_completion_state * 100.0f / end_complete_state) << "% complete. ";
+				std::cout << "\rLOADING: " << ((float)(current_completion_state + 1) * 100.0f / end_complete_state) << "% complete. ";
 				std::cout << std::flush;
 				current_completion_state++;
 			}
@@ -162,10 +135,10 @@ namespace poly::integrators {
 					}
 				}
 
-				int row_0_indexed = (int)i + (slab->world->m_vp->vres)/2;//slab->start_y;
-				int col_0_indexed = (int)j + (slab->world->m_vp->hres)/2; //slab->start_x;
+				//int row_0_indexed = (int)i + (slab->world->m_vp->vres)/2;//slab->start_y;
+				//int col_0_indexed = (int)j + (slab->world->m_vp->hres)/2; //slab->start_x;
 
-				Colour average_factor = Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
+				//Colour average_factor = Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
 				
 				// If we have hit an object, create a visible point at the surface interaction point
 				if (hit && sr.m_material) {
@@ -177,7 +150,7 @@ namespace poly::integrators {
 					visiblePoints.push_back(std::make_shared<poly::integrators::VisiblePoint>(j, i, sr.hitpoint_get(), -ray.d, Colour(1.0,1.0,1.0), sr.m_material, slab));
 				}
 				else {
-					slab->storage->at(slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += world->m_background * average_factor;;
+					//slab->storage->at(slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += world->m_background * average_factor;;
 				}
 
 			}
@@ -187,7 +160,7 @@ namespace poly::integrators {
 
 	void SPPMIntegrator::photon_mapping(const poly::structures::World& world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list)
 	{
-		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, 50);
+		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, -1);
 
 		// TODO: Make configurable
 		std::size_t photon_count = 100000;
@@ -195,14 +168,14 @@ namespace poly::integrators {
 		for (auto light : world.m_lights) {
 			for (std::size_t i{ 0 }; i < photon_count; ++i) {
 				float x, y, z;
-				constexpr unsigned int modulo = 100000;
-				do {
-					x = 2.0f * ((((float)(rand() % modulo)) / 100000.0f)) - 1.0f;
-					y = 2.0f * ((((float)(rand() % modulo)) / 100000.0f)) - 1.0f;
-					z = 2.0f * ((((float)(rand() % modulo)) / 100000.0f)) - 1.0f;
-				} while (x * x + y * y + z * z > 1.0f);
+				//do {
+					x = 2.0f * (((float)(rand() % 10000)) / 10000.0f) - 1.0f;
+					y = 2.0f * (((float)(rand() % 10000)) / 10000.0f) - 1.0f;
+					z = 2.0f * (((float)(rand() % 10000)) / 10000.0f) - 1.0f;
+				//} while (x * x + y * y + z * z > 1.0f);
 
 				math::Vector d{ x, y, z };
+				d = glm::normalize(d);
 				math::Point o{ light->location() };
 				math::Ray<math::Vector> photon_ray{ o, d };
 				structures::SurfaceInteraction si;
@@ -214,7 +187,7 @@ namespace poly::integrators {
 				}
 
 				if (is_hit) {
-					poly::structures::Photon photon = poly::structures::Photon(photon_ray, si.hitpoint_get(), si.m_normal, light->ls() / photon_count, 0);
+					poly::structures::Photon photon = poly::structures::Photon(photon_ray, si.hitpoint_get(), si.m_normal, light->ls() / 1000, 0);
 					//si.m_material->absorb_photon(photon, vp_tree, world.m_vp->max_depth, world);
 					absorb_photon(si.m_material, photon, vp_tree, (std::size_t)world.m_vp->max_depth, world);
 				}
@@ -244,7 +217,13 @@ namespace poly::integrators {
 	}
 	bool VisiblePoint::hit([[maybe_unused]]math::Ray<math::Vector> const& R, [[maybe_unused]] poly::structures::SurfaceInteraction& sr) const
 	{
-		return true;
+		if (glm::dot(R.o - point, R.o - point) < R.d.x * R.d.x) {
+			return true;
+		}
+		else {
+			return false;
+		}
+		
 	}
 	bool VisiblePoint::shadow_hit([[maybe_unused]] math::Ray<math::Vector> const& R, [[maybe_unused]] float& t) const
 	{
@@ -255,10 +234,17 @@ namespace poly::integrators {
 		//std::cout << "WOWEE" << std::endl;
 		int row_0_indexed = (int)index_y + (m_slab->world->m_vp->vres) / 2;//slab->start_y;
 		int col_0_indexed = (int)index_x + (m_slab->world->m_vp->hres) / 2; //slab->start_x;
+
+		float dist_x = point.x - photon.point().x;
+		float dist_y = point.y - photon.point().y;
+		float dist_z = point.z - photon.point().z;
+
+		float dist_to_vp = std::max(1.0f, dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);
+
 		float intensity = photon.intensity();
 		(void)(intensity);
 
-		m_slab->storage->at(m_slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += Colour(1.0f, 1.0f, 1.0f) * 1.0f;//intensity;
+		m_slab->storage->at(m_slab->world->m_vp->vres - row_0_indexed - 1).at(col_0_indexed) += Colour(1.0f, 1.0f, 1.0f) * intensity / dist_to_vp;
 		//(void)photon;
 	}
 
@@ -284,7 +270,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 	// If the max depth for recursion is reached, stop here
 	if (photon.depth() >= max_depth) {
 		//photons.push_back(photon);
-		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 1.0f, 10);
+		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 10.0f);
 		for (auto vp : nearby_VPs) {
 			vp->add_contribution(photon);
 		}
@@ -295,13 +281,13 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 	if (current_material->m_type == poly::structures::InteractionType::ABSORB) {
 		// Assess whether or not this should be bounced by taking the intensity of the diffuse component of the material
 		float partition = current_material->get_diffuse_strength();
-		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())); // TODO: fix this, it is not portable
+		float rgn = (((float)(rand() % 10000)) / 10000.0f); // TODO: fix this, it is not portable
 		if (rgn > partition) {
 			// Bounce the photon off this material
 			bounce_photon(current_material, photon, vp_tree, max_depth, world, partition);
 		}
 		// TODO: Add contribution to nearby VP's if no bounce!!!
-		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 10.0f, 5);
+		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs = vp_tree.get_nearest_to_point(photon.point(), 10.0f);
 		for (auto vp : nearby_VPs) {
 			vp->add_contribution(photon);
 		}
@@ -313,7 +299,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		float diffuse_kd = current_material->get_diffuse_strength();
 		float total = reflective_kd + diffuse_kd + specular_kd;
 
-		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+		float rgn = (((float)(rand() % 10000)) / 10000.0f) * total;
 
 		if (rgn < reflective_kd) {
 			bounce_photon(current_material, photon, vp_tree, max_depth, world, (photon.intensity() * reflective_kd / total));
@@ -330,7 +316,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		float total = transparent_kt + specular_kd + reflective_kd + diffuse_kd;
 
 		// Random number in the range 0 to total
-		float random_number = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+		float random_number = (((float)(rand() % 10000)) / 10000.0f) * total;
 
 		if (random_number < transparent_kt) {
 			transmit_photon(current_material, photon, vp_tree, max_depth, world, photon.intensity() * transparent_kt / total);
@@ -385,7 +371,7 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 {
 	poly::structures::SurfaceInteraction si;
 	si.m_normal = photon.normal();
-	atlas::math::Vector wi = photon.wi().d;
+	atlas::math::Vector wi = -photon.wi().d;
 	atlas::math::Vector wt;
 
 	current_material->sample_f(si, wi, wt);

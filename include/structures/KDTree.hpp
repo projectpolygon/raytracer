@@ -72,7 +72,9 @@ namespace poly::structures {
 
 		bool shadow_hit(const math::Ray<math::Vector>& ray, float& t) const;
 
-		std::vector<std::shared_ptr<poly::object::Object>> get_nearest_to_point(atlas::math::Point const& hitpoint, float radius_to_check, std::size_t max_num_points) const;
+		std::vector<std::shared_ptr<poly::object::Object>> get_nearest_to_point(atlas::math::Point const& hitpoint, 
+			float radius_to_check, 
+			std::size_t max_num_points = std::numeric_limits<std::size_t>::max()) const;
 
 	private:
 		const int intersectCost, traversalCost, maxPrims;

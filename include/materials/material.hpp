@@ -31,7 +31,7 @@ namespace poly::material {
 		virtual float get_reflective_strength() const = 0;
 		virtual float get_refractive_strength() const = 0;
 
-		atlas::math::Vector sample_f(poly::structures::SurfaceInteraction const& sr, atlas::math::Vector& w_o, atlas::math::Vector& w_t) const;
+		virtual atlas::math::Vector sample_f(poly::structures::SurfaceInteraction const& sr, atlas::math::Vector& w_o, atlas::math::Vector& w_t) const;
 		
 		/*
 		virtual void absorb_photon(poly::structures::Photon& photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,

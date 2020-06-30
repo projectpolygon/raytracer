@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <vector>
 #include <iostream>
 #include "structures/KDTree.hpp"
 #include "structures/bounds.hpp"
@@ -609,16 +610,19 @@ namespace poly::structures
 					secondChild = node + 1;
 				}
 
+
 				// Depending on where in the box the split occurs, we may not need to check the whole volume
-				if (dist_to_split > radius_to_check || dist_to_split <= 0)
+				if (dist_to_split > radius_to_check)
 				{
-					// Second is not within range, do not check it
+					// Split happens after we leave the box, no need to check second
 					node = firstChild;
 				}
 				else
 				{
 					// Split happens in between. Need to check both sides
 					todo[todoPos].node = secondChild;
+					//todoVec.push_back(secondChild);
+
 					todoPos++;
 
 					node = firstChild;
@@ -629,7 +633,7 @@ namespace poly::structures
 				// This node is a leaf, need to check if we hit any of the contained objects
 				int number_objects_in_node = node->nPrimitives();
 				
-				atlas::math::Ray ray(hitpoint, atlas::math::Vector(0.0,0.0,0.0));
+				atlas::math::Ray ray(hitpoint, atlas::math::Vector(radius_to_check,0.0,0.0));
 				poly::structures::SurfaceInteraction sr;
 
 				if (number_objects_in_node == 1)
@@ -646,7 +650,7 @@ namespace poly::structures
 					{
 						int index = all_leaf_object_indices[(size_t)node->offset_in_object_indices + i];
 						const std::shared_ptr<Object>& obj = objects.at(index);
-						if (obj->hit(ray, sr))
+						if (obj->hit(ray, sr) && nearest_objects.size() < max_num_points)
 						{
 							nearest_objects.push_back(obj);
 						}
