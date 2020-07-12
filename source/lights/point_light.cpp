@@ -16,14 +16,14 @@ namespace poly::light
 		m_location = location;
 	}
 
-	void PointLight::location_set(atlas::math::Point const& location)
+	void PointLight::set_location(atlas::math::Point const& location)
 	{
 		m_location = glm::normalize(location);
 	}
 
-	atlas::math::Vector PointLight::direction_get(poly::structures::SurfaceInteraction& sr)
+	atlas::math::Vector PointLight::get_direction(poly::structures::SurfaceInteraction& sr)
 	{
-		atlas::math::Vector surface_point = sr.hitpoint_get();
+		atlas::math::Vector surface_point = sr.get_hitpoint();
 		return glm::normalize(m_location - surface_point);
 	}
 
@@ -51,8 +51,8 @@ namespace poly::light
 	Colour PointLight::L(poly::structures::SurfaceInteraction& sr,
 		poly::structures::World const& world)
 	{
-		math::Point new_origin = sr.hitpoint_get();
-		math::Vector new_direction = glm::normalize(direction_get(sr));
+		math::Point new_origin = sr.get_hitpoint();
+		math::Vector new_direction = glm::normalize(get_direction(sr));
 
 		math::Ray shadow_ray(new_origin + (m_surface_epsilon * new_direction),
 			new_direction);
@@ -62,7 +62,7 @@ namespace poly::light
 		}
 		else
 		{
-			math::Vector vector = glm::normalize(m_location - sr.hitpoint_get());
+			math::Vector vector = glm::normalize(m_location - sr.get_hitpoint());
 			float r_squared = glm::dot(vector, vector);
 			return m_colour * m_ls / (r_squared);
 		}

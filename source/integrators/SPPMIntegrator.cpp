@@ -87,13 +87,14 @@ namespace poly::integrators
 
 				/*
 				For each light
-												shoot photons from the light
-												for each photon shot
-																				intersect
-				against the scene if hit gather N nearby visible points add
-				photon to each of the N points (update using pointer to location
-				on film inside the VisiblePoint calculate next photon bounce, or
-				terminate photon
+					shoot photons from the light
+					for each photon shot
+					intersect against the scene
+					if hit
+						gather N nearby visible points
+						add photon to each of the N points (update using pointer
+				to location on film inside the VisiblePoint calculate next
+				photon bounce, or terminate photon)
 				*/
 
 				std::cout << "\r                                         ";
@@ -121,12 +122,9 @@ namespace poly::integrators
 		std::shared_ptr<poly::structures::World> world)
 	{
 		int total_number_of_pixels =
-			(slab->end_x - slab->start_x) *
-			(slab->end_y - slab->start_y); // slab->storage->size() *
-										   // slab->storage->at(0).size();
+			(slab->end_x - slab->start_x) * (slab->end_y - slab->start_y);
 
-		// Create an array of visible points (so that it can be placed in the KD
-		// tree!)
+		// Create an array of visible points  placed in the KD tree)
 		std::vector<std::shared_ptr<poly::object::Object>> visiblePoints;
 		visiblePoints.reserve(total_number_of_pixels);
 
@@ -173,7 +171,7 @@ namespace poly::integrators
 						std::make_shared<poly::integrators::VisiblePoint>(
 							j,
 							i,
-							sr.hitpoint_get(),
+							sr.get_hitpoint(),
 							-ray.d,
 							Colour(1.0, 1.0, 1.0),
 							sr.m_material,
@@ -218,7 +216,7 @@ namespace poly::integrators
 				if (is_hit) {
 					poly::structures::Photon photon = poly::structures::Photon(
 						photon_ray,
-						si.hitpoint_get(),
+						si.get_hitpoint(),
 						si.m_normal,
 						20 * light->ls() / static_cast<float>(photon_count),
 						0);
@@ -439,7 +437,7 @@ void bounce_photon(
 	if (is_hit) {
 		poly::structures::Photon reflected_photon = poly::structures::Photon(
 			photon_ray,
-			si.hitpoint_get(),
+			si.get_hitpoint(),
 			si.m_normal,
 			photon.intensity() * (1 - object_colour_intensity),
 			photon.depth() + 1);
@@ -479,7 +477,7 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 	if (is_hit) {
 		poly::structures::Photon reflected_photon =
 			poly::structures::Photon(photon_ray,
-									 si.hitpoint_get(),
+									 si.get_hitpoint(),
 									 si.m_normal,
 									 photon.intensity() * (1 - colour_change),
 									 photon.depth() + 1);

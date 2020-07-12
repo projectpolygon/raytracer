@@ -50,11 +50,11 @@ namespace poly::light {
 			return m_colour * m_ls;
 		}
 
-		int num_samples = m_sampler->num_samples_get();
+		int num_samples = m_sampler->get_num_samples();
 		Colour average(0.0f, 0.0f, 0.0f);
 
 		// Update the hitpoint coordinate system
-		atlas::math::Point new_origin = sr.hitpoint_get();
+		atlas::math::Point new_origin = sr.get_hitpoint();
 
 		for (int i = 0; i < num_samples; i++) {
 			atlas::math::Vector new_dir = glm::normalize(shadow_direction_get(sr, i));

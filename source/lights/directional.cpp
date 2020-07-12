@@ -21,7 +21,7 @@ namespace poly::light
 
 	Colour DirectionalLight::L(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world)
 	{
-		atlas::math::Point new_origin = sr.hitpoint_get();
+		atlas::math::Point new_origin = sr.get_hitpoint();
 		atlas::math::Vector new_direction = glm::normalize(direction_get(sr));
 
 		atlas::math::Ray shadow_ray(new_origin + (m_surface_epsilon * new_direction),

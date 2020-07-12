@@ -32,6 +32,6 @@ namespace poly::material
 		poly::structures::SurfaceInteraction sr;
 		sr.m_ray = atlas::math::Ray < atlas::math::Vector >(p, p);
 		sr.m_tmin = 1.0f;
-		return m_cd->colour_get(sr);
+		return m_cd->get_colour(sr);
 	}
 } // namespace poly::material

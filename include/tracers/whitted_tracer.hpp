@@ -12,7 +12,7 @@ namespace poly::structures {
 	class WhittedTracer : public Tracer 
 	{
 		public:
-		WhittedTracer(poly::structures::World* world);
+		WhittedTracer(poly::structures::World& world);
 		Colour trace_ray(math::Ray<math::Vector> const& ray, World const& world, const unsigned int depth) const;
     };
 }

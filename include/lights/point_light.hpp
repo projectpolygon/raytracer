@@ -14,9 +14,9 @@ namespace poly::light {
 
 		PointLight(atlas::math::Vector const& location);
 
-		void location_set(atlas::math::Point const& location);
+		void set_location(atlas::math::Point const& location);
 
-		atlas::math::Vector direction_get(poly::structures::SurfaceInteraction& sr);
+		atlas::math::Vector get_direction(poly::structures::SurfaceInteraction& sr);
 		bool in_shadow(atlas::math::Ray<atlas::math::Vector> const& shadow_ray,
 			poly::structures::World const& world);
 

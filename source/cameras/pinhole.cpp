@@ -143,7 +143,7 @@ namespace poly::camera
 				Colour average	   = Colour(0.0f, 0.0f, 0.0f);
 				unsigned int count = 0;
 				// for(std::vector<double> sample : subsamples){
-				int max_num_samples = world.m_sampler->num_samples_get();
+				int max_num_samples = world.m_sampler->get_num_samples();
 
 				// For anti-aliasing
 				for (int s = 0; s < max_num_samples; s++) {
@@ -207,7 +207,7 @@ namespace poly::camera
 			for (int j = start_x; j < end_x; j++) {
 				Colour average		= Colour(0.0f, 0.0f, 0.0f);
 				unsigned int count	= 0;
-				int max_num_samples = world.m_sampler->num_samples_get();
+				int max_num_samples = world.m_sampler->get_num_samples();
 
 				// For anti-aliasing
 				for (int s = 0; s < max_num_samples; s++) {
@@ -274,7 +274,7 @@ namespace poly::camera
 	math::Ray<atlas::math::Vector> PinholeCamera::get_ray(
 		int i, int j, poly::structures::World const &world) const
 	{
-		std::size_t num_samples = world.m_sampler->num_samples_get();
+		std::size_t num_samples = world.m_sampler->get_num_samples();
 		std::vector<float> sample =
 			world.m_sampler->sample_unit_square(rand() % num_samples);
 

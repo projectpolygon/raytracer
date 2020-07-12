@@ -8,26 +8,32 @@
 #include "structures/surface_interaction.hpp"
 #include "structures/bounds.hpp"
 
-namespace poly::object { class Object; }
-namespace poly::structures { class SurfaceInteraction; }
+namespace poly::object
+{
+	class Object;
+}
+namespace poly::structures
+{
+	class SurfaceInteraction;
+}
 
-namespace poly::structures {
-
+namespace poly::structures
+{
 	class AcceleratorStruct : public poly::object::Object
 	{
 	public:
-		//AcceleratorStruct();
-		virtual bool hit(const math::Ray<math::Vector>& ray, SurfaceInteraction& sr) const = 0;
-		virtual bool shadow_hit(const math::Ray<math::Vector>& ray, float& t) const = 0;
-		virtual Bounds3D boundbox_get() const = 0;
+		virtual bool hit(const math::Ray<math::Vector>& ray,
+						 SurfaceInteraction& sr) const = 0;
+		virtual bool shadow_hit(const math::Ray<math::Vector>& ray,
+								float& t) const		   = 0;
+		virtual Bounds3D get_boundbox() const		   = 0;
 	};
 
 	struct KDNode
 	{
 	public:
-		void init_leaf(int* primNums,
-			int np,
-			std::vector<int>* primitiveIndices);
+		void
+		init_leaf(int* primNums, int np, std::vector<int>* primitiveIndices);
 
 		// This node has children if it is an interior node
 		void init_interior(int axis, int ac, float s);
@@ -38,12 +44,14 @@ namespace poly::structures {
 		bool IsLeaf() const;
 		int AboveChild() const;
 
-		union {
+		union
+		{
 			float split;				  // Interior
 			int onePrimitive;			  // Leaf
 			int offset_in_object_indices; // Leaf
 		};
-		union {
+		union
+		{
 			int flags;		// Both
 			int nPrims;		// Leaf
 			int aboveChild; // Interior
@@ -54,27 +62,31 @@ namespace poly::structures {
 	{
 	public:
 		KDTree(const std::vector<std::shared_ptr<poly::object::Object>>& p,
-			int isectCost, int traversalCost,
-			float emptyBonus, int maxPrims,
-			int maxDepth);
+			   int isectCost,
+			   int traversalCost,
+			   float emptyBonus,
+			   int maxPrims,
+			   int maxDepth);
 
-		Bounds3D boundbox_get() const;
+		Bounds3D get_boundbox() const;
 
-		Bounds3D union_bounds(Bounds3D const& b1,
-			Bounds3D const& b2);
+		Bounds3D union_bounds(Bounds3D const& b1, Bounds3D const& b2);
 
-		//Bounds3D bound_world() {}
+		// Bounds3D bound_world() {}
 
 		struct KDToDo;
 
 		// INTERSECT a ray with the tree
-		bool hit(const math::Ray<math::Vector>& ray, SurfaceInteraction& sr) const;
+		bool hit(const math::Ray<math::Vector>& ray,
+				 SurfaceInteraction& sr) const;
 
 		bool shadow_hit(const math::Ray<math::Vector>& ray, float& t) const;
 
-		std::vector<std::shared_ptr<poly::object::Object>> get_nearest_to_point(atlas::math::Point const& hitpoint, 
-			float radius_to_check, 
-			std::size_t max_num_points = std::numeric_limits<std::size_t>::max()) const;
+		std::vector<std::shared_ptr<poly::object::Object>>
+		get_nearest_to_point(atlas::math::Point const& hitpoint,
+							 float radius_to_check,
+							 std::size_t max_num_points =
+								 std::numeric_limits<std::size_t>::max()) const;
 
 	private:
 		const int intersectCost, traversalCost, maxPrims;
@@ -94,8 +106,8 @@ namespace poly::structures {
 		struct BoundEdge
 		{
 			BoundEdge() = default;
-			BoundEdge(float t, int primNum, bool starting)
-				: value(t), primNum(primNum)
+			BoundEdge(float t, int primNum, bool starting) :
+				value(t), primNum(primNum)
 			{
 				type = starting ? EdgeType::Start : EdgeType::End;
 			}
@@ -106,13 +118,15 @@ namespace poly::structures {
 		};
 
 		void tree_build(int node_index,
-			const Bounds3D& node_bounds,
-			const std::vector<Bounds3D>& allPrimBounds,
-			int* node_object_indices,
-			int num_objects,
-			int depth,
-			const std::unique_ptr<BoundEdge[]> edges[3], int* below_objs_list, int* above_objs_list, // Working space
-			int useless_refine_cnt);
+						const Bounds3D& node_bounds,
+						const std::vector<Bounds3D>& allPrimBounds,
+						int* node_object_indices,
+						int num_objects,
+						int depth,
+						const std::unique_ptr<BoundEdge[]> edges[3],
+						int* below_objs_list,
+						int* above_objs_list, // Working space
+						int useless_refine_cnt);
 	};
 
 } // namespace poly::structures

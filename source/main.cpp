@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 	*/
 	poly::structures::World world;
 	try {
-		world = poly::utils::create_world(taskfile);
+		poly::utils::create_world(taskfile, world);
 	}
 	catch (const nlohmann::detail::type_error& e) {
 		std::cerr << e.what() << std::endl;
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 #define USE_PM
 
 #ifdef USE_PM
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(20);
+	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(5);
 	stoch_prog_phot_mapper.render(world, camera, output);
 #endif // USE_PM
 

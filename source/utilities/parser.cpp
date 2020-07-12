@@ -16,47 +16,57 @@
 
 #include "structures/KDTree.hpp"
 
-namespace poly::utils {
-
+namespace poly::utils
+{
 	/**
 	Creates an atlas vector object from JSON
 
-	@param vector_json the JSON formatted list of size 3 used to represent a 3D vector
+	@param vector_json the JSON formatted list of size 3 used to represent a 3D
+	vector
 
 	@returns the parsed vector object
 	*/
 	math::Vector parse_vector(nlohmann::json vector_json)
 	{
 		// TODO: Make more generic for different sizes
-		return { vector_json[0], vector_json[1], vector_json[2] };
+		return {vector_json[0], vector_json[1], vector_json[2]};
 	}
 
 	/**
 Creates a new material from JSON specifiction
 
-@param material_json the JSON formatted object used to represent the material properties
+@param material_json the JSON formatted object used to represent the material
+properties
 
 @returns the parsed Material as a shared pointer
 */
-	std::shared_ptr<poly::material::Material> parse_material(nlohmann::json material_json)
+	std::shared_ptr<poly::material::Material>
+	parse_material(nlohmann::json material_json)
 	{
 		auto material_type = material_json["type"];
 		if (material_type == "matte") {
 			return std::make_shared<poly::material::Matte>(
-				material_json["diffuse"], Colour{ parse_vector(material_json["colour"]) });
+				material_json["diffuse"],
+				Colour{parse_vector(material_json["colour"])});
 		}
 		else if (material_type == "reflective") {
-			return std::make_shared<poly::material::Reflective>(material_json["reflective"],
-				material_json["diffuse"], material_json["spectral"], parse_vector(material_json["colour"]),
+			return std::make_shared<poly::material::Reflective>(
+				material_json["reflective"],
+				material_json["diffuse"],
+				material_json["spectral"],
+				parse_vector(material_json["colour"]),
 				material_json["tightness"]);
 		}
 		else if (material_type == "transparent") {
-			return std::make_shared<poly::material::Transparent>(material_json["reflective"],
-				material_json["transparent"], material_json["diffuse"],
+			return std::make_shared<poly::material::Transparent>(
+				material_json["reflective"],
+				material_json["transparent"],
+				material_json["diffuse"],
 				material_json["spectral"],
 
 				parse_vector(material_json["colour"]),
-				material_json["refractive_index"], material_json["tightness"]);
+				material_json["refractive_index"],
+				material_json["tightness"]);
 		}
 		else {
 			throw std::runtime_error("incorrect material parameters");
@@ -86,7 +96,6 @@ Creates a new material from JSON specifiction
 
 			fs.close();
 			return nlohmann::json::parse(json_string);
-
 		}
 		catch (std::runtime_error& error) {
 			std::wcerr << error.what() << std::endl;
@@ -111,7 +120,8 @@ Creates a new material from JSON specifiction
 
 			if (cam_type == "jittered") {
 				w.m_sampler = std::make_shared<poly::sampler::AA_Jittered>(
-					task["camera"]["sampler"]["samples"], task["camera"]["sampler"]["sets"]);
+					task["camera"]["sampler"]["samples"],
+					task["camera"]["sampler"]["sets"]);
 			}
 			else {
 				throw std::runtime_error("Incorrect sampler parameters");
@@ -138,53 +148,71 @@ Creates a new material from JSON specifiction
 				std::vector<std::shared_ptr<poly::object::Object>> object_list;
 
 				std::shared_ptr<poly::object::Mesh> s =
-					std::make_shared<poly::object::Mesh>(path_to_object.c_str(), path_to_material.c_str(), parse_vector(obj["position"]));
+					std::make_shared<poly::object::Mesh>(
+						path_to_object.c_str(),
+						path_to_material.c_str(),
+						parse_vector(obj["position"]));
 
-				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+				std::shared_ptr<poly::material::Material> material =
+					parse_material(obj["material"]);
 				s->material_set(material);
 				s->scale(parse_vector(obj["scale"]));
-				//s->translate(parse_vector(obj["position"]));
+				// s->translate(parse_vector(obj["position"]));
 				s->dump_to_list(object_list);
 
-				w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(object_list, 80, 30, 0.75f, 10, 50));
+				w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(
+					object_list, 80, 30, 0.75f, 10, 50));
 			}
 			else if (obj["type"] == "sphere") {
 				std::shared_ptr<poly::object::Sphere> s =
-					std::make_shared<poly::object::Sphere>(parse_vector(obj["centre"]), obj["radius"]);
-				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+					std::make_shared<poly::object::Sphere>(
+						parse_vector(obj["centre"]), obj["radius"]);
+				std::shared_ptr<poly::material::Material> material =
+					parse_material(obj["material"]);
 				s->material_set(material);
 				w.m_scene.push_back(s);
 			}
 			else if (obj["type"] == "torus") {
 				std::shared_ptr<poly::object::Torus> s =
-					std::make_shared<poly::object::Torus>(parse_vector(obj["centre"]), obj["inner_radius"], obj["outer_radius"]);
+					std::make_shared<poly::object::Torus>(
+						parse_vector(obj["centre"]),
+						obj["inner_radius"],
+						obj["outer_radius"]);
 
-				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+				std::shared_ptr<poly::material::Material> material =
+					parse_material(obj["material"]);
 
 				s->material_set(material);
 				w.m_scene.push_back(s);
 			}
 			else if (obj["type"] == "triangle") {
-				//std::vector<std::vector<float>> points = obj["points"];
-				std::vector<math::Vector> points = { parse_vector(obj["points"][0]), parse_vector(obj["points"][1]), parse_vector(obj["points"][2]) };
+				// std::vector<std::vector<float>> points = obj["points"];
+				std::vector<math::Vector> points = {
+					parse_vector(obj["points"][0]),
+					parse_vector(obj["points"][1]),
+					parse_vector(obj["points"][2])};
 				math::Vector position = parse_vector(obj["position"]);
 				std::shared_ptr<poly::object::Triangle> s =
 					std::make_shared<poly::object::Triangle>(points, position);
 
-				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
+				std::shared_ptr<poly::material::Material> material =
+					parse_material(obj["material"]);
 				s->material_set(material);
 				w.m_scene.push_back(s);
 			}
 			else if (obj["type"] == "plane") {
-				math::Vector normal = parse_vector(obj["normal"]);
+				math::Vector normal	  = parse_vector(obj["normal"]);
 				math::Vector position = parse_vector(obj["position"]);
-				std::shared_ptr<poly::material::Material> material = parse_material(obj["material"]);
-				std::shared_ptr<poly::object::Plane> p = std::make_shared<poly::object::Plane>(normal, position);
+				std::shared_ptr<poly::material::Material> material =
+					parse_material(obj["material"]);
+				std::shared_ptr<poly::object::Plane> p =
+					std::make_shared<poly::object::Plane>(normal, position);
 				p->material_set(material);
 				w.m_scene.push_back(p);
 			}
 			else {
-				std::cerr << "Type: " << obj["type"] << " not suppported" << std::endl;
+				std::cerr << "Type: " << obj["type"] << " not suppported"
+						  << std::endl;
 				throw std::runtime_error("ERROR: object type %s not supported");
 			}
 		}
@@ -198,7 +226,8 @@ Creates a new material from JSON specifiction
 		for (auto light : task["lights"]) {
 			std::shared_ptr<poly::light::Light> l;
 			if (light["type"] == "point") {
-				l = std::make_shared<poly::light::PointLight>(parse_vector(light["position"]));
+				l = std::make_shared<poly::light::PointLight>(
+					parse_vector(light["position"]));
 				l->radiance_scale(light["intensity"]);
 				w.m_lights.push_back(l);
 			}
@@ -223,14 +252,13 @@ Creates a new material from JSON specifiction
 
 	@returns poly::structures::World object
 	*/
-	poly::structures::World create_world(nlohmann::json& task)
+	void create_world(nlohmann::json& task, poly::structures::World& w)
 	{
-		poly::structures::World w;
-
-		std::shared_ptr<poly::structures::ViewPlane> vp = std::make_shared<poly::structures::ViewPlane>();
+		std::shared_ptr<poly::structures::ViewPlane> vp =
+			std::make_shared<poly::structures::ViewPlane>();
 		try {
-			vp->vres = task["image_height"];
-			vp->hres = task["image_width"];
+			vp->vres	  = task["image_height"];
+			vp->hres	  = task["image_width"];
 			vp->max_depth = task["max_depth"];
 		}
 		catch (const nlohmann::detail::type_error& e) {
@@ -239,13 +267,13 @@ Creates a new material from JSON specifiction
 			exit(1);
 		}
 
-		w.m_vp = vp;
-		w.m_tracer = std::make_shared<poly::structures::WhittedTracer>(&w);
-		w.m_scene = std::vector<std::shared_ptr<poly::object::Object>>();
-		w.m_start_width = task["slab_startx"];
+		w.m_vp			 = vp;
+		w.m_tracer		 = std::make_shared<poly::structures::WhittedTracer>(w);
+		w.m_scene		 = std::vector<std::shared_ptr<poly::object::Object>>();
+		w.m_start_width	 = task["slab_startx"];
 		w.m_start_height = task["slab_starty"];
-		w.m_end_width = task["slab_endx"];
-		w.m_end_height = task["slab_endy"];
+		w.m_end_width	 = task["slab_endx"];
+		w.m_end_height	 = task["slab_endy"];
 		try {
 			w.m_slab_size = task["slab_size"];
 		}
@@ -255,11 +283,11 @@ Creates a new material from JSON specifiction
 		}
 
 		try {
-			w.m_background = Colour{ parse_vector(task["background"]) };
+			w.m_background = Colour{parse_vector(task["background"])};
 		}
 		catch ([[maybe_unused]] nlohmann::detail::type_error& e) {
 			std::clog << "WARN: no background was set" << std::endl;
-			w.m_background = { 0.0f, 0.0f, 0.0f };
+			w.m_background = {0.0f, 0.0f, 0.0f};
 		}
 
 		try {
@@ -269,15 +297,14 @@ Creates a new material from JSON specifiction
 		}
 		catch (const nlohmann::detail::type_error& e) {
 			std::wcerr << e.what() << std::endl;
-			std::wcerr << "ERROR: error parsing samples, light, or object" << std::endl;
+			std::wcerr << "ERROR: error parsing samples, light, or object"
+					   << std::endl;
 			exit(1);
 		}
 		catch (const std::runtime_error& e) {
 			std::wcerr << e.what() << std::endl;
 			exit(1);
 		}
-
-		return w;
 	}
 
 	/**
@@ -294,24 +321,27 @@ Creates a new material from JSON specifiction
 		nlohmann::json camera_json = json["camera"];
 
 		// Create the camera and set how many threads it can render on
-		poly::camera::PinholeCamera cam = poly::camera::PinholeCamera(camera_json["distance"]);
+		poly::camera::PinholeCamera cam =
+			poly::camera::PinholeCamera(camera_json["distance"]);
 
 		// Autodetect possible threads
 		std::size_t maximum_threads_allowed = json["max_threads"];
 
 		const auto processor_count = std::thread::hardware_concurrency();
-		std::clog << "INFO: detecting " << processor_count << " cores" << std::endl;
+		std::clog << "INFO: detecting " << processor_count << " cores"
+				  << std::endl;
 
 		if (processor_count < maximum_threads_allowed && processor_count > 0) {
-			std::clog << "INFO: using " << processor_count << " cores" << std::endl;
+			std::clog << "INFO: using " << processor_count << " cores"
+					  << std::endl;
 			cam.set_max_threads(processor_count);
 		}
 		else if (maximum_threads_allowed > 0) {
-			std::clog << "INFO: using max of " << maximum_threads_allowed << " cores" << std::endl;
+			std::clog << "INFO: using max of " << maximum_threads_allowed
+					  << " cores" << std::endl;
 			cam.set_max_threads(maximum_threads_allowed);
 		}
-		else
-		{
+		else {
 			std::clog << "INFO: using default of 1 core" << std::endl;
 			cam.set_max_threads(1);
 		}
@@ -338,11 +368,11 @@ Creates a new material from JSON specifiction
 	{
 		poly::utils::BMP_info expected_output;
 		expected_output.m_total_height = json["image_height"];
-		expected_output.m_total_width = json["image_width"];
-		expected_output.m_start_width = json["slab_startx"];
+		expected_output.m_total_width  = json["image_width"];
+		expected_output.m_start_width  = json["slab_startx"];
 		expected_output.m_start_height = json["slab_starty"];
-		expected_output.m_end_width = json["slab_endx"];
-		expected_output.m_end_height = json["slab_endy"];
+		expected_output.m_end_width	   = json["slab_endx"];
+		expected_output.m_end_height   = json["slab_endy"];
 
 		// Ensure bounds are kept within the total image
 		if (expected_output.m_end_height > expected_output.m_total_height) {
@@ -355,4 +385,4 @@ Creates a new material from JSON specifiction
 
 		return expected_output;
 	}
-}
+} // namespace poly::utils
