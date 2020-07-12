@@ -28,6 +28,7 @@ namespace poly::utils {
 	void saveToBMP(nlohmann::json const& json, poly::utils::BMP_info const& w);
 
 	Colour random_colour_generate();
+	Colour colour_validate(Colour const& colour);
 
 }
 #endif // !UTILITY_HPP

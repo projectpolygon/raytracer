@@ -37,7 +37,7 @@ namespace poly::integrators {
 		Colour amount;
 
 		// Material of the object that the VisiblePoint is on
-		std::shared_ptr<poly::material::Material> material;
+		std::shared_ptr<poly::material::Material> surface_material;
 
 		// Slab where the data should be stored
 		std::shared_ptr<poly::structures::scene_slab> m_slab;

@@ -66,6 +66,12 @@ namespace poly::material {
 	{
 		return 0.0f;
 	}
+
+	Colour SV_Matte::get_hue([[maybe_unused]] atlas::math::Point& hp) const
+	{
+		return m_diffuse->cd(hp);
+	}
+
 	/*
 	void SV_Matte::absorb_photon([[maybe_unused]] structures::Photon &p, [[maybe_unused]] poly::structures::KDTree& vp_tree,
 								 [[maybe_unused]] unsigned int max_depth, [[maybe_unused]] std::vector<std::shared_ptr<poly::object::Object>> scene) const {

@@ -66,6 +66,11 @@ namespace poly::material
 	{
 		return 0.0f;
 	}
+
+	Colour Matte::get_hue([[maybe_unused]] atlas::math::Point const& hp) const
+	{
+		return m_diffuse->cd(hp);
+	}
 	/*
 	void Matte::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
 							  unsigned int max_depth, poly::structures::World const& world) const {

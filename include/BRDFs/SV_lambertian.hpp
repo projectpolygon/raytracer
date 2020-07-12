@@ -20,6 +20,7 @@ namespace poly::material {
 			[[maybe_unused]] atlas::math::Vector& w_o) const;
 
 		float kd();
+		Colour SV_LambertianBRDF::cd(atlas::math::Point const& p) const override;
 
 	protected:
 		float m_kd;

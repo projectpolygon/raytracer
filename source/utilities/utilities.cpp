@@ -77,4 +77,17 @@ namespace poly::utils {
 		colour.z = (rand() % granularity) / (float)granularity;
 		return colour;
 	}
+
+	Colour colour_validate(Colour const& colour)
+	{
+		if (colour.x > 1.0f || colour.y > 1.0f || colour.z > 1.0f || colour.x < 0.0f || colour.y < 0.0f || colour.z < 0.0f)
+		{
+			// Out of gamut turns RED
+			return Colour(1.0f, 0.0f, 0.0f);
+		}
+		else
+		{
+			return colour;
+		}
+	}
 }

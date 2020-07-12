@@ -15,6 +15,11 @@ namespace poly::material {
 		return Colour{};
 	}
 
+	Colour Material::get_hue([[maybe_unused]] atlas::math::Point const& hp) const
+	{
+		return Colour{0.0f,0.0f,0.0f};
+	}
+
 	/*
 	void poly::material::Material::bounce_photon(structures::Photon& photon, poly::structures::KDTree& vp_tree,
 		unsigned int max_depth, poly::structures::World const& world, float object_colour_intensity) const {

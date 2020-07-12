@@ -43,4 +43,9 @@ namespace poly::material {
 	{
 		return m_kd;
 	}
+
+	Colour GlossySpecularBRDF::cd([[maybe_unused]]atlas::math::Point const& p) const
+	{
+		return m_cd;
+	}
 }

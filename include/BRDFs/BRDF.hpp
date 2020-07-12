@@ -14,5 +14,6 @@ namespace poly::material {
 			atlas::math::Vector& w_i) const = 0;
 		virtual Colour rho(poly::structures::SurfaceInteraction const& sr,
 			atlas::math::Vector& w_o) const = 0;
+		virtual Colour cd([[maybe_unused]] atlas::math::Point const& p) const = 0;
 	};
 }

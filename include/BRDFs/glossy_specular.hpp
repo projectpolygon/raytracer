@@ -20,6 +20,7 @@ namespace poly::material {
                    [[maybe_unused]] atlas::math::Vector& w_o) const;
 
         float kd() const;
+        Colour cd([[maybe_unused]] atlas::math::Point const& p) const;
 
     protected:
         float m_kd;

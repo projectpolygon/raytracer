@@ -30,6 +30,7 @@ namespace poly::material {
 		virtual float get_specular_strength() const = 0;
 		virtual float get_reflective_strength() const = 0;
 		virtual float get_refractive_strength() const = 0;
+		virtual atlas::math::Vector get_hue([[maybe_unused]] atlas::math::Point const& hp) const = 0;
 
 		virtual atlas::math::Vector sample_f(poly::structures::SurfaceInteraction const& sr, atlas::math::Vector& w_o, atlas::math::Vector& w_t) const;
 		

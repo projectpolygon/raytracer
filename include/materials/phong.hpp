@@ -23,6 +23,7 @@ namespace poly::material
 		virtual float get_specular_strength() const;
 		virtual float get_reflective_strength() const;
 		virtual float get_refractive_strength() const;
+		virtual Colour get_hue([[maybe_unused]] atlas::math::Point const& hp) const;
 
 		
 		void absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,

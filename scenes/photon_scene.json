@@ -107,14 +107,14 @@
     "up": [ 0.0, 1.0, 0.0 ],
     "sampler": {
       "type": "jittered",
-      "samples": 4,
+      "samples": 9,
       "sets": 1
     }
   },
   "lights": [
     {
       "type": "point",
-      "intensity": 2,
+      "intensity": 1.0,
       "colour": [ 1.0, 1.0, 1.0 ],
       "position": [ 0.0, 100.0, 150.0 ]
     }

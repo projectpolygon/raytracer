@@ -11,12 +11,12 @@ namespace poly::material
 	}
 
 	Transparent::Transparent(const float amount_refl,
-							 const float amount_trans,
-							 float f_diffuse,
-							 float f_spec,
-							 Colour const &_colour,
-							 float _ior,
-							 float _exp)
+		const float amount_trans,
+		float f_diffuse,
+		float f_spec,
+		Colour const& _colour,
+		float _ior,
+		float _exp)
 		: Phong(f_diffuse, f_spec, _colour, _exp)
 	{
 		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
@@ -31,7 +31,7 @@ namespace poly::material
 		return m_transmitted_btdf->sample_f(sr, w_o, w_t);
 	}
 
-	Colour Transparent::shade(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world) const
+	Colour Transparent::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const
 	{
 		Colour L = Phong::shade(sr, world);
 		math::Vector w_o = -sr.m_ray.d;
@@ -75,6 +75,12 @@ namespace poly::material
 	{
 		return m_transmitted_btdf->kt();
 	}
+
+	Colour Transparent::get_hue([[maybe_unused]] atlas::math::Point& hp) const
+	{
+		return m_diffuse->cd(hp);
+	}
+
 	/*
 	void Transparent::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
 									unsigned int max_depth, poly::structures::World& world) const
