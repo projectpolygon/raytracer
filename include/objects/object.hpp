@@ -28,7 +28,7 @@ namespace poly::object {
 		virtual void add_contribution([[maybe_unused]]poly::structures::Photon const& photon) {}
 
 
-		virtual poly::structures::Bounds3D boundbox_get() const
+		virtual poly::structures::Bounds3D get_boundbox() const
 		{
 			return bounds;
 		}

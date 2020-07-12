@@ -22,7 +22,7 @@ namespace poly::structures {
 		atlas::math::Normal m_normal;
 
 		SurfaceInteraction();
-		atlas::math::Vector hitpoint_get() const;
+		atlas::math::Vector get_hitpoint() const;
 	};
 
 	enum class InteractionType {

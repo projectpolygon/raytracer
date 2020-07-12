@@ -25,7 +25,7 @@ namespace poly::object {
 
         void fake_uvs();
 
-        std::vector<std::shared_ptr<SmoothMeshUVTriangle>>& repr_get();
+        std::vector<std::shared_ptr<SmoothMeshUVTriangle>>& get_repr();
 
         void dump_to_list(std::vector<std::shared_ptr<Object>>& list);
 

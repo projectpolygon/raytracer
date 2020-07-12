@@ -8,7 +8,7 @@ namespace poly::texture {
 
     class Mapping {
     public:
-        virtual void texel_coord_get(atlas::math::Point hitpoint, int hres, int vres, int& row, int& col) const = 0;
+        virtual void get_texel_coord(atlas::math::Point hitpoint, int hres, int vres, int& row, int& col) const = 0;
     };
 }
 #endif // !MAPPING_HPP

@@ -78,7 +78,7 @@ namespace poly::structures
 		m_bounds = objects.at(0)->boundbox_get();
 		for (const std::shared_ptr<Object>& obj : objects)
 		{
-			Bounds3D b = obj->boundbox_get();
+			Bounds3D b = obj->get_boundbox();
 			m_bounds = union_bounds(m_bounds, b);
 			primBounds.push_back(b);
 		}
@@ -322,7 +322,7 @@ namespace poly::structures
 			useless_refine_cnt);
 	}
 
-	Bounds3D KDTree::boundbox_get() const
+	Bounds3D KDTree::get_boundbox() const
 	{
 		return m_bounds;
 	}

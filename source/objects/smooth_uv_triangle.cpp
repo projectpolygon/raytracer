@@ -98,7 +98,7 @@ namespace poly::object {
 			}
 			else
 			{
-				sr.m_normal = normal_get(); // Override
+				sr.m_normal = get_normal(); // Override
 			}
 		}
 

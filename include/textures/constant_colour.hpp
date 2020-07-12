@@ -9,7 +9,7 @@ namespace poly::texture {
 	class ConstantColour : public Texture {
 	public:
 		ConstantColour(Colour const& c);
-		Colour colour_get([[maybe_unused]] poly::structures::SurfaceInteraction const& sr) const;
+		Colour get_colour([[maybe_unused]] poly::structures::SurfaceInteraction const& sr) const;
 		void colour_set(Colour const& c);
 	private:
 		Colour m_colour;

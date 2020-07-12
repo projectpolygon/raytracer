@@ -15,10 +15,10 @@ namespace poly::object {
 	public:
 		Sphere(math::Vector position, float radius);
 
-		poly::structures::Bounds3D boundbox_get() const;
+		poly::structures::Bounds3D get_boundbox() const;
 
-		math::Vector normal_get(math::Ray<math::Vector> const& R,
-			float t) const;
+		math::Vector get_normal(math::Ray<math::Vector> const& R,
+								float t) const;
 
 		bool hit(math::Ray<math::Vector> const& R,
 			poly::structures::SurfaceInteraction& sr) const;
@@ -26,8 +26,8 @@ namespace poly::object {
 		bool shadow_hit(math::Ray<math::Vector> const& R,
 			float& t) const;
 
-		bool closest_intersect_get(const math::Ray<math::Vector>& R,
-			float& t_min) const;
+		bool get_closest_intersect(const math::Ray<math::Vector>& R,
+								   float& t_min) const;
 
 	private:
 		math::Vector C; // Center of the sphere

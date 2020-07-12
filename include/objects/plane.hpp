@@ -14,8 +14,8 @@ namespace poly::object {
 	public:
 		Plane(math::Vector normal, math::Vector position);
 
-		bool closest_intersect_get(math::Ray<math::Vector> const& R,
-			float& t_min) const;
+		bool get_closest_intersect(math::Ray<math::Vector> const& R,
+								   float& t_min) const;
 		bool hit(math::Ray<math::Vector> const& R,
 			poly::structures::SurfaceInteraction& sr) const;
 
