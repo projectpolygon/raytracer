@@ -30,7 +30,7 @@ namespace poly::material
 
 		// Get the reflected colour and direction of the reflection
 		Colour reflected_colour = m_reflected_brdf->sample_f(sr, w_o, w_r);
-		math::Ray<math::Vector> reflected_ray(sr.hitpoint_get(), w_r);
+		math::Ray<math::Vector> reflected_ray(sr.get_hitpoint(), w_r);
 
 		// If we have internal reflection, then the ray does not transmit
 		if (m_transmitted_btdf->tot_int_refl(sr))
@@ -43,7 +43,8 @@ namespace poly::material
 
 			math::Vector w_t;
 			Colour transmitted_colour = m_transmitted_btdf->sample_f(sr, w_o, w_t);
-			math::Ray<math::Vector> transmitted_ray(sr.hitpoint_get(), w_t);
+			math::Ray<math::Vector> transmitted_ray(sr.get_hitpoint(), w_t);
+
 			L += transmitted_colour * world.m_tracer->trace_ray(transmitted_ray, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_t));
 		}
 

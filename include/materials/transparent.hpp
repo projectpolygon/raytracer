@@ -4,6 +4,7 @@
 #include "BRDFs/perfect_specular.hpp"
 #include "BTDFs/perfect_transmitter.hpp"
 #include "materials/phong.hpp"
+#include "tracers/tracer.hpp"
 
 namespace poly::material {
 

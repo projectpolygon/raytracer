@@ -20,7 +20,7 @@ namespace poly::material {
 	Colour SV_Matte::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World& world) const {
 		// Render loop
 		Colour r = Colour(0.0f, 0.0f, 0.0f);
-		Colour a;
+		Colour a = {0.0f, 0.0f, 0.0f};
 		atlas::math::Vector nullVec(0.0f, 0.0f, 0.0f);
 
 		if (world.m_ambient) {
@@ -32,14 +32,11 @@ namespace poly::material {
 			Colour brdf = m_diffuse->f(sr, nullVec, nullVec);
 			Colour L = light->L(sr, world);
 			float angle = glm::dot(sr.m_normal,
-				light->direction_get(sr));
+								   light->get_direction(sr));
 			if (angle >= 0) {
 				r += (brdf
 					* L
 					* angle);
-			}
-			else {
-				r += Colour(0.0f, 0.0f, 0.0f);
 			}
 		}
 

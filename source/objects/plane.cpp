@@ -38,7 +38,7 @@ namespace poly::object
 		}
 	}
 
-	bool Plane::closest_intersect_get(math::Ray<math::Vector> const &R,
+	bool Plane::get_closest_intersect(math::Ray<math::Vector> const &R,
 									  float &t_min) const
 	{
 		float d = glm::dot(this->normal, this->position);
@@ -66,7 +66,7 @@ namespace poly::object
 		poly::structures::SurfaceInteraction &sr) const
 	{
 		float t{std::numeric_limits<float>::max()};
-		bool intersect = this->closest_intersect_get(R, t);
+		bool intersect = this->get_closest_intersect(R, t);
 
 		// If this object is hit, set the SurfaceInteraction with the relevant material and information about the hit point
 		if (intersect && t < sr.m_tmin)

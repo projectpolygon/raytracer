@@ -13,7 +13,7 @@ namespace poly::structures {
 		//AcceleratorStruct();
 		virtual bool hit(const math::Ray<math::Vector> &ray, SurfaceInteraction&sr) const = 0;
 		virtual bool shadow_hit(const math::Ray<math::Vector> &ray, float &t) const = 0;
-		virtual Bounds3D boundbox_get() const = 0;
+		virtual Bounds3D get_boundbox() const = 0;
 	};
 
 	struct KDNode
@@ -52,7 +52,7 @@ namespace poly::structures {
 			   float emptyBonus, int maxPrims,
 			   int maxDepth);
 
-		Bounds3D boundbox_get() const;
+		Bounds3D get_boundbox() const;
 
 		Bounds3D union_bounds(Bounds3D const &b1,
 							  Bounds3D const &b2);

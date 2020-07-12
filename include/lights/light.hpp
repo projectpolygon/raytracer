@@ -12,7 +12,7 @@ namespace poly::light
 	{
 	public:
 		Light();
-		virtual atlas::math::Vector direction_get(poly::structures::SurfaceInteraction& sr) = 0;
+		virtual atlas::math::Vector get_direction(poly::structures::SurfaceInteraction& sr) = 0;
 		virtual Colour L(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) = 0;
 
 		void radiance_scale(float b);

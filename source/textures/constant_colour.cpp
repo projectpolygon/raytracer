@@ -3,8 +3,10 @@
 namespace poly::texture
 {
 
+	using Colour= atlas::math::Vector ;
+
 	ConstantColour::ConstantColour(Colour const &c) : m_colour{c} {}
-	Colour ConstantColour::colour_get([[maybe_unused]] poly::structures::SurfaceInteraction const &sr) const
+	Colour ConstantColour::get_colour([[maybe_unused]] poly::structures::SurfaceInteraction const &sr) const
 	{
 		return m_colour;
 	}

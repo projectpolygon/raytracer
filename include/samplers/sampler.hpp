@@ -17,7 +17,7 @@ namespace poly::sampler {
         }
         ~Sampler() {}
 
-        unsigned int num_samples_get() { return num_samples * num_sets; }
+        unsigned int get_num_samples() { return num_samples * num_sets; }
         virtual void generate_samples() = 0;
         virtual std::vector<float> sample_unit_square() = 0;
         virtual std::vector<float> sample_unit_square(const unsigned int) = 0;
