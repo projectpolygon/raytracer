@@ -238,7 +238,7 @@ namespace poly::integrators
 						photon_ray,
 						si.get_hitpoint(),
 						si.m_normal,
-						20 * light->ls() / static_cast<float>(photon_count),
+						200 * light->ls() / static_cast<float>(photon_count),
 						0);
 
 					// Using this photon, absorb will determine the behaviour of
@@ -508,6 +508,12 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 	photon.intensity(new_intensity);
 }
 
+/*
+======================================
+------ VISIBLE POINT BEHAVIOUR -------
+======================================
+*/
+
 void absorb_vp(poly::structures::SurfaceInteraction& sr,
 			   atlas::math::Ray<atlas::math::Vector>& ray,
 			   std::shared_ptr<poly::structures::World> const &world,
@@ -516,6 +522,7 @@ void absorb_vp(poly::structures::SurfaceInteraction& sr,
 	if (world->m_vp->max_depth <= sr.depth) {
 		return;
 	}
+	++sr.depth;
 	ray.o = sr.get_hitpoint();
 	std::shared_ptr<poly::material::Material> current_material = sr.m_material;
 	amount *= sr.m_colour;
@@ -529,6 +536,7 @@ void absorb_vp(poly::structures::SurfaceInteraction& sr,
 			// Bounce the photon off this material
 			bounce_vp(sr, ray, world, amount);
 		}
+		return;
 	}
 	else if (current_material->m_type == poly::structures::InteractionType::REFLECT) {
 		float specular_kd	= current_material->get_specular_strength();
@@ -567,20 +575,18 @@ void bounce_vp(poly::structures::SurfaceInteraction& sr,
 			   std::shared_ptr<poly::structures::World> const &world,
 			   Colour& amount)
 {
-	poly::structures::SurfaceInteraction si;
-	// Get the new ray direction from the photon
-	ray.o = sr.get_hitpoint();
 	ray.d = poly::utils::reflect_over_normal(ray.d, sr.m_normal);
+	ray.o = sr.get_hitpoint() + ray.d * 0.001f;
 
 	// Hit new objects with this ray
 	bool is_hit{false};
 	for (auto& obj : world->m_scene) {
-		if (obj->hit(ray, si)) {
+		if (obj->hit(ray, sr)) {
 			is_hit = true;
 		}
 	}
 
-	// If we hit an object, get its material and propogate this photon
+	// If we hit an object, get its material and propogate this vp
 	if (is_hit) {
 		absorb_vp(sr, ray, world, amount);
 	}
