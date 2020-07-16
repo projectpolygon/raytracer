@@ -7,7 +7,6 @@
 namespace poly::structures {
 	class Photon {
 	public:
-
 		Photon();
 
 		Photon(atlas::math::Ray<atlas::math::Vector> ray, atlas::math::Point point,

@@ -41,6 +41,7 @@ namespace poly::material {
 		virtual void handle_vision_point(std::shared_ptr<poly::object::Object>& visible_point,
 										 poly::structures::SurfaceInteraction& si,
 										 poly::structures::World& world) const;
+
 	protected:
 		std::shared_ptr<PerfectSpecular> m_reflected_brdf;
 		std::shared_ptr<PerfectTransmitter> m_transmitted_btdf;

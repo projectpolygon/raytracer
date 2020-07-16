@@ -4,9 +4,7 @@ namespace poly::material {
 
 	Material::Material() 
 		: m_type{ poly::structures::InteractionType::ABSORB }
-	{
-	
-	}
+	{	}
 
 	Colour Material::sample_f([[maybe_unused]]poly::structures::SurfaceInteraction const& sr,
 		[[maybe_unused]] atlas::math::Vector& w_o,
