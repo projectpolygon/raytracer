@@ -1,5 +1,6 @@
+#include <atlas/math/math.hpp>
 #include "lights/ambient.hpp"
-#include "utilities/utilities.hpp"
+#include "structures/world.hpp"
 
 namespace poly::light {
 
@@ -14,4 +15,9 @@ namespace poly::light {
 	{
 		return m_colour * m_ls;
 	}
+
+	atlas::math::Point AmbientLight::location() const
+    {
+	    return atlas::math::Point{0.0f, 0.0f, 0.0f};
+    }
 }

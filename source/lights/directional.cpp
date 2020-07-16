@@ -1,3 +1,4 @@
+#include <atlas/math/math.hpp>
 #include "lights/directional.hpp"
 
 namespace poly::light
@@ -13,17 +14,17 @@ namespace poly::light
 		m_direction = glm::normalize(direction);
 	}
 
-	atlas::math::Vector DirectionalLight::get_direction([[maybe_unused]] poly::structures::SurfaceInteraction &sr)
+	atlas::math::Vector DirectionalLight::direction_get([[maybe_unused]] poly::structures::SurfaceInteraction &sr)
 	{
 		return m_direction;
 	}
 
 	Colour DirectionalLight::L(poly::structures::SurfaceInteraction &sr, poly::structures::World const& world)
 	{
-		math::Point new_origin = sr.get_hitpoint();
-		math::Vector new_direction = glm::normalize(get_direction(sr));
+		atlas::math::Point new_origin = sr.get_hitpoint();
+		atlas::math::Vector new_direction = glm::normalize(direction_get(sr));
 
-		math::Ray shadow_ray(new_origin + (m_surface_epsilon * new_direction),
+		atlas::math::Ray shadow_ray(new_origin + (m_surface_epsilon * new_direction),
 							 new_direction);
 
 		if (in_shadow(shadow_ray, world))
@@ -35,5 +36,11 @@ namespace poly::light
 			return m_colour * m_ls;
 		}
 	}
+
+    // TODO: Define a location for the directional light to be
+	atlas::math::Point DirectionalLight::location() const
+    {
+        return atlas::math::Point{0.0f, 0.0f, 0.0f};
+    }
 
 } // namespace poly::light

@@ -1,17 +1,16 @@
-#pragma once
 #ifndef OBJECT_HPP
 #define OBJECT_HPP
 
-#include <memory>
-
-#include <atlas/math/ray.hpp>
-#include <atlas/math/math.hpp>
-
-#include "structures/surface_interaction.hpp"
-#include "materials/material.hpp"
+namespace poly::object { class Object; }
+#include "structures/KDTree.hpp"
+#include "structures/photon.hpp"
+//#include "materials/material.hpp"
+//#include "structures/surface_interaction.hpp"
 #include "structures/bounds.hpp"
-#include "objects/object.hpp"
 
+
+namespace poly::material { class Material; }
+namespace poly::structures { class SurfaceInteraction; class Photon; }
 
 namespace poly::object {
 
@@ -23,9 +22,11 @@ namespace poly::object {
 		{
 			m_epsilon = 0.001f;
 		}
-		virtual bool hit(math::Ray<math::Vector>const& R,
+		virtual bool hit(atlas::math::Ray<math::Vector>const& R,
 			poly::structures::SurfaceInteraction& sr) const = 0;
-		virtual bool shadow_hit(math::Ray<math::Vector>const& R, float& t) const = 0;
+		virtual bool shadow_hit(atlas::math::Ray<atlas::math::Vector>const& R, float& t) const = 0;
+		virtual void add_contribution([[maybe_unused]]poly::structures::Photon const& photon) {}
+
 
 		virtual poly::structures::Bounds3D get_boundbox() const
 		{

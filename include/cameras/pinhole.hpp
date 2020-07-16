@@ -1,19 +1,16 @@
 #ifndef PINHOLE_HPP
 #define PINHOLE_HPP
 
-#include "utilities/utilities.hpp"
+#include <atlas/math/ray.hpp>
 #include "cameras/camera.hpp"
 #include "structures/world.hpp"
 #include "structures/scene_slab.hpp"
-#include "structures/surface_interaction.hpp"
-#include "objects/object.hpp"
+#include "utilities/utilities.hpp"
 
 namespace poly::camera {
 
     class PinholeCamera : public Camera {
     public:
-
-    	using Colour = atlas::math::Vector;
 
         /*
         * Distance from eye to coordinate grid (larger means tighter rays)
@@ -36,6 +33,7 @@ namespace poly::camera {
         */
         void multithread_render_scene(poly::structures::World& world, poly::utils::BMP_info& output);
         void render_scene(poly::structures::World& world) const;
+        atlas::math::Ray<atlas::math::Vector> get_ray(int i, int j, poly::structures::World const& world) const;
 
     private:
         void render_slab(std::shared_ptr<poly::structures::scene_slab> slab) const;

@@ -12,15 +12,17 @@ namespace poly::light {
 
 		PointLight();
 
-		PointLight(math::Vector const& location);
+		PointLight(atlas::math::Vector const& location);
 
-		void location_set(atlas::math::Point const& location);
+		void set_location(atlas::math::Point const& location);
 
 		atlas::math::Vector get_direction(poly::structures::SurfaceInteraction& sr);
-		bool in_shadow(math::Ray<math::Vector> const& shadow_ray,
+		bool in_shadow(atlas::math::Ray<atlas::math::Vector> const& shadow_ray,
 			poly::structures::World const& world);
 
 		Colour L(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world);
+
+		atlas::math::Point location() const override;
 
 	protected:
 		atlas::math::Point m_location;

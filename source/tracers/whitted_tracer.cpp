@@ -1,15 +1,12 @@
-#include "structures/world.hpp"
 #include "tracers/whitted_tracer.hpp"
-#include "structures/surface_interaction.hpp"
 
 using namespace atlas;
 
 namespace poly::structures {
 	WhittedTracer::WhittedTracer(poly::structures::World& world_) : Tracer(world_) { }
 
-	Colour WhittedTracer::trace_ray(math::Ray<math::Vector> const& ray, const unsigned int depth) const
+	Colour WhittedTracer::trace_ray(math::Ray<math::Vector> const& ray, World const& world, const unsigned int depth) const
 	{
-		World world = m_world;
 		if (depth > world.m_vp->max_depth) {
 			return Colour(0.0f, 0.0f, 0.0f);
 		}
@@ -26,7 +23,8 @@ namespace poly::structures {
 			if (did_hit && temp_sr.m_material != nullptr) {
 				temp_sr.depth = depth;
 				temp_sr.m_ray = ray;
-				return temp_sr.m_material->shade(temp_sr, world);
+				Colour returned_colour = temp_sr.m_material->shade(temp_sr, world);
+				return returned_colour;
 			}
 			else {
 				return world.m_background;

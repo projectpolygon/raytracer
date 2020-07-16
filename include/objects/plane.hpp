@@ -1,11 +1,12 @@
 #pragma once
 
-#include "objects/object.hpp"
-#include "structures/bounds.hpp"
 #include "structures/surface_interaction.hpp"
+#include "objects/object.hpp"
 
-namespace poly::object
-{
+namespace poly::object { class Object; }
+namespace poly::structures { class SurfaceInteraction; }
+
+namespace poly::object {
 
 	class Plane : public Object
 	{

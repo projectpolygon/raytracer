@@ -2,7 +2,12 @@
 
 #include <vector>
 #include <atlas/math/math.hpp>
+#include "objects/object.hpp"
+#include "structures/bounds.hpp"
+#include "structures/surface_interaction.hpp"
 #include "objects/triangle.hpp"
+
+namespace poly::object { class Triangle; }
 
 namespace poly::object {
 

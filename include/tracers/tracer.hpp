@@ -2,7 +2,6 @@
 #ifndef TRACER_HPP
 #define TRACER_HPP
 
-#include "structures/world.hpp"
 #include <atlas/math/ray.hpp>
 #include "structures/world.hpp"
 #include "utilities/utilities.hpp"
@@ -16,8 +15,9 @@ namespace poly::structures {
 	class Tracer {
 	public:
 		Tracer(World& world);
-		virtual Colour trace_ray([[maybe_unused]]math::Ray<math::Vector> const& ray, [[maybe_unused]] const unsigned int depth) const;
-	protected:
+		virtual Colour trace_ray([[maybe_unused]] math::Ray<math::Vector> const& ray, World const& world,[[maybe_unused]] const unsigned int depth) const;
+
+	private:
 		World& m_world;
 	};
 }

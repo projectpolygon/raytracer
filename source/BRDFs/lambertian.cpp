@@ -29,4 +29,14 @@ namespace poly::material
 	{
 		return (Colour)(m_cd * m_kd);
 	}
+
+	float LambertianBRDF::kd() const
+	{
+		return m_kd;
+	}
+
+	Colour LambertianBRDF::cd([[maybe_unused]] atlas::math::Point const& p) const
+	{
+		return m_cd;
+	}
 } // namespace poly::material

@@ -8,7 +8,7 @@
   "slab_starty": 0,
   "slab_endx": 1080,
   "slab_endy": 720,
-  "slab_size": 75,
+  "slab_size": 1080,
   "objects": [
     {
       "type": "plane",
@@ -94,7 +94,7 @@
         "spectral": 0.04,
         "diffuse": 0.05,
         "colour": [ 0.25, 0.25, 0.95 ],
-        "refractive_index": 1.03,
+        "refractive_index": 1.13,
         "tightness": 100.0
       }
     }
@@ -106,15 +106,15 @@
     "lookat": [ 0.0, 60.0, 0.0 ],
     "up": [ 0.0, 1.0, 0.0 ],
     "sampler": {
-      "samples": 4,
       "type": "jittered",
+      "samples": 9,
       "sets": 1
     }
   },
   "lights": [
     {
       "type": "point",
-      "intensity": 2,
+      "intensity": 1.0,
       "colour": [ 1.0, 1.0, 1.0 ],
       "position": [ 0.0, 100.0, 150.0 ]
     }

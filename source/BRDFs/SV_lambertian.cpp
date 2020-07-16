@@ -21,4 +21,17 @@ namespace poly::material
 	{
 		return (Colour)(m_cd->get_colour(sr) * m_kd);
 	}
+
+	float SV_LambertianBRDF::kd() 
+	{
+		return m_kd;
+	}
+
+	Colour SV_LambertianBRDF::cd([[maybe_unused]] atlas::math::Point const& p) const
+	{
+		poly::structures::SurfaceInteraction sr;
+		sr.m_ray = atlas::math::Ray < atlas::math::Vector >(p, p);
+		sr.m_tmin = 1.0f;
+		return m_cd->get_colour(sr);
+	}
 } // namespace poly::material

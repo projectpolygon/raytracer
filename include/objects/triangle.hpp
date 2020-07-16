@@ -3,7 +3,10 @@
 #include <atlas/math/math.hpp>
 #include <atlas/math/ray.hpp>
 #include "objects/object.hpp"
+#include "structures/bounds.hpp"
 #include "structures/surface_interaction.hpp"
+
+namespace poly::object { class Object; }
 
 namespace poly::object {
 

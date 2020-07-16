@@ -19,6 +19,9 @@ namespace poly::material {
 		Colour rho([[maybe_unused]] poly::structures::SurfaceInteraction const& sr,
 			[[maybe_unused]] atlas::math::Vector& w_o) const;
 
+		float kd();
+		Colour SV_LambertianBRDF::cd(atlas::math::Point const& p) const override;
+
 	protected:
 		float m_kd;
 		std::shared_ptr<poly::texture::Texture> m_cd;

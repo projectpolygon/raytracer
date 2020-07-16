@@ -1,27 +1,24 @@
-#pragma once
-
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
 #include <memory>
 #include <vector>
 #include <atlas/math/math.hpp>
-#include "samplers/sampler.hpp"
-#include "structures/view_plane.hpp"
 
 namespace poly::light { class Light; }
 namespace poly::object { class Object; }
+namespace poly::sampler { class Sampler; }
+namespace poly::light { class Light; }
 
 namespace poly::structures {
 
-	using Colour = atlas::math::Vector;
-
     class Tracer; // avoids non-declaration in circular dependancy
+	class ViewPlane;
 
     class World {
     public:
         // Default pixel colour
-        Colour m_background;
+        atlas::math::Vector m_background;
 
         // Section to be rendered
 		int m_start_width, m_start_height, m_end_width, m_end_height;
@@ -39,7 +36,7 @@ namespace poly::structures {
         std::vector<std::shared_ptr<poly::light::Light>> m_lights; 
         
         // Output as 1D array
-        std::vector<Colour> m_image; 
+        std::vector<atlas::math::Vector> m_image;
 
         // Information about the view plane
         std::shared_ptr<ViewPlane> m_vp;
