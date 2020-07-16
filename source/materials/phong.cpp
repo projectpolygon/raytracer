@@ -66,31 +66,7 @@ namespace poly::material
 	{
 		return m_diffuse->cd(hp);
 	}
-	/*
-	void Phong::absorb_photon(structures::Photon &photon,
-	poly::structures::KDTree& vp_tree, unsigned int max_depth,
-	poly::structures::World const& world) const
-	{
-		if (photon.depth() >= max_depth) {
-			//photons.push_back(photon);
-			return;
-		}
-
-		float specular_kd = m_specular->kd();
-		float diffuse_kd = m_diffuse->kd();
-		float total = diffuse_kd + specular_kd;
-
-		float rgn = (float(rand()) / float(std::numeric_limits<int>::max())) *
-	total;
-
-		if (rgn < specular_kd) {
-			bounce_photon(photon, vp_tree, max_depth, world, (specular_kd /
-	total));
-		}
-		photon.intensity(photon.intensity() * (diffuse_kd / total));
-		//photons.push_back(photon);
-	}
-	*/
+	
 	void Phong::handle_vision_point(
 		std::shared_ptr<poly::object::Object>& visible_point,
 		structures::SurfaceInteraction& si,

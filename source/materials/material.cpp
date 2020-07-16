@@ -1,26 +1,28 @@
 #include "materials/material.hpp"
 
-namespace poly::material {
+namespace poly::material
+{
+	Material::Material() : m_type{poly::structures::InteractionType::ABSORB}
+	{}
 
-	Material::Material() 
-		: m_type{ poly::structures::InteractionType::ABSORB }
-	{	}
-
-	Colour Material::sample_f([[maybe_unused]]poly::structures::SurfaceInteraction const& sr,
+	Colour Material::sample_f(
+		[[maybe_unused]] poly::structures::SurfaceInteraction const& sr,
 		[[maybe_unused]] atlas::math::Vector& w_o,
 		[[maybe_unused]] atlas::math::Vector& w_t) const
 	{
 		return Colour{};
 	}
 
-	Colour Material::get_hue([[maybe_unused]] atlas::math::Point const& hp) const
+	Colour Material::get_hue([
+		[maybe_unused]] atlas::math::Point const& hp) const
 	{
-		return Colour{0.0f,0.0f,0.0f};
+		return Colour{0.0f, 0.0f, 0.0f};
 	}
 
 	/*
-	void poly::material::Material::bounce_photon(structures::Photon& photon, poly::structures::KDTree& vp_tree,
-		unsigned int max_depth, poly::structures::World const& world, float object_colour_intensity) const {
+	void poly::material::Material::bounce_photon(structures::Photon& photon,
+	poly::structures::KDTree& vp_tree, unsigned int max_depth,
+	poly::structures::World const& world, float object_colour_intensity) const {
 		poly::structures::SurfaceInteraction si;
 		atlas::math::Ray<atlas::math::Vector> photon_ray = photon.reflect_ray();
 		bool is_hit{ false };
@@ -31,12 +33,14 @@ namespace poly::material {
 		}
 
 		if (is_hit) {
-			poly::structures::Photon reflected_photon = poly::structures::Photon(photon_ray,
-				si.hitpoint_get(), si.m_normal, photon.intensity() * (1 - object_colour_intensity), photon.depth() + 1);
-			si.m_material->absorb_photon(reflected_photon, vp_tree, max_depth, world);
+			poly::structures::Photon reflected_photon =
+	poly::structures::Photon(photon_ray, si.hitpoint_get(), si.m_normal,
+	photon.intensity() * (1 - object_colour_intensity), photon.depth() + 1);
+			si.m_material->absorb_photon(reflected_photon, vp_tree, max_depth,
+	world);
 		}
 		float new_intensity = photon.intensity() * object_colour_intensity;
 		photon.intensity(new_intensity);
 	}
 	*/
-}
+} // namespace poly::material
