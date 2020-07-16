@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(polygon_raytracer LANGUAGES CXX C)
+project(raytracer LANGUAGES CXX C)
 
 # --------------------
 # Set root
