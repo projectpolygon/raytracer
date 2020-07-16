@@ -9,7 +9,6 @@ skip_commits:
     files:
         - README.md
         - LICENSE
-        - appveyor.yml
         - .clang-format
         - .gitignore
 
