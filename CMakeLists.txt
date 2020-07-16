@@ -52,6 +52,7 @@ add_executable(raytracer "${POLYGON_SOURCE}")
 # --------------------
 add_subdirectory(source)
 add_subdirectory(include)
+add_subdirectory(tests)
 
 # --------------------
 # Update groupings for include and source
