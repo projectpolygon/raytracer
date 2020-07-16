@@ -90,4 +90,9 @@ namespace poly::utils {
 			return colour;
 		}
 	}
+
+	atlas::math::Vector reflect_over_normal(const math::Vector &wi, const atlas::math::Normal n)
+	{
+		return wi - 2.0f * glm::dot(wi, n) * n;
+	}
 }
