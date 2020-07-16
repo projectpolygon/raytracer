@@ -163,23 +163,23 @@ namespace poly::integrators
 				}
 
 				// Find the index in our film where we will link this ray to
-				int row_0_indexed =
-					static_cast<int>(i) + (slab->world->m_vp->vres) / 2;
-				int col_0_indexed =
-					static_cast<int>(j) + (slab->world->m_vp->hres) / 2;
-
-				Colour average_factor =
-					Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
+//				int row_0_indexed =
+//					static_cast<int>(i) + (slab->world->m_vp->vres) / 2;
+//				int col_0_indexed =
+//					static_cast<int>(j) + (slab->world->m_vp->hres) / 2;
+//
+//				Colour average_factor =
+//					Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
 
 				// If we have hit an object, create a visible point at the
 				// surface interaction point
 				if (hit && sr.m_material) {
 					// Shade the point directly
-					slab->storage
-						->at(slab->world->m_vp->vres - row_0_indexed - 1)
-						.at(col_0_indexed) +=
-						(sr.m_material->shade(sr, *(slab->world))) *
-						average_factor;
+//					slab->storage
+//						->at(slab->world->m_vp->vres - row_0_indexed - 1)
+//						.at(col_0_indexed) +=
+//						(sr.m_material->shade(sr, *(slab->world))) *
+//						average_factor;
 
 					Colour amount{1.0f, 1.0f, 1.0f};
 
@@ -238,7 +238,7 @@ namespace poly::integrators
 						photon_ray,
 						si.get_hitpoint(),
 						si.m_normal,
-						200 * light->ls() / static_cast<float>(photon_count),
+						1000 * light->ls() / static_cast<float>(photon_count),
 						0);
 
 					// Using this photon, absorb will determine the behaviour of
