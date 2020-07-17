@@ -74,6 +74,8 @@ namespace poly::integrators
 			for (std::size_t iteration{}; iteration < m_number_iterations;
 				 ++iteration) {
 				thread_list.emplace_back(std::thread([this, slab, camera, world_ptr, world](){
+				  /* -------- FIRST PASS -------- */
+				  /* ------ VISIBLE POINTS ------ */
 				  std::vector<std::shared_ptr<poly::object::Object>>
 					  visible_points =
 					  create_visible_points(slab, camera, world_ptr);
@@ -94,9 +96,6 @@ namespace poly::integrators
 				  photon bounce, or terminate photon)
 				  */
 				}));
-				/* -------- FIRST PASS -------- */
-				/* ------ VISIBLE POINTS ------ */
-
 			}
 		}
 		// Joining the threads
