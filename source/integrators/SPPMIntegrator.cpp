@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <atlas/math/random.hpp>
 
 /*
 ===============================
@@ -525,7 +526,7 @@ void absorb_vp(poly::structures::SurfaceInteraction& sr,
 	++sr.depth;
 	ray.o = sr.get_hitpoint();
 	std::shared_ptr<poly::material::Material> current_material = sr.m_material;
-	amount *= sr.m_colour;
+	amount *= current_material->get_hue(sr.get_hitpoint());
 	if (current_material->m_type == poly::structures::InteractionType::ABSORB) {
 		// Assess whether or not this should be bounced by taking the intensity
 		// of the diffuse component of the material
@@ -602,7 +603,6 @@ void transmit_vp(poly::structures::SurfaceInteraction& sr,
 	atlas::math::Vector wt;
 
 	current_material->sample_f(sr, wi, wt);
-	// m_transmitted_btdf->sample_f(si, wi, wt);
 
 	ray.d = wt;
 
