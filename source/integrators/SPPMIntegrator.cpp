@@ -69,44 +69,40 @@ namespace poly::integrators
 											 storage_mutex,
 											 storage);
 
-		std::size_t current_completion_state = 0;
-		std::size_t end_complete_state = slabs.size() * m_number_iterations;
 		for (auto slab : slabs) {
 			// Repeat the illumination pass for num_iterations
 			for (std::size_t iteration{}; iteration < m_number_iterations;
 				 ++iteration) {
+				thread_list.emplace_back(std::thread([this, slab, camera, world_ptr, world](){
+				  std::vector<std::shared_ptr<poly::object::Object>>
+					  visible_points =
+					  create_visible_points(slab, camera, world_ptr);
+
+				  /* -------- SECOND PASS -------- */
+				  /* ------- PHOTON POINTS ------- */
+				  photon_mapping(world, visible_points);
+
+				  /*
+				  For each light
+					  shoot photons from the light
+					  for each photon shot
+					  intersect against the scene
+					  if hit
+						  gather N nearby visible points
+						  add photon to each of the N points (update using pointer
+				  to location on film inside the VisiblePoint calculate next
+				  photon bounce, or terminate photon)
+				  */
+				}));
 				/* -------- FIRST PASS -------- */
 				/* ------ VISIBLE POINTS ------ */
-				std::vector<std::shared_ptr<poly::object::Object>>
-					visible_points =
-						create_visible_points(slab, camera, world_ptr);
 
-				/* -------- SECOND PASS -------- */
-				/* ------- PHOTON POINTS ------- */
-				photon_mapping(world, visible_points);
-
-				/*
-				For each light
-					shoot photons from the light
-					for each photon shot
-					intersect against the scene
-					if hit
-						gather N nearby visible points
-						add photon to each of the N points (update using pointer
-				to location on film inside the VisiblePoint calculate next
-				photon bounce, or terminate photon)
-				*/
-
-				std::cout << "\r                                         ";
-				std::cout << "\rLOADING: "
-						  << ((float)(current_completion_state + 1) * 100.0f /
-							  end_complete_state)
-						  << "% complete. ";
-				std::cout << std::flush;
-				current_completion_state++;
 			}
 		}
-
+		// Joining the threads
+		for (std::thread& t: thread_list) {
+			t.join();
+		}
 		// reformat the 2D vector into a single dimensional array
 		for (auto row : *(storage)) {
 			for (auto el : row) {
