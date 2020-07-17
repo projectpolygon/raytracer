@@ -21,7 +21,8 @@ namespace poly::integrators {
 		bool hit(math::Ray<math::Vector>const& R,
 			poly::structures::SurfaceInteraction& sr) const;
 		bool shadow_hit(math::Ray<math::Vector>const& R, float& t) const;
-		void add_contribution(poly::structures::Photon const& photon) override;
+		void add_contribution(poly::structures::Photon const& photon,
+							  std::shared_ptr<std::mutex> storage_mutex);
 
 		// Originating Pixels
 		int index_x; // Along the x axis
@@ -51,9 +52,10 @@ namespace poly::integrators {
 		std::size_t m_number_iterations;
 		std::vector<std::shared_ptr<poly::object::Object>> create_visible_points(std::shared_ptr<poly::structures::scene_slab> slab,
 			poly::camera::PinholeCamera const& camera, 
-			std::shared_ptr<poly::structures::World> world);
+			std::shared_ptr<poly::structures::World> world,
+			std::shared_ptr<std::mutex> storage_mutex);
 
-		void photon_mapping(const structures::World &world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list);
+		void photon_mapping(const structures::World &world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list, std::shared_ptr<std::mutex> storage_mutex);
 	};
 }
 /**

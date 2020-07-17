@@ -16,21 +16,24 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 				   poly::structures::Photon &photon,
 				   poly::structures::KDTree &vp_tree,
 				   std::size_t max_depth,
-				   poly::structures::World const &world);
+				   poly::structures::World const &world,
+				   std::shared_ptr<std::mutex> storage_mutex);
 
 void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 					 poly::structures::Photon &photon,
 					 poly::structures::KDTree &vp_tree,
 					 std::size_t max_depth,
 					 poly::structures::World const &world,
-					 float colour_change);
+					 float colour_change,
+					 std::shared_ptr<std::mutex> storage_mutex);
 
 void bounce_photon(std::shared_ptr<poly::material::Material> current_material,
 				   poly::structures::Photon &photon,
 				   poly::structures::KDTree &vp_tree,
 				   std::size_t max_depth,
 				   poly::structures::World const &world,
-				   float object_colour_intensity);
+				   float object_colour_intensity,
+				   std::shared_ptr<std::mutex> storage_mutex);
 
 namespace poly::integrators
 {
@@ -73,16 +76,16 @@ namespace poly::integrators
 			// Repeat the illumination pass for num_iterations
 			for (std::size_t iteration{}; iteration < m_number_iterations;
 				 ++iteration) {
-				thread_list.emplace_back(std::thread([this, slab, camera, world_ptr, world](){
+				thread_list.emplace_back(std::thread([this, slab, camera, world_ptr, world, storage_mutex](){
 				  /* -------- FIRST PASS -------- */
 				  /* ------ VISIBLE POINTS ------ */
 				  std::vector<std::shared_ptr<poly::object::Object>>
 					  visible_points =
-					  create_visible_points(slab, camera, world_ptr);
+					  create_visible_points(slab, camera, world_ptr, storage_mutex);
 
 				  /* -------- SECOND PASS -------- */
 				  /* ------- PHOTON POINTS ------- */
-				  photon_mapping(world, visible_points);
+				  photon_mapping(world, visible_points, storage_mutex);
 
 				  /*
 				  For each light
@@ -114,7 +117,8 @@ namespace poly::integrators
 	SPPMIntegrator::create_visible_points(
 		std::shared_ptr<poly::structures::scene_slab> slab,
 		poly::camera::PinholeCamera const &camera,
-		std::shared_ptr<poly::structures::World> world)
+		std::shared_ptr<poly::structures::World> world,
+		std::shared_ptr<std::mutex> storage_mutex)
 	{
 		int total_number_of_pixels =
 			(slab->end_x - slab->start_x) * (slab->end_y - slab->start_y);
@@ -155,11 +159,13 @@ namespace poly::integrators
 				// surface interaction point
 				if (hit && sr.m_material) {
 					// Shade the point directly
+					storage_mutex->lock();
 					slab->storage
 						->at(slab->world->m_vp->vres - row_0_indexed - 1)
 						.at(col_0_indexed) +=
 						(sr.m_material->shade(sr, *(slab->world))) *
 						average_factor;
+					storage_mutex->unlock();
 
 					// Add this visible point to our vector
 					visiblePoints.push_back(
@@ -179,7 +185,8 @@ namespace poly::integrators
 
 	void SPPMIntegrator::photon_mapping(
 		const poly::structures::World &world,
-		std::vector<std::shared_ptr<poly::object::Object>> &vp_list)
+		std::vector<std::shared_ptr<poly::object::Object>> &vp_list,
+		std::shared_ptr<std::mutex> storage_mutex)
 	{
 		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, -1);
 
@@ -222,7 +229,8 @@ namespace poly::integrators
 								  photon,
 								  vp_tree,
 								  (std::size_t)world.m_vp->max_depth,
-								  world);
+								  world,
+								  storage_mutex);
 				}
 			}
 		}
@@ -273,7 +281,8 @@ namespace poly::integrators
 		return false;
 	}
 
-	void VisiblePoint::add_contribution(poly::structures::Photon const &photon)
+	void VisiblePoint::add_contribution(poly::structures::Photon const &photon,
+										std::shared_ptr<std::mutex> storage_mutex)
 	{
 		int row_0_indexed = (int)index_y + (m_slab->world->m_vp->vres) / 2;
 		int col_0_indexed = (int)index_x + (m_slab->world->m_vp->hres) / 2;
@@ -287,9 +296,11 @@ namespace poly::integrators
 
 		float intensity = photon.intensity();
 
+		storage_mutex->lock();
 		m_slab->storage->at(m_slab->world->m_vp->vres - row_0_indexed - 1)
 			.at(col_0_indexed) +=
 			surface_material->get_hue(photon.point()) * intensity / dist_to_vp;
+		storage_mutex->unlock();
 	}
 
 } // namespace poly::integrators
@@ -318,7 +329,8 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 				   poly::structures::Photon &photon,
 				   poly::structures::KDTree &vp_tree,
 				   std::size_t max_depth,
-				   poly::structures::World const &world)
+				   poly::structures::World const &world,
+				   std::shared_ptr<std::mutex> storage_mutex)
 {
 	constexpr float max_distance_to_visible_point = 20.0f;
 	// If the max depth for recursion is reached, stop here
@@ -328,7 +340,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 			vp_tree.get_nearest_to_point(photon.point(),
 										 max_distance_to_visible_point);
 		for (auto vp : nearby_VPs) {
-			vp->add_contribution(photon);
+			vp->add_contribution(photon, storage_mutex);
 		}
 		// Add contribution to nearby VP's
 		return;
@@ -343,14 +355,14 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		if (rgn > partition) {
 			// Bounce the photon off this material
 			bounce_photon(
-				current_material, photon, vp_tree, max_depth, world, partition);
+				current_material, photon, vp_tree, max_depth, world, partition, storage_mutex);
 		}
 		// TODO: Add contribution to nearby VP's if no bounce!!!
 		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs =
 			vp_tree.get_nearest_to_point(photon.point(),
 										 max_distance_to_visible_point);
 		for (auto vp : nearby_VPs) {
-			vp->add_contribution(photon);
+			vp->add_contribution(photon, storage_mutex);
 		}
 		return;
 	}
@@ -369,7 +381,8 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 						  vp_tree,
 						  max_depth,
 						  world,
-						  (photon.intensity() * reflective_kd / total));
+						  (photon.intensity() * reflective_kd / total),
+						  storage_mutex);
 		}
 		photon.intensity(photon.intensity() * (1 - (reflective_kd / total)));
 		// photons.push_back(photon);
@@ -391,7 +404,8 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 							vp_tree,
 							max_depth,
 							world,
-							photon.intensity() * transparent_kt / total);
+							photon.intensity() * transparent_kt / total,
+							storage_mutex);
 		}
 		else if (random_number >= transparent_kt &&
 				 random_number < transparent_kt + reflective_kd) {
@@ -401,7 +415,8 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 						  max_depth,
 						  world,
 						  (reflective_kd + reflective_kd) / total *
-							  photon.intensity());
+							  photon.intensity(),
+						  storage_mutex);
 		}
 		photon.intensity(photon.intensity() * diffuse_kd / total);
 		// Add photon contribution to VP
@@ -414,7 +429,8 @@ void bounce_photon(
 	poly::structures::KDTree &vp_tree,
 	std::size_t max_depth,
 	poly::structures::World const &world,
-	float object_colour_intensity)
+	float object_colour_intensity,
+	std::shared_ptr<std::mutex> storage_mutex)
 {
 	poly::structures::SurfaceInteraction si;
 	// Get the new ray direction from the photon
@@ -437,7 +453,7 @@ void bounce_photon(
 			photon.intensity() * (1 - object_colour_intensity),
 			photon.depth() + 1);
 		absorb_photon(
-			si.m_material, reflected_photon, vp_tree, max_depth, world);
+			si.m_material, reflected_photon, vp_tree, max_depth, world, storage_mutex);
 	}
 	float new_intensity = photon.intensity() * object_colour_intensity;
 	photon.intensity(new_intensity);
@@ -448,7 +464,8 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 					 poly::structures::KDTree &vp_tree,
 					 std::size_t max_depth,
 					 poly::structures::World const &world,
-					 float colour_change)
+					 float colour_change,
+					 std::shared_ptr<std::mutex> storage_mutex)
 {
 	poly::structures::SurfaceInteraction si;
 	si.m_normal			   = photon.normal();
@@ -456,7 +473,6 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 	atlas::math::Vector wt;
 
 	current_material->sample_f(si, wi, wt);
-	// m_transmitted_btdf->sample_f(si, wi, wt);
 
 	atlas::math::Ray<atlas::math::Vector> photon_ray{photon.point(), wt};
 
@@ -477,7 +493,7 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 									 photon.intensity() * (1 - colour_change),
 									 photon.depth() + 1);
 		absorb_photon(
-			si.m_material, reflected_photon, vp_tree, max_depth, world);
+			si.m_material, reflected_photon, vp_tree, max_depth, world, storage_mutex);
 	}
 	float new_intensity = photon.intensity() * colour_change;
 	photon.intensity(new_intensity);

@@ -7,7 +7,7 @@ namespace poly::object { class Object; }
 //#include "materials/material.hpp"
 //#include "structures/surface_interaction.hpp"
 #include "structures/bounds.hpp"
-
+#include <mutex>
 
 namespace poly::material { class Material; }
 namespace poly::structures { class SurfaceInteraction; class Photon; }
@@ -25,7 +25,8 @@ namespace poly::object {
 		virtual bool hit(atlas::math::Ray<math::Vector>const& R,
 			poly::structures::SurfaceInteraction& sr) const = 0;
 		virtual bool shadow_hit(atlas::math::Ray<atlas::math::Vector>const& R, float& t) const = 0;
-		virtual void add_contribution([[maybe_unused]]poly::structures::Photon const& photon) {}
+		virtual void add_contribution([[maybe_unused]]poly::structures::Photon const& photon,
+									  [[maybe_unused]]std::shared_ptr<std::mutex> storage_mutex) {}
 
 
 		virtual poly::structures::Bounds3D get_boundbox() const
