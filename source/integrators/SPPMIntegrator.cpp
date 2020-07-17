@@ -95,33 +95,23 @@ namespace poly::integrators
 			// Repeat the illumination pass for num_iterations
 			for (std::size_t iteration{}; iteration < m_number_iterations;
 				 ++iteration) {
-				thread_list.emplace_back(std::thread([this, slab, camera, world_ptr, world](){
-				  /* -------- FIRST PASS -------- */
-				  /* ------ VISIBLE POINTS ------ */
-				  std::vector<std::shared_ptr<poly::object::Object>>
-					  visible_points =
-					  create_visible_points(slab, camera, world_ptr);
+				// Create a new thread for each iteration
+				thread_list.emplace_back(
+					std::thread([this, slab, camera, world_ptr, world]() {
+						/* -------- FIRST PASS -------- */
+						/* ------ VISIBLE POINTS ------ */
+						std::vector<std::shared_ptr<poly::object::Object>>
+							visible_points =
+								create_visible_points(slab, camera, world_ptr);
 
-				  /* -------- SECOND PASS -------- */
-				  /* ------- PHOTON POINTS ------- */
-				  photon_mapping(world, visible_points);
-
-				  /*
-				  For each light
-					  shoot photons from the light
-					  for each photon shot
-					  intersect against the scene
-					  if hit
-						  gather N nearby visible points
-						  add photon to each of the N points (update using pointer
-				  to location on film inside the VisiblePoint calculate next
-				  photon bounce, or terminate photon)
-				  */
-				}));
+						/* -------- SECOND PASS -------- */
+						/* ------- PHOTON POINTS ------- */
+						photon_mapping(world, visible_points);
+					}));
 			}
 		}
 		// Joining the threads
-		for (std::thread& t: thread_list) {
+		for (std::thread &t : thread_list) {
 			t.join();
 		}
 		// reformat the 2D vector into a single dimensional array
