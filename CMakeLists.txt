@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(polygon_raytracer LANGUAGES CXX C)
+project(raytracer LANGUAGES CXX C)
 
 # --------------------
 # Set root
@@ -52,6 +52,7 @@ add_executable(raytracer "${POLYGON_SOURCE}")
 # --------------------
 add_subdirectory(source)
 add_subdirectory(include)
+add_subdirectory(tests)
 
 # --------------------
 # Update groupings for include and source
