@@ -66,7 +66,7 @@ namespace poly::material
 	{
 		return m_diffuse->cd(hp);
 	}
-	
+
 	void Phong::handle_vision_point(
 		std::shared_ptr<poly::object::Object>& visible_point,
 		structures::SurfaceInteraction& si,
