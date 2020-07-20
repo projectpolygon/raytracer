@@ -6,8 +6,9 @@
 
 namespace poly::structures
 {
-	void
-	KDNode::init_leaf(int *primNums, int np, std::vector<int> *primitiveIndices)
+	void KDNode::init_leaf(int *primNums, 
+		int np, 
+		std::vector<int> *primitiveIndices)
 	{
 		flags = 3;
 		nPrims |= (np << 2);
@@ -65,6 +66,8 @@ namespace poly::structures
 	{
 		m_nextFreeNode	 = 0;
 		m_allocatedNodes = 0;
+
+		// If height value passed in is negative, auto configure max height
 		if (max_tree_height <= 0) {
 			max_tree_height =
 				(int)std::round(8 + 1.3f * log(objects.size()) / log(2));
@@ -374,7 +377,14 @@ namespace poly::structures
 	{
 		// First, check if we intersect the box at all
 		double tMin, tMax;
+
+		// If there is not an intersection, do nothing
 		if (!m_bounds.get_intersects(ray, &tMin, &tMax)) {
+			return false;
+		}
+
+		// If the intersection is further away than a previous hit, do nothin
+		if(tMin > sr.m_tmin){
 			return false;
 		}
 

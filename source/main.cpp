@@ -90,12 +90,13 @@ int main(int argc, char** argv)
 #define USE_PM
 
 #ifdef USE_PM
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(15);
+	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(5);
 	stoch_prog_phot_mapper.render(world, camera, output);
 #endif // USE_PM
 
 #ifndef USE_PM
 	// Create the required output file
+	std::clog << "\nINFO: multithreaded render" << std::endl;
 	camera.multithread_render_scene(world, output);
 
 #endif // !USE_PM

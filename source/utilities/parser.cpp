@@ -161,7 +161,7 @@ properties
 				s->dump_to_list(object_list);
 
 				w.m_scene.push_back(std::make_shared<poly::structures::KDTree>(
-					object_list, 80, 30, 0.75f, 10, 50));
+					object_list, 80, 30, 0.75f, 15, -1));
 			}
 			else if (obj["type"] == "sphere") {
 				std::shared_ptr<poly::object::Sphere> s =
