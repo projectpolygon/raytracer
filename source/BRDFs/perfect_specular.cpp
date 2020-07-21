@@ -37,4 +37,14 @@ namespace poly::material
 		return Colour(0.0f, 0.0f, 0.0f);
 	}
 
+	float PerfectSpecular::kd() const
+	{
+		return m_kd;
+	}
+
+	Colour PerfectSpecular::cd([[maybe_unused]] atlas::math::Point const& p) const
+	{
+		return m_cd;
+	}
+
 } // namespace poly::material

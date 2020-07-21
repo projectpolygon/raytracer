@@ -3,7 +3,10 @@
 #include <atlas/math/math.hpp>
 #include <atlas/math/ray.hpp>
 #include "objects/object.hpp"
+#include "structures/bounds.hpp"
 #include "structures/surface_interaction.hpp"
+
+namespace poly::object { class Object; }
 
 namespace poly::object {
 
@@ -14,12 +17,12 @@ namespace poly::object {
 		Triangle(std::vector<math::Vector> vertices,
 			math::Vector position);
 
-		math::Vector normal_get() const;
+		math::Vector get_normal() const;
 
-		float t_get(const math::Ray<math::Vector>& R) const;
+		float get_t(const math::Ray<math::Vector>& R) const;
 
-		bool closest_intersect_get(math::Ray<math::Vector>const& R,
-			float& t_min) const;
+		bool get_closest_intersect(math::Ray<math::Vector>const& R,
+								   float& t_min) const;
 
 		virtual bool hit(math::Ray<math::Vector>const& R,
 			poly::structures::SurfaceInteraction& sr) const;

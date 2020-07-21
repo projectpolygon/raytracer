@@ -1,7 +1,7 @@
+#include "structures/KDTree.hpp"
 #include "objects/smooth_uv_triangle.hpp"
 
-namespace poly::object
-{
+namespace poly::object {
 
 	SmoothMeshUVTriangle::SmoothMeshUVTriangle(std::vector<math::Vector> vertices,
 		std::vector<math::Vector2> uvs,
@@ -98,7 +98,7 @@ namespace poly::object
 			}
 			else
 			{
-				sr.m_normal = normal_get(); // Override
+				sr.m_normal = get_normal(); // Override
 			}
 		}
 

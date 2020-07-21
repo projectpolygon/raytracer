@@ -1,11 +1,12 @@
 #pragma once
 
-#include "objects/object.hpp"
-#include "structures/bounds.hpp"
 #include "structures/surface_interaction.hpp"
+#include "objects/object.hpp"
 
-namespace poly::object
-{
+namespace poly::object { class Object; }
+namespace poly::structures { class SurfaceInteraction; }
+
+namespace poly::object {
 
 	class Plane : public Object
 	{
@@ -13,8 +14,8 @@ namespace poly::object
 	public:
 		Plane(math::Vector normal, math::Vector position);
 
-		bool closest_intersect_get(math::Ray<math::Vector> const& R,
-			float& t_min) const;
+		bool get_closest_intersect(math::Ray<math::Vector> const& R,
+								   float& t_min) const;
 		bool hit(math::Ray<math::Vector> const& R,
 			poly::structures::SurfaceInteraction& sr) const;
 

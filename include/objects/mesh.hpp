@@ -5,8 +5,8 @@
 #include <vector>
 #include <memory>
 #include <atlas/utils/load_obj_file.hpp>
-#include "objects/triangle.hpp"
 #include "objects/smooth_uv_triangle.hpp"
+#include "utilities/utilities.hpp"
 
 namespace poly::object {
 
@@ -25,7 +25,7 @@ namespace poly::object {
 
         void fake_uvs();
 
-        std::vector<std::shared_ptr<SmoothMeshUVTriangle>>& repr_get();
+        std::vector<std::shared_ptr<SmoothMeshUVTriangle>>& get_repr();
 
         void dump_to_list(std::vector<std::shared_ptr<Object>>& list);
 

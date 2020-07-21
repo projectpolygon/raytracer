@@ -1,14 +1,14 @@
-#pragma once
+#ifndef POLY_SURFACEINTERACTION_HPP
+#define POLY_SURFACEINTERACTION_HPP
 
-#ifndef SURFACEINTERACTION_HPP
-#define SURFACEINTERACTION_HPP
-
-namespace poly::structures {
-	class SurfaceInteraction;
-}
-
+#include <memory>
 #include <atlas/math/ray.hpp>
+#include <atlas/math/math.hpp>
 #include "materials/material.hpp"
+
+namespace poly::material { class Material; }
+
+using Colour = atlas::math::Vector;
 
 namespace poly::structures {
 	class SurfaceInteraction {
@@ -22,8 +22,16 @@ namespace poly::structures {
 		atlas::math::Normal m_normal;
 
 		SurfaceInteraction();
-		atlas::math::Vector hitpoint_get() const;
+		atlas::math::Vector get_hitpoint() const;
 	};
+
+	enum class InteractionType {
+		ABSORB,
+		REFLECT,
+		TRANSMIT,
+		NUM_INTERACTION_TYPES
+	};
+
 }
 
 #endif // !SURFACEINTERACTION_HPP

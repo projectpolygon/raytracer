@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(polygon_raytracer LANGUAGES CXX C)
+project(raytracer LANGUAGES CXX C)
 
 # --------------------
 # Set root
@@ -52,6 +52,7 @@ add_executable(raytracer "${POLYGON_SOURCE}")
 # --------------------
 add_subdirectory(source)
 add_subdirectory(include)
+add_subdirectory(tests)
 
 # --------------------
 # Update groupings for include and source
@@ -81,8 +82,32 @@ source_group("source\\structures" FILES ${POLY_SOURCE_STRUCTURE_GROUP})
 source_group("source\\textures" FILES ${POLY_SOURCE_TEXTURE_GROUP})
 source_group("source\\tracers" FILES ${POLY_SOURCE_TRACER_GROUP})
 source_group("source\\utilities" FILES ${POLY_SOURCE_UTILITY_GROUP})
+source_group("source\\integrators" FILES ${POLY_SOURCE_INTEGRATOR_GROUP})
 
 # --------------------
 # Link against Atlas
 # --------------------
 target_link_libraries(raytracer PUBLIC atlas::atlas nlohmann_json::nlohmann_json)
+
+# add a target to generate API documentation with Doxygen
+find_package(Doxygen)
+option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)" ${DOXYGEN_FOUND})
+
+if(BUILD_DOCUMENTATION)
+    if(NOT DOXYGEN_FOUND)
+        message(FATAL_ERROR "Doxygen is needed to build the documentation.")
+    endif()
+
+    set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
+    set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+    configure_file(${doxyfile_in} ${doxyfile} @ONLY)
+
+    add_custom_target(doc
+        COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM)
+
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
+endif()

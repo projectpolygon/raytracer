@@ -46,7 +46,7 @@ namespace poly::utils {
 		/*
 		 * Main driver for parsing a json configuration for a ray tracer
 		 */
-		poly::structures::World create_world(nlohmann::json& task);
+		void create_world(nlohmann::json& task, poly::structures::World& w);
 
 		/*
 		 * Parses camera from json data and returns a camera object

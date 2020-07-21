@@ -13,12 +13,25 @@ namespace poly::material
 								[[maybe_unused]] atlas::math::Vector &w_o,
 								[[maybe_unused]] atlas::math::Vector &w_i) const
 	{
-		return m_kd * m_cd->colour_get(sr) * glm::one_over_pi<float>();
+		return m_kd * m_cd->get_colour(sr) * glm::one_over_pi<float>();
 	}
 
 	Colour SV_LambertianBRDF::rho([[maybe_unused]] poly::structures::SurfaceInteraction const &sr,
 								  [[maybe_unused]] atlas::math::Vector &w_o) const
 	{
-		return (Colour)(m_cd->colour_get(sr) * m_kd);
+		return (Colour)(m_cd->get_colour(sr) * m_kd);
+	}
+
+	float SV_LambertianBRDF::kd() 
+	{
+		return m_kd;
+	}
+
+	Colour SV_LambertianBRDF::cd([[maybe_unused]] atlas::math::Point const& p) const
+	{
+		poly::structures::SurfaceInteraction sr;
+		sr.m_ray = atlas::math::Ray < atlas::math::Vector >(p, p);
+		sr.m_tmin = 1.0f;
+		return m_cd->get_colour(sr);
 	}
 } // namespace poly::material

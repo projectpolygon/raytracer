@@ -23,6 +23,18 @@ namespace poly::material
 		SV_Matte(float f, Colour const &c);
 
 		SV_Matte(float f, std::string const &s);
+		virtual float get_diffuse_strength() const;
+		virtual float get_specular_strength() const;
+		virtual float get_reflective_strength() const;
+		virtual float get_refractive_strength() const;
+		virtual Colour get_hue([[maybe_unused]] atlas::math::Point& hp) const;
+
+		void absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree, unsigned int max_depth,
+						   std::vector<std::shared_ptr<poly::object::Object>> scene) const;
+		virtual void handle_vision_point(std::shared_ptr<poly::object::Object>& visible_point,
+										 poly::structures::SurfaceInteraction& si,
+										 poly::structures::World& world) const;
+
 
 	protected:
 		std::shared_ptr<SV_LambertianBRDF> m_diffuse;

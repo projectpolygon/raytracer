@@ -1,11 +1,12 @@
+#include <atlas/math/math.hpp>
 #include "lights/ambient.hpp"
-#include "utilities/utilities.hpp"
+#include "structures/world.hpp"
 
 namespace poly::light {
 
 	AmbientLight::AmbientLight() : Light() {}
 
-	atlas::math::Vector AmbientLight::direction_get([[maybe_unused]] poly::structures::SurfaceInteraction& sr)
+	atlas::math::Vector AmbientLight::get_direction([[maybe_unused]] poly::structures::SurfaceInteraction& sr)
 	{
 		return atlas::math::Vector(0.0f, 0.0f, 0.0f);
 	}
@@ -14,4 +15,9 @@ namespace poly::light {
 	{
 		return m_colour * m_ls;
 	}
+
+	atlas::math::Point AmbientLight::location() const
+    {
+	    return atlas::math::Point{0.0f, 0.0f, 0.0f};
+    }
 }

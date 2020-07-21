@@ -1,5 +1,8 @@
 #include "lights/light.hpp"
 #include "structures/world.hpp"
+#include "objects/object.hpp"
+
+namespace poly::object { class Object; }
 
 namespace poly::light
 {
@@ -27,5 +30,10 @@ namespace poly::light
 			}
 		}
 		return false;
+	}
+
+	float Light::ls() const
+	{
+		return m_ls;
 	}
 } // namespace poly::light
