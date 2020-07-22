@@ -29,6 +29,8 @@ namespace poly::utils {
 
 	Colour random_colour_generate();
 	Colour colour_validate(Colour const& colour);
+	Colour colour_average_max(Colour const& colour);
+	atlas::math::Vector reflect_over_normal(const atlas::math::Vector& wi, const atlas::math::Normal n);
 
 }
 #endif // !UTILITY_HPP
