@@ -114,12 +114,15 @@ namespace poly::integrators
 				/* -------- SECOND PASS -------- */
 				/* ------- PHOTON POINTS ------- */
 				photon_mapping(world, visible_points, storage_mutex);
+				std::clog << "INFO: iteration complete" << std::endl;
 			}));
 		}
+
 		// Joining the threads
 		for (std::thread &t : thread_list) {
 			t.join();
 		}
+
 		for (auto &iter : temp_storage) {
 			for (std::size_t i{0};
 				 i < static_cast<std::size_t>(world.m_vp->vres);
@@ -493,7 +496,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 				   poly::structures::World const &world,
 				   std::shared_ptr<std::mutex> storage_mutex)
 {
-	constexpr float max_distance_to_visible_point = 20.0f;
+	constexpr float max_distance_to_visible_point = 30.0f;
 	// If the max depth for recursion is reached, stop here
 	if (photon.depth() >= max_depth) {
 		// photons.push_back(photon);

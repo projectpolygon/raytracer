@@ -1,6 +1,5 @@
 #include <thread>
 #include <iostream>
-#include "utilities/paths.hpp"
 #include "utilities/parser.hpp"
 
 #include "objects/sphere.hpp"
@@ -140,10 +139,8 @@ properties
 	{
 		for (auto obj : task["objects"]) {
 			if (obj["type"] == "mesh") {
-				std::string path_to_object(ShaderPath);
-				path_to_object.append(obj["object_file"]);
-				std::string path_to_material(ShaderPath);
-				path_to_material.append(obj["material_file"]);
+				std::string path_to_object(obj["object_file"]);
+				std::string path_to_material(obj["material_file"]);
 
 				std::vector<std::shared_ptr<poly::object::Object>> object_list;
 

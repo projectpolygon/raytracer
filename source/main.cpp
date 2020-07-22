@@ -6,7 +6,6 @@
 
 #include "integrators/SPPMIntegrator.hpp"
 #include "utilities/parser.hpp"
-#include "utilities/paths.hpp"
 
 using namespace atlas;
 
@@ -30,12 +29,10 @@ int main(int argc, char** argv)
 	If the file cannot be parsed, or has incorrect parameters, the
 	program will automatically terminate with exit code 1
 	*/
-	std::clog << "INFO: reading taskfile '" << argv[1] << "' from directory '"
-			  << ShaderPath << "'" << std::endl;
+	std::clog << "INFO: reading taskfile '" << argv[1] << std::endl;
 	nlohmann::json taskfile;
 	try {
-		taskfile = poly::utils::open_json_file(
-			std::string(ShaderPath).append(argv[1]).c_str());
+		taskfile = poly::utils::open_json_file(argv[1]);
 	}
 	catch (...) {
 		std::cerr << "ERROR: taskfile could not be parsed. Exiting..."
@@ -90,7 +87,7 @@ int main(int argc, char** argv)
 #define USE_PM
 
 #ifdef USE_PM
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(8);
+	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(5);
 	stoch_prog_phot_mapper.render(world, camera, output);
 #endif // USE_PM
 
