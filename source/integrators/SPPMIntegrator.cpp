@@ -76,10 +76,11 @@ namespace poly::integrators
 			std::make_shared<std::vector<std::vector<Colour>>>(
 				world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
 
+		std::vector<std::shared_ptr<std::vector<std::vector<Colour>>>>
+			temp_storage;
 
-		std::vector<std::shared_ptr<std::vector<std::vector<Colour>>>> temp_storage;
-
-		for(std::size_t iteration{0}; iteration < m_number_iterations; ++iteration) {
+		for (std::size_t iteration{0}; iteration < m_number_iterations;
+			 ++iteration) {
 			std::shared_ptr<std::vector<std::vector<Colour>>> temp =
 				std::make_shared<std::vector<std::vector<Colour>>>(
 					world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
@@ -92,70 +93,67 @@ namespace poly::integrators
 		std::shared_ptr<poly::structures::World> world_ptr =
 			std::make_shared<poly::structures::World>(world);
 
-		// Create a list of slabs to pull from
-//		std::vector<std::shared_ptr<poly::structures::scene_slab>> slabs =
-//			poly::structures::generate_slabs(world.m_start_width,
-//											 world.m_end_width,
-//											 world.m_start_height,
-//											 world.m_end_height,
-//											 world.m_slab_size,
-//											 world_ptr,
-//											 storage_mutex,
-//											 storage);
-
-
 		// Repeat the illumination pass for num_iterations
-		for (std::size_t iteration{}; iteration < m_number_iterations;
+		for (std::size_t iteration{0}; iteration < m_number_iterations;
 			 ++iteration) {
 			// Create a new thread for each iteration
 
-			thread_list.emplace_back(
-				std::thread([&](){
-					/* -------- FIRST PASS -------- */
-					/* ------ VISIBLE POINTS ------ */
-					std::vector<std::shared_ptr<poly::object::Object>>
-					visible_points =
-					create_visible_points(world.m_start_width,
-										  world.m_start_height,
-										  world.m_end_width,
-										  world.m_end_height,
-												  temp_storage.at(iteration), camera, world_ptr);
+			thread_list.emplace_back(std::thread([=]() {
+				/* -------- FIRST PASS -------- */
+				/* ------ VISIBLE POINTS ------ */
+				std::vector<std::shared_ptr<poly::object::Object>>
+					visible_points = create_visible_points(
+						world.m_start_width - (world.m_vp->hres / 2),
+						world.m_start_height - (world.m_vp->vres / 2),
+						world.m_end_width - (world.m_vp->hres / 2),
+						world.m_end_height - (world.m_vp->vres / 2),
+						temp_storage.at(iteration),
+						camera,
+						world_ptr);
 
-					/* -------- SECOND PASS -------- */
-					/* ------- PHOTON POINTS ------- */
-					photon_mapping(world, visible_points, storage_mutex);
-				}));
+				/* -------- SECOND PASS -------- */
+				/* ------- PHOTON POINTS ------- */
+				photon_mapping(world, visible_points, storage_mutex);
+			}));
 		}
 		// Joining the threads
 		for (std::thread &t : thread_list) {
 			t.join();
 		}
-		for (auto &iter: temp_storage) {
-			for (std::size_t i{0}; i < static_cast<std::size_t>(world.m_vp->vres); ++i) {
-				for (std::size_t j{0}; j < static_cast<std::size_t>(world.m_vp->hres); ++j) {
-//					output.m_image.push_back(poly::utils::colour_average_max(el));
+		for (auto &iter : temp_storage) {
+			for (std::size_t i{0};
+				 i < static_cast<std::size_t>(world.m_vp->vres);
+				 ++i) {
+				for (std::size_t j{0};
+					 j < static_cast<std::size_t>(world.m_vp->hres);
+					 ++j) {
 					storage->at(i).at(j) += iter->at(i).at(j);
 				}
 			}
 		}
+
+		float scale_factor = (1 / static_cast<float>(m_number_iterations));
+
 		// reformat the 2D vector into a single dimensional array
 		for (auto &row : *(storage)) {
-			for (auto el : row) {
-				output.m_image.push_back(poly::utils::colour_average_max(
-					el * (1 / static_cast<float>(m_number_iterations))));
+			for (auto element : row) {
+				output.m_image.push_back(
+					poly::utils::colour_average_max(element * scale_factor));
 			}
 		}
 	}
 
 	std::vector<std::shared_ptr<poly::object::Object>>
 	SPPMIntegrator::create_visible_points(
-		int start_x, int start_y, int end_x, int end_y,
+		int start_x,
+		int start_y,
+		int end_x,
+		int end_y,
 		std::shared_ptr<std::vector<std::vector<Colour>>> storage,
 		poly::camera::PinholeCamera const &camera,
 		std::shared_ptr<poly::structures::World> world)
 	{
-		int total_number_of_pixels =
-			(end_x - start_x) * (end_y - start_y);
+		int total_number_of_pixels = (end_x - start_x) * (end_y - start_y);
 
 		// Create an array of visible points  placed in the KD tree)
 		std::vector<std::shared_ptr<poly::object::Object>> visiblePoints;
@@ -186,18 +184,13 @@ namespace poly::integrators
 				int col_0_indexed =
 					static_cast<int>(j) + (world->m_vp->hres) / 2;
 
-				Colour average_factor =
-					Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
-
 				// If we have hit an object, create a visible point at the
 				// surface interaction point
 				if (hit && sr.m_material) {
 					// Shade the point directly
-					storage
-						->at(world->m_vp->vres - row_0_indexed - 1)
+					storage->at(world->m_vp->vres - row_0_indexed - 1)
 						.at(col_0_indexed) +=
-						(sr.m_material->shade(sr, *(world))) *
-						average_factor;
+						(sr.m_material->shade(sr, *(world)));
 
 					Colour amount{1.0f, 1.0f, 1.0f};
 
@@ -258,7 +251,8 @@ namespace poly::integrators
 						photon_ray,
 						si.get_hitpoint(),
 						si.m_normal,
-						photon_strength_multiplier * light->ls() /
+						m_number_iterations * photon_strength_multiplier *
+							light->ls() /
 							static_cast<float>(
 								photon_count), // scale the photon's strength by
 											   // 1000
@@ -324,8 +318,9 @@ namespace poly::integrators
 		return false;
 	}
 
-	void VisiblePoint::add_contribution(poly::structures::Photon const &photon,
-										std::shared_ptr<std::mutex> storage_mutex)
+	void
+	VisiblePoint::add_contribution(poly::structures::Photon const &photon,
+								   std::shared_ptr<std::mutex> storage_mutex)
 	{
 		int row_0_indexed = (int)index_y + (m_world->m_vp->vres) / 2;
 		int col_0_indexed = (int)index_x + (m_world->m_vp->hres) / 2;
@@ -339,10 +334,8 @@ namespace poly::integrators
 
 		Colour intensity = amount * photon.intensity();
 
-		storage_mutex->lock();
 		m_storage->at(m_world->m_vp->vres - row_0_indexed - 1)
 			.at(col_0_indexed) += intensity / dist_to_vp;
-		storage_mutex->unlock();
 	}
 
 } // namespace poly::integrators
@@ -522,8 +515,13 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 					   10000.0f); // TODO: fix this, it is not portable
 		if (rgn > partition) {
 			// Bounce the photon off this material
-			bounce_photon(
-				current_material, photon, vp_tree, max_depth, world, partition, storage_mutex);
+			bounce_photon(current_material,
+						  photon,
+						  vp_tree,
+						  max_depth,
+						  world,
+						  partition,
+						  storage_mutex);
 		}
 		// TODO: Add contribution to nearby VP's if no bounce!!!
 		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs =
@@ -620,8 +618,12 @@ void bounce_photon(
 			si.m_normal,
 			photon.intensity() * (1 - object_colour_intensity),
 			photon.depth() + 1);
-		absorb_photon(
-			si.m_material, reflected_photon, vp_tree, max_depth, world, storage_mutex);
+		absorb_photon(si.m_material,
+					  reflected_photon,
+					  vp_tree,
+					  max_depth,
+					  world,
+					  storage_mutex);
 	}
 	float new_intensity = photon.intensity() * object_colour_intensity;
 	photon.intensity(new_intensity);
@@ -660,8 +662,12 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 									 si.m_normal,
 									 photon.intensity() * (1 - colour_change),
 									 photon.depth() + 1);
-		absorb_photon(
-			si.m_material, reflected_photon, vp_tree, max_depth, world, storage_mutex);
+		absorb_photon(si.m_material,
+					  reflected_photon,
+					  vp_tree,
+					  max_depth,
+					  world,
+					  storage_mutex);
 	}
 	float new_intensity = photon.intensity() * colour_change;
 	photon.intensity(new_intensity);
