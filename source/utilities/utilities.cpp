@@ -1,6 +1,5 @@
 #include <iostream>
 #include "utilities/utilities.hpp"
-#include "utilities/paths.hpp"
 #include "stb_image_write.h"
 #include "structures/world.hpp"
 
@@ -24,7 +23,7 @@ namespace poly::utils
 	{
 		std::string filename;
 		try {
-			filename = std::string(ShaderPath).append(json["output_file"]);
+			filename = std::string(json["output_file"]);
 		}
 		catch (...) {
 			std::clog

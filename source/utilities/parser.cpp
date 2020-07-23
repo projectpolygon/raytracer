@@ -1,6 +1,5 @@
 #include <thread>
 #include <iostream>
-#include "utilities/paths.hpp"
 #include "utilities/parser.hpp"
 
 #include "objects/sphere.hpp"
@@ -15,6 +14,8 @@
 #include "lights/ambient_occlusion.hpp"
 
 #include "structures/KDTree.hpp"
+
+#include "integrators/SPPMIntegrator.hpp"
 
 namespace poly::utils
 {
@@ -140,10 +141,8 @@ properties
 	{
 		for (auto obj : task["objects"]) {
 			if (obj["type"] == "mesh") {
-				std::string path_to_object(ShaderPath);
-				path_to_object.append(obj["object_file"]);
-				std::string path_to_material(ShaderPath);
-				path_to_material.append(obj["material_file"]);
+				std::string path_to_object(obj["object_file"]);
+				std::string path_to_material(obj["material_file"]);
 
 				std::vector<std::shared_ptr<poly::object::Object>> object_list;
 
@@ -385,4 +384,24 @@ properties
 
 		return expected_output;
 	}
+
+	bool create_SPPMIntegrator(poly::integrators::SPPMIntegrator& integrator,
+							   nlohmann::json& json)
+	{
+		try {
+			nlohmann::json integrator_json = json["integrator"];
+			integrator					   = poly::integrators::SPPMIntegrator{
+				integrator_json["num_iterations"],
+				integrator_json["num_photons_per_iteration"],
+				integrator_json["num_working_areas"],
+				integrator_json["direct_shading_strength"],
+				integrator_json["photon_strength_multiplier"]};
+			return true;
+		}
+		catch ([[maybe_unused]] const nlohmann::detail::type_error& e) {
+			std::clog << "INFO: not using SPPM" << std::endl;
+			return false;
+		}
+	}
+
 } // namespace poly::utils

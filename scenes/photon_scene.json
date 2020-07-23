@@ -9,6 +9,14 @@
   "slab_endx": 1080,
   "slab_endy": 720,
   "slab_size": 540,
+  "integrator":
+  {
+    "num_iterations": 5,
+    "num_photons_per_iteration": 100000,
+    "num_working_areas": 4,
+    "direct_shading_strength": 0.5,
+    "photon_strength_multiplier": 100.0
+  },
   "objects": [
     {
       "type": "plane",

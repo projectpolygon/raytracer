@@ -22,12 +22,14 @@ namespace poly::integrators
 					 math::Vector const& incoming_ray_,
 					 Colour amount_,
 					 std::shared_ptr<poly::material::Material> material_,
-					 std::shared_ptr<poly::structures::scene_slab> slab);
+					 std::shared_ptr<std::vector<std::vector<Colour>>> storage,
+					 std::shared_ptr<poly::structures::World> world);
 		// Provided to allow compatibility with Object type
 		bool hit(math::Ray<math::Vector> const& R,
 				 poly::structures::SurfaceInteraction& sr) const;
 		bool shadow_hit(math::Ray<math::Vector> const& R, float& t) const;
-		void add_contribution(poly::structures::Photon const& photon) override;
+		void add_contribution(poly::structures::Photon const& photon,
+							  std::shared_ptr<std::mutex> storage_mutex);
 
 		// Originating Pixels
 		int index_x; // Along the x axis
@@ -45,29 +47,46 @@ namespace poly::integrators
 		// Material of the object that the VisiblePoint is on
 		std::shared_ptr<poly::material::Material> surface_material;
 
-		// Slab where the data should be stored
-		std::shared_ptr<poly::structures::scene_slab> m_slab;
+		// Storage where the data should be stored
+		std::shared_ptr<std::vector<std::vector<Colour>>> m_storage;
+
+		// World used for render
+		std::shared_ptr<poly::structures::World> m_world;
 	};
 
 	class SPPMIntegrator
 	{
 	public:
-		SPPMIntegrator(std::size_t);
+		SPPMIntegrator(std::size_t num_iterations			  = 1,
+					   std::size_t num_photons_per_iteration_ = 100000,
+					   std::size_t num_working_areas_		  = 1,
+					   float direct_shading_strength_		  = 0.5f,
+					   float photon_strength_multiplier_	  = 100.0f);
 		void render(poly::structures::World const& world,
 					poly::camera::PinholeCamera const& camera,
 					poly::utils::BMP_info& output);
 
 	private:
 		std::size_t m_number_iterations;
+		float m_direct_shading_strength;
+		float m_photon_strength_multiplier;
+		std::size_t m_num_photons_per_iteration;
+		std::size_t m_num_working_areas;
+
 		std::vector<std::shared_ptr<poly::object::Object>>
 		create_visible_points(
-			std::shared_ptr<poly::structures::scene_slab> slab,
+			int start_x,
+			int start_y,
+			int end_x,
+			int end_y,
+			std::shared_ptr<std::vector<std::vector<Colour>>> storage,
 			poly::camera::PinholeCamera const& camera,
 			std::shared_ptr<poly::structures::World> world);
 
 		void photon_mapping(
 			const structures::World& world,
-			std::vector<std::shared_ptr<poly::object::Object>>& vp_list);
+			std::vector<std::shared_ptr<poly::object::Object>>& vp_list,
+			std::shared_ptr<std::mutex> storage_mutex);
 	};
 } // namespace poly::integrators
 /**
