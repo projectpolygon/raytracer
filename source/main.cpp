@@ -7,6 +7,8 @@
 #include "integrators/SPPMIntegrator.hpp"
 #include "utilities/parser.hpp"
 
+#define POLY_USING_SPPM
+
 using namespace atlas;
 
 int main(int argc, char** argv)
@@ -80,28 +82,22 @@ int main(int argc, char** argv)
 	zeus::Timer<float> render_timer = zeus::Timer<float>();
 	render_timer.start();
 
-#define USE_PM
-
-#ifdef USE_PM
+#ifdef POLY_USING_SPPM
+	// Try parsin an integrator
 	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper;
-	try {
-		stoch_prog_phot_mapper =
-			poly::utils::create_SPPMIntegrator(taskfile);
+	bool using_sppm =
+		poly::utils::create_SPPMIntegrator(stoch_prog_phot_mapper, taskfile);
+	if (using_sppm == true) {
+		stoch_prog_phot_mapper.render(world, camera, output);
 	}
-	catch (const nlohmann::detail::type_error& e) {
-		std::cerr << e.what() << std::endl;
-		std::cerr << "ERROR: Integrator information could not be parse properly"
-				  << std::endl;
+#else
+	bool using_sppm = false;
+#endif
+
+	if (using_sppm == false) {
+		// Create the required output file
+		camera.multithread_render_scene(world, output);
 	}
-
-	stoch_prog_phot_mapper.render(world, camera, output);
-#endif // USE_PM
-
-#ifndef USE_PM
-	// Create the required output file
-	camera.multithread_render_scene(world, output);
-
-#endif // !USE_PM
 
 	// Output render time
 	std::clog << "\nINFO: Time to render was: " << render_timer.elapsed()

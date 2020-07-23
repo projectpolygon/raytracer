@@ -385,14 +385,23 @@ properties
 		return expected_output;
 	}
 
-	poly::integrators::SPPMIntegrator create_SPPMIntegrator(nlohmann::json& json)
+	bool create_SPPMIntegrator(poly::integrators::SPPMIntegrator& integrator,
+							   nlohmann::json& json)
 	{
-		nlohmann::json integrator = json["integrator"];
-		return poly::integrators::SPPMIntegrator{integrator["num_iterations"],
-			integrator["num_photons_per_iteration"],
-			integrator["num_working_areas"],
-			integrator["direct_shading_strength"],
-			integrator["photon_strength_multiplier"]};
+		try {
+			nlohmann::json integrator_json = json["integrator"];
+			integrator					   = poly::integrators::SPPMIntegrator{
+				integrator_json["num_iterations"],
+				integrator_json["num_photons_per_iteration"],
+				integrator_json["num_working_areas"],
+				integrator_json["direct_shading_strength"],
+				integrator_json["photon_strength_multiplier"]};
+			return true;
+		}
+		catch ([[maybe_unused]] const nlohmann::detail::type_error& e) {
+			std::clog << "INFO: not using SPPM" << std::endl;
+			return false;
+		}
 	}
 
 } // namespace poly::utils
