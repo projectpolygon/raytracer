@@ -15,6 +15,8 @@
 
 #include "structures/KDTree.hpp"
 
+#include "integrators/SPPMIntegrator.hpp"
+
 namespace poly::utils
 {
 	/**
@@ -382,4 +384,15 @@ properties
 
 		return expected_output;
 	}
+
+	poly::integrators::SPPMIntegrator create_SPPMIntegrator(nlohmann::json& json)
+	{
+		nlohmann::json integrator = json["integrator"];
+		return poly::integrators::SPPMIntegrator{integrator["num_iterations"],
+			integrator["num_photons_per_iteration"],
+			integrator["num_working_areas"],
+			integrator["direct_shading_strength"],
+			integrator["photon_strength_multiplier"]};
+	}
+
 } // namespace poly::utils

@@ -10,6 +10,7 @@
 #include "samplers/jittered.hpp"
 #include "tracers/whitted_tracer.hpp"
 #include "structures/world.hpp"
+#include "integrators/SPPMIntegrator.hpp"
 
 namespace poly::utils {
 
@@ -57,4 +58,9 @@ namespace poly::utils {
 		 * Parses expected output and create an object for writing output to during a render
 		 */
 		poly::utils::BMP_info create_output_container(nlohmann::json& json);
+
+		/*
+		 * Parses the integrators parameters and creates a object for a photon mapping render
+		 */
+		poly::integrators::SPPMIntegrator create_SPPMIntegrator(nlohmann::json& json);
 }

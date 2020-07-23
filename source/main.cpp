@@ -84,6 +84,16 @@ int main(int argc, char** argv)
 
 #ifdef USE_PM
 	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper;
+	try {
+		stoch_prog_phot_mapper =
+			poly::utils::create_SPPMIntegrator(taskfile);
+	}
+	catch (const nlohmann::detail::type_error& e) {
+		std::cerr << e.what() << std::endl;
+		std::cerr << "ERROR: Integrator information could not be parse properly"
+				  << std::endl;
+	}
+
 	stoch_prog_phot_mapper.render(world, camera, output);
 #endif // USE_PM
 
