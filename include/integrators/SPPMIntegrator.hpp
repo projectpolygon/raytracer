@@ -25,9 +25,9 @@ namespace poly::integrators
 					 std::shared_ptr<std::vector<std::vector<Colour>>> storage,
 					 std::shared_ptr<poly::structures::World> world);
 		// Provided to allow compatibility with Object type
-		bool hit(math::Ray<math::Vector>const& R,
-			poly::structures::SurfaceInteraction& sr) const;
-		bool shadow_hit(math::Ray<math::Vector>const& R, float& t) const;
+		bool hit(math::Ray<math::Vector> const& R,
+				 poly::structures::SurfaceInteraction& sr) const;
+		bool shadow_hit(math::Ray<math::Vector> const& R, float& t) const;
 		void add_contribution(poly::structures::Photon const& photon,
 							  std::shared_ptr<std::mutex> storage_mutex);
 
@@ -57,11 +57,11 @@ namespace poly::integrators
 	class SPPMIntegrator
 	{
 	public:
-		SPPMIntegrator(std::size_t,
-					   float direct_shading_strength_,
-					   float photon_strength_multiplier_,
-					   std::size_t num_photons_per_iteration_,
-					   std::size_t num_working_areas_);
+		SPPMIntegrator(std::size_t num_iterations			  = 1,
+					   std::size_t num_photons_per_iteration_ = 100000,
+					   std::size_t num_working_areas_		  = 1,
+					   float direct_shading_strength_		  = 0.5f,
+					   float photon_strength_multiplier_	  = 100.0f);
 		void render(poly::structures::World const& world,
 					poly::camera::PinholeCamera const& camera,
 					poly::utils::BMP_info& output);
@@ -74,12 +74,19 @@ namespace poly::integrators
 		std::size_t m_num_working_areas;
 
 		std::vector<std::shared_ptr<poly::object::Object>>
-		create_visible_points(int start_x, int start_y, int end_x, int end_y,
-							 std::shared_ptr<std::vector<std::vector<Colour>>> storage,
-							 poly::camera::PinholeCamera const &camera,
-							 std::shared_ptr<poly::structures::World> world);
+		create_visible_points(
+			int start_x,
+			int start_y,
+			int end_x,
+			int end_y,
+			std::shared_ptr<std::vector<std::vector<Colour>>> storage,
+			poly::camera::PinholeCamera const& camera,
+			std::shared_ptr<poly::structures::World> world);
 
-		void photon_mapping(const structures::World &world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list, std::shared_ptr<std::mutex> storage_mutex);
+		void photon_mapping(
+			const structures::World& world,
+			std::vector<std::shared_ptr<poly::object::Object>>& vp_list,
+			std::shared_ptr<std::mutex> storage_mutex);
 	};
 } // namespace poly::integrators
 /**

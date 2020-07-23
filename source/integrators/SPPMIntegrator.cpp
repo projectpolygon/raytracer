@@ -8,10 +8,10 @@
 #include <atlas/math/random.hpp>
 #include <condition_variable>
 
-//static constexpr float direct_shading_strength		   = 0.5f;
-//static constexpr float photon_strength_multiplier	   = 100.0f;
-//static constexpr std::size_t num_photons_per_iteration = 100'000;
-//static constexpr std::size_t num_working_areas		   = 4;
+// static constexpr float direct_shading_strength		   = 0.5f;
+// static constexpr float photon_strength_multiplier	   = 100.0f;
+// static constexpr std::size_t num_photons_per_iteration = 100'000;
+// static constexpr std::size_t num_working_areas		   = 4;
 
 /*
 ===============================
@@ -65,10 +65,10 @@ namespace poly::integrators
 	===============================
 	*/
 	SPPMIntegrator::SPPMIntegrator(std::size_t num_iterations,
-								   float direct_shading_strength_,
-								   float photon_strength_multiplier_,
 								   std::size_t num_photons_per_iteration_,
-								   std::size_t num_working_areas_) :
+								   std::size_t num_working_areas_,
+								   float direct_shading_strength_,
+								   float photon_strength_multiplier_) :
 		m_number_iterations{num_iterations},
 		m_direct_shading_strength{direct_shading_strength_},
 		m_photon_strength_multiplier{photon_strength_multiplier_},
@@ -96,9 +96,8 @@ namespace poly::integrators
 					world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
 			temp_storage.push_back(temp);
 		}*/
-		
-		for (std::size_t i{0}; i < m_num_working_areas;
-			 ++i) {
+
+		for (std::size_t i{0}; i < m_num_working_areas; ++i) {
 			std::shared_ptr<std::vector<std::vector<Colour>>> temp =
 				std::make_shared<std::vector<std::vector<Colour>>>(
 					world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
@@ -108,7 +107,8 @@ namespace poly::integrators
 		std::shared_ptr<std::mutex> storage_mutex =
 			std::make_shared<std::mutex>();
 
-		std::shared_ptr<std::condition_variable> storage_cv = std::make_shared<std::condition_variable>();
+		std::shared_ptr<std::condition_variable> storage_cv =
+			std::make_shared<std::condition_variable>();
 
 		std::vector<std::thread> thread_list;
 		std::shared_ptr<poly::structures::World> world_ptr =
@@ -120,7 +120,6 @@ namespace poly::integrators
 			// Create a new thread for each iteration
 
 			thread_list.emplace_back(std::thread([=, &storage_pool]() {
-				
 				// Fetch a storage location
 				std::shared_ptr<std::vector<std::vector<Colour>>> storage_ptr;
 				{
@@ -150,7 +149,7 @@ namespace poly::integrators
 				/* ------- PHOTON POINTS ------- */
 				photon_mapping(world, visible_points, storage_mutex);
 				std::clog << "INFO: iteration complete" << std::endl;
-				
+
 				// Return the storage location to the queue
 
 				{
@@ -168,7 +167,6 @@ namespace poly::integrators
 					storage_pool.push_back(storage_ptr);
 					storage_cv->notify_all();
 				}
-
 			}));
 		}
 
@@ -177,7 +175,7 @@ namespace poly::integrators
 			t.join();
 		}
 
-		//for (auto &iter : temp_storage) {
+		// for (auto &iter : temp_storage) {
 		//	for (std::size_t i{0};
 		//		 i < static_cast<std::size_t>(world.m_vp->vres);
 		//		 ++i) {
@@ -375,9 +373,9 @@ namespace poly::integrators
 		return false;
 	}
 
-	void
-	VisiblePoint::add_contribution(poly::structures::Photon const &photon,
-								   [[maybe_unused]]std::shared_ptr<std::mutex> storage_mutex)
+	void VisiblePoint::add_contribution(
+		poly::structures::Photon const &photon,
+		[[maybe_unused]] std::shared_ptr<std::mutex> storage_mutex)
 	{
 		int row_0_indexed = (int)index_y + (m_world->m_vp->vres) / 2;
 		int col_0_indexed = (int)index_x + (m_world->m_vp->hres) / 2;
