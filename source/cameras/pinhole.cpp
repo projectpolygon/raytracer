@@ -35,8 +35,10 @@ namespace poly::camera
 		std::shared_ptr<std::vector<std::vector<Colour>>> storage =
 			std::make_shared<std::vector<std::vector<Colour>>>(
 				world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
+
 		std::shared_ptr<std::mutex> storage_mutex =
 			std::make_shared<std::mutex>();
+
 		std::vector<std::thread> thread_list;
 
 		std::shared_ptr<poly::structures::World> world_ptr =
@@ -91,33 +93,45 @@ namespace poly::camera
 		std::clog << "INFO: rendering on " << num_threads << " threads"
 				  << std::endl;
 		for (std::size_t i = 0; i < num_threads; i++) {
-			thread_list.push_back(std::thread([this, slablist_mutex, &slabs] {
-				std::shared_ptr<poly::structures::scene_slab> slab_ptr =
-					nullptr;
-				size_t full_size = slabs.size();
-				while (true) {
-					{ // sanity check scope for the mutex
-						const std::lock_guard<std::mutex> lock(*slablist_mutex);
-						if (slabs.empty()) {
-							break;
-						}
-						slab_ptr = slabs.back();
-						slabs.pop_back();
-						std::cout
+			thread_list.push_back(std::thread(
+				[this, slablist_mutex, &slabs] 
+				{
+					std::shared_ptr<poly::structures::scene_slab> slab_ptr =
+						nullptr;
+					const size_t full_size = slabs.size();
+					while (true) {
+						// sanity check scope for the mutex
+						{ 
+							// Lock the slablist mutex
+							const std::lock_guard<std::mutex> lock(*slablist_mutex);
+
+							// If the slablist is empty, we can idle the thread	
+							if (slabs.empty()) {
+								return;
+							}
+
+							// Get the back of the queue
+							slab_ptr = slabs.back();
+							slabs.pop_back();
+
+							// Log to output
+							std::cout
 							<< "\r                                         ";
-						std::cout << "\rLOADING: "
-								  << ((float)slabs.size() * 100.0f / full_size)
-								  << "% to go. " << slabs.size()
-								  << " slabs left";
-						std::cout << std::flush;
+							std::cout << "\rLOADING: "
+									  << ((float)slabs.size() * 100.0f / full_size)
+									  << "% to go. " << slabs.size()
+									  << " slabs left";
+							std::cout << std::flush;
+						}
+
+						// Render the slab
+						this->render_slab(slab_ptr);
 					}
-					this->render_slab(slab_ptr);
-				}
-			}));
+				}));
 		}
 
 		// Join all the threads
-		for (std::thread &thread : thread_list) {
+		for (std::thread& thread : thread_list) {
 			if (thread.joinable()) {
 				thread.join();
 			}
@@ -252,7 +266,8 @@ namespace poly::camera
 					colour_validate(average * (1 / (float)count));
 			}
 		}
-
+		
+		// Place the slab in the final image
 		for (int i = start_y; i < end_y; i++) {
 			const std::lock_guard<std::mutex> lock(*storage_mutex);
 			for (int j = start_x; j < end_x; j++) {
