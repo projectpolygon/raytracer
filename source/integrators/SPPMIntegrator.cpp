@@ -10,6 +10,7 @@
 static constexpr float direct_shading_strength		   = 0.5f;
 static constexpr float photon_strength_multiplier	   = 100.0f;
 static constexpr std::size_t num_photons_per_iteration = 100'000;
+static constexpr std::size_t num_working_areas		   = 4;
 
 /*
 ===============================
@@ -77,18 +78,29 @@ namespace poly::integrators
 				world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
 
 		std::vector<std::shared_ptr<std::vector<std::vector<Colour>>>>
-			temp_storage;
+			storage_pool;
 
-		for (std::size_t iteration{0}; iteration < m_number_iterations;
+		/*for (std::size_t iteration{0}; iteration < m_number_iterations;
 			 ++iteration) {
 			std::shared_ptr<std::vector<std::vector<Colour>>> temp =
 				std::make_shared<std::vector<std::vector<Colour>>>(
 					world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
 			temp_storage.push_back(temp);
+		}*/
+		
+		for (std::size_t i{0}; i < num_working_areas;
+			 ++i) {
+			std::shared_ptr<std::vector<std::vector<Colour>>> temp =
+				std::make_shared<std::vector<std::vector<Colour>>>(
+					world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
+			storage_pool.push_back(temp);
 		}
 
 		std::shared_ptr<std::mutex> storage_mutex =
 			std::make_shared<std::mutex>();
+
+		std::shared_ptr<std::condition_variable> storage_cv = std::make_shared<std::condition_variable>();
+
 		std::vector<std::thread> thread_list;
 		std::shared_ptr<poly::structures::World> world_ptr =
 			std::make_shared<poly::structures::World>(world);
@@ -98,7 +110,21 @@ namespace poly::integrators
 			 ++iteration) {
 			// Create a new thread for each iteration
 
-			thread_list.emplace_back(std::thread([=]() {
+			thread_list.emplace_back(std::thread([=, &storage_pool]() {
+				
+				// Fetch a storage location
+				std::shared_ptr<std::vector<std::vector<Colour>>> storage_ptr;
+				{
+					std::unique_lock lock(*storage_mutex);
+
+					while (storage_pool.empty()) {
+						storage_cv->wait(lock);
+					}
+
+					storage_ptr = storage_pool.back();
+					storage_pool.pop_back();
+				}
+
 				/* -------- FIRST PASS -------- */
 				/* ------ VISIBLE POINTS ------ */
 				std::vector<std::shared_ptr<poly::object::Object>>
@@ -107,7 +133,7 @@ namespace poly::integrators
 						world.m_start_height - (world.m_vp->vres / 2),
 						world.m_end_width - (world.m_vp->hres / 2),
 						world.m_end_height - (world.m_vp->vres / 2),
-						temp_storage.at(iteration),
+						storage_ptr,
 						camera,
 						world_ptr);
 
@@ -115,6 +141,25 @@ namespace poly::integrators
 				/* ------- PHOTON POINTS ------- */
 				photon_mapping(world, visible_points, storage_mutex);
 				std::clog << "INFO: iteration complete" << std::endl;
+				
+				// Return the storage location to the queue
+
+				{
+					std::unique_lock lock(*storage_mutex);
+					for (std::size_t i{0};
+						 i < static_cast<std::size_t>(world.m_vp->vres);
+						 ++i) {
+						for (std::size_t j{0};
+							 j < static_cast<std::size_t>(world.m_vp->hres);
+							 ++j) {
+							storage->at(i).at(j) += storage_ptr->at(i).at(j);
+							storage_ptr->at(i).at(j) = static_cast<Colour>(0);
+						}
+					}
+					storage_pool.push_back(storage_ptr);
+					storage_cv->notify_all();
+				}
+
 			}));
 		}
 
@@ -123,17 +168,17 @@ namespace poly::integrators
 			t.join();
 		}
 
-		for (auto &iter : temp_storage) {
-			for (std::size_t i{0};
-				 i < static_cast<std::size_t>(world.m_vp->vres);
-				 ++i) {
-				for (std::size_t j{0};
-					 j < static_cast<std::size_t>(world.m_vp->hres);
-					 ++j) {
-					storage->at(i).at(j) += iter->at(i).at(j);
-				}
-			}
-		}
+		//for (auto &iter : temp_storage) {
+		//	for (std::size_t i{0};
+		//		 i < static_cast<std::size_t>(world.m_vp->vres);
+		//		 ++i) {
+		//		for (std::size_t j{0};
+		//			 j < static_cast<std::size_t>(world.m_vp->hres);
+		//			 ++j) {
+		//			storage->at(i).at(j) += iter->at(i).at(j);
+		//		}
+		//	}
+		//}
 
 		float scale_factor = (1 / static_cast<float>(m_number_iterations));
 

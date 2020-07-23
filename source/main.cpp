@@ -9,10 +9,6 @@
 
 using namespace atlas;
 
-/*****************************
----------BEGIN MAIN-----------
-******************************/
-
 int main(int argc, char** argv)
 {
 	if (argc != 2) {
@@ -87,7 +83,7 @@ int main(int argc, char** argv)
 #define USE_PM
 
 #ifdef USE_PM
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(5);
+	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(1000);
 	stoch_prog_phot_mapper.render(world, camera, output);
 #endif // USE_PM
 
