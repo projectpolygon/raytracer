@@ -57,13 +57,22 @@ namespace poly::integrators
 	class SPPMIntegrator
 	{
 	public:
-		SPPMIntegrator(std::size_t);
+		SPPMIntegrator(std::size_t,
+					   float direct_shading_strength_,
+					   float photon_strength_multiplier_,
+					   std::size_t num_photons_per_iteration_,
+					   std::size_t num_working_areas_);
 		void render(poly::structures::World const& world,
 					poly::camera::PinholeCamera const& camera,
 					poly::utils::BMP_info& output);
 
 	private:
 		std::size_t m_number_iterations;
+		float m_direct_shading_strength;
+		float m_photon_strength_multiplier;
+		std::size_t m_num_photons_per_iteration;
+		std::size_t m_num_working_areas;
+
 		std::vector<std::shared_ptr<poly::object::Object>>
 		create_visible_points(int start_x, int start_y, int end_x, int end_y,
 							 std::shared_ptr<std::vector<std::vector<Colour>>> storage,

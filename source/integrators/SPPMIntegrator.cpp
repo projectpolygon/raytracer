@@ -6,11 +6,12 @@
 #include <thread>
 #include <vector>
 #include <atlas/math/random.hpp>
+#include <condition_variable>
 
-static constexpr float direct_shading_strength		   = 0.5f;
-static constexpr float photon_strength_multiplier	   = 100.0f;
-static constexpr std::size_t num_photons_per_iteration = 100'000;
-static constexpr std::size_t num_working_areas		   = 4;
+//static constexpr float direct_shading_strength		   = 0.5f;
+//static constexpr float photon_strength_multiplier	   = 100.0f;
+//static constexpr std::size_t num_photons_per_iteration = 100'000;
+//static constexpr std::size_t num_working_areas		   = 4;
 
 /*
 ===============================
@@ -63,8 +64,16 @@ namespace poly::integrators
 	------- PHOTON MAPPER ---------
 	===============================
 	*/
-	SPPMIntegrator::SPPMIntegrator(std::size_t num_iterations) :
-		m_number_iterations{num_iterations}
+	SPPMIntegrator::SPPMIntegrator(std::size_t num_iterations,
+								   float direct_shading_strength_,
+								   float photon_strength_multiplier_,
+								   std::size_t num_photons_per_iteration_,
+								   std::size_t num_working_areas_) :
+		m_number_iterations{num_iterations},
+		m_direct_shading_strength{direct_shading_strength_},
+		m_photon_strength_multiplier{photon_strength_multiplier_},
+		m_num_photons_per_iteration{num_photons_per_iteration_},
+		m_num_working_areas{num_working_areas_}
 	{}
 
 	void SPPMIntegrator::render(poly::structures::World const &world,
@@ -88,7 +97,7 @@ namespace poly::integrators
 			temp_storage.push_back(temp);
 		}*/
 		
-		for (std::size_t i{0}; i < num_working_areas;
+		for (std::size_t i{0}; i < m_num_working_areas;
 			 ++i) {
 			std::shared_ptr<std::vector<std::vector<Colour>>> temp =
 				std::make_shared<std::vector<std::vector<Colour>>>(
@@ -269,8 +278,8 @@ namespace poly::integrators
 	{
 		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, -1);
 
-		constexpr std::size_t photon_count =
-			num_photons_per_iteration; // TODO: Make configurable by end user
+		const std::size_t photon_count =
+			m_num_photons_per_iteration; // TODO: Make configurable by end user
 
 		for (auto &light : world.m_lights) {
 			for (std::size_t i{0}; i < photon_count; ++i) {
@@ -299,7 +308,7 @@ namespace poly::integrators
 						photon_ray,
 						si.get_hitpoint(),
 						si.m_normal,
-						m_number_iterations * photon_strength_multiplier *
+						m_number_iterations * m_photon_strength_multiplier *
 							light->ls() /
 							static_cast<float>(
 								photon_count), // scale the photon's strength by
@@ -368,7 +377,7 @@ namespace poly::integrators
 
 	void
 	VisiblePoint::add_contribution(poly::structures::Photon const &photon,
-								   std::shared_ptr<std::mutex> storage_mutex)
+								   [[maybe_unused]]std::shared_ptr<std::mutex> storage_mutex)
 	{
 		int row_0_indexed = (int)index_y + (m_world->m_vp->vres) / 2;
 		int col_0_indexed = (int)index_x + (m_world->m_vp->hres) / 2;
