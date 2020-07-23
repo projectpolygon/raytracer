@@ -8,7 +8,7 @@
   "slab_starty": 0,
   "slab_endx": 1080,
   "slab_endy": 720,
-  "slab_size": 540,
+  "slab_size": 1080,
   "objects": [
     {
       "type": "plane",
@@ -71,22 +71,11 @@
       }
     },
     {
-      "type": "sphere",
-      "centre": [ -20.0, 20.0, 150.0 ],
-      "radius": 20.0,
-      "material": {
-        "type": "reflective",
-        "reflective": 0.9,
-        "spectral": 0.05,
-        "diffuse": 0.25,
-        "colour": [ 1.0, 1.0, 1.0 ],
-        "tightness": 100.0
-      }
-    },
-    {
-      "type": "sphere",
-      "centre": [ 25.0, 20.0, 170.0 ],
-      "radius": 20.0,
+      "type": "mesh",
+	  "object_file": "suzanne.obj",
+	  "material_file": "",
+      "position": [ 0.0, 40.0, 130.0 ],
+	  "scale":[30.0, 30.0, 30.0],
       "material": {
         "type": "transparent",
         "reflective": 0.1,
@@ -107,7 +96,7 @@
     "up": [ 0.0, 1.0, 0.0 ],
     "sampler": {
       "type": "jittered",
-      "samples": 9,
+      "samples": 1,
       "sets": 1
     }
   },

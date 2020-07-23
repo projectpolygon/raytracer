@@ -96,6 +96,7 @@ int main(int argc, char** argv)
 
 #ifndef USE_PM
 	// Create the required output file
+	std::clog << "\nINFO: multithreaded render" << std::endl;
 	camera.multithread_render_scene(world, output);
 
 #endif // !USE_PM

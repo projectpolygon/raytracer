@@ -5,6 +5,11 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <atlas/math/random.hpp>
+
+static constexpr float direct_shading_strength		   = 0.5f;
+static constexpr float photon_strength_multiplier	   = 100.0f;
+static constexpr std::size_t num_photons_per_iteration = 100'000;
 
 /*
 ===============================
@@ -31,6 +36,21 @@ void bounce_photon(std::shared_ptr<poly::material::Material> current_material,
 				   std::size_t max_depth,
 				   poly::structures::World const &world,
 				   float object_colour_intensity);
+
+void absorb_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount);
+
+void transmit_vp(poly::structures::SurfaceInteraction &sr,
+				 atlas::math::Ray<atlas::math::Vector> const &ray,
+				 std::shared_ptr<poly::structures::World> world,
+				 Colour &amount);
+
+void bounce_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount);
 
 namespace poly::integrators
 {
@@ -71,7 +91,7 @@ namespace poly::integrators
 
 		std::size_t current_completion_state = 0;
 		std::size_t end_complete_state = slabs.size() * m_number_iterations;
-		for (auto slab : slabs) {
+		for (auto &slab : slabs) {
 			// Repeat the illumination pass for num_iterations
 			for (std::size_t iteration{}; iteration < m_number_iterations;
 				 ++iteration) {
@@ -108,9 +128,9 @@ namespace poly::integrators
 		}
 
 		// reformat the 2D vector into a single dimensional array
-		for (auto row : *(storage)) {
+		for (auto &row : *(storage)) {
 			for (auto el : row) {
-				output.m_image.push_back(poly::utils::colour_validate(el));
+				output.m_image.push_back(poly::utils::colour_average_max(el));
 			}
 		}
 	}
@@ -140,7 +160,7 @@ namespace poly::integrators
 
 				// Iterate over scene, tracking hitpoints
 				bool hit = false;
-				for (std::shared_ptr<poly::object::Object> obj :
+				for (std::shared_ptr<poly::object::Object> &obj :
 					 world->m_scene) {
 					if (obj->hit(ray, sr)) {
 						hit = true;
@@ -153,8 +173,9 @@ namespace poly::integrators
 				int col_0_indexed =
 					static_cast<int>(j) + (slab->world->m_vp->hres) / 2;
 
-				Colour average_factor =
-					Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
+				Colour average_factor = Colour(1.0f, 1.0f, 1.0f) *
+										(1.0f / m_number_iterations) *
+										direct_shading_strength;
 
 				// If we have hit an object, create a visible point at the
 				// surface interaction point
@@ -166,6 +187,11 @@ namespace poly::integrators
 						(sr.m_material->shade(sr, *(slab->world))) *
 						average_factor;
 
+					Colour amount{1.0f, 1.0f, 1.0f};
+
+					// Recursively bounce the photon around the scene
+					absorb_vp(sr, ray, world, amount);
+
 					// Add this visible point to our vector
 					visiblePoints.push_back(
 						std::make_shared<poly::integrators::VisiblePoint>(
@@ -173,7 +199,7 @@ namespace poly::integrators
 							i,
 							sr.get_hitpoint(),
 							-ray.d,
-							Colour(1.0, 1.0, 1.0),
+							amount,
 							sr.m_material,
 							slab));
 				}
@@ -189,9 +215,9 @@ namespace poly::integrators
 		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, -1);
 
 		constexpr std::size_t photon_count =
-			100000; // TODO: Make configurable by end user
+			num_photons_per_iteration; // TODO: Make configurable by end user
 
-		for (auto light : world.m_lights) {
+		for (auto &light : world.m_lights) {
 			for (std::size_t i{0}; i < photon_count; ++i) {
 				float x, y, z;
 				do {
@@ -207,7 +233,7 @@ namespace poly::integrators
 				structures::SurfaceInteraction si;
 
 				bool is_hit{false};
-				for (auto obj : world.m_scene) {
+				for (auto &obj : world.m_scene) {
 					if (obj->hit(photon_ray, si)) {
 						is_hit = true;
 					}
@@ -218,7 +244,10 @@ namespace poly::integrators
 						photon_ray,
 						si.get_hitpoint(),
 						si.m_normal,
-						20 * light->ls() / static_cast<float>(photon_count),
+						photon_strength_multiplier * light->ls() /
+							static_cast<float>(
+								photon_count), // scale the photon's strength by
+											   // 1000
 						0);
 
 					// Using this photon, absorb will determine the behaviour of
@@ -290,14 +319,139 @@ namespace poly::integrators
 		float dist_to_vp =
 			std::max(1.0f, dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);
 
-		float intensity = photon.intensity();
+		Colour intensity = amount * photon.intensity();
 
 		m_slab->storage->at(m_slab->world->m_vp->vres - row_0_indexed - 1)
-			.at(col_0_indexed) +=
-			surface_material->get_hue(photon.point()) * intensity / dist_to_vp;
+			.at(col_0_indexed) += intensity / dist_to_vp;
 	}
 
 } // namespace poly::integrators
+
+/*
+======================================
+------ VISIBLE POINT BEHAVIOUR -------
+======================================
+*/
+
+void absorb_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount)
+{
+	// If we've reached the max depth, we stay here!
+	if (world->m_vp->max_depth <= sr.depth) {
+		return;
+	}
+
+	++sr.depth;
+
+	std::shared_ptr<poly::material::Material> current_material = sr.m_material;
+
+	// Scale the amount of light transmitted through to the film by the colour
+	// of the transmitted material
+	amount *= current_material->get_hue(sr.get_hitpoint());
+
+	if (current_material->m_type == poly::structures::InteractionType::ABSORB) {
+		// Assess whether or not this should be bounced by taking the intensity
+		// of the diffuse component of the material
+		float partition = current_material->get_diffuse_strength();
+		float rgn		= (((float)(rand() % 10000)) /
+					   10000.0f); // TODO: fix this, it is not portable
+		if (rgn > partition) {
+			// Bounce the photon off this material
+			bounce_vp(sr, ray, world, amount);
+		}
+		return;
+	}
+	else if (current_material->m_type ==
+			 poly::structures::InteractionType::REFLECT) {
+		float specular_kd	= current_material->get_specular_strength();
+		float reflective_kd = current_material->get_reflective_strength();
+		float diffuse_kd	= current_material->get_diffuse_strength();
+		float total			= reflective_kd + diffuse_kd + specular_kd;
+
+		float rgn = (((float)(rand() % 10000)) / 10000.0f) * total;
+
+		if (rgn < reflective_kd) {
+			bounce_vp(sr, ray, world, amount);
+		}
+	}
+	else if (current_material->m_type ==
+			 poly::structures::InteractionType::TRANSMIT) {
+		float transparent_kt = current_material->get_refractive_strength();
+		float specular_kd	 = current_material->get_specular_strength();
+		float reflective_kd	 = current_material->get_reflective_strength();
+		float diffuse_kd	 = current_material->get_diffuse_strength();
+		float total = transparent_kt + specular_kd + reflective_kd + diffuse_kd;
+
+		// Random number in the range 0 to total
+		float random_number = (((float)(rand() % 10000)) / 10000.0f) * total;
+
+		if (random_number < transparent_kt) {
+			transmit_vp(sr, ray, world, amount);
+		}
+		else if (random_number >= transparent_kt &&
+				 random_number < transparent_kt + reflective_kd) {
+			bounce_vp(sr, ray, world, amount);
+		}
+	}
+}
+
+void bounce_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount)
+{
+	math::Ray<math::Vector> reflected_ray(
+		sr.get_hitpoint(),
+		poly::utils::reflect_over_normal(-ray.d, sr.m_normal));
+
+	sr.m_tmin = std::numeric_limits<float>::max();
+
+	// Hit new objects with this ray
+	bool is_hit{false};
+	for (auto &obj : world->m_scene) {
+		if (obj->hit(reflected_ray, sr)) {
+			is_hit = true;
+		}
+	}
+
+	// If we hit an object, get its material and propogate this vp
+	if (is_hit) {
+		absorb_vp(sr, reflected_ray, world, amount);
+	}
+}
+
+void transmit_vp(poly::structures::SurfaceInteraction &sr,
+				 atlas::math::Ray<atlas::math::Vector> const &ray,
+				 std::shared_ptr<poly::structures::World> world,
+				 Colour &amount)
+{
+	std::shared_ptr<poly::material::Material> current_material = sr.m_material;
+	atlas::math::Vector wi									   = -ray.d;
+	atlas::math::Vector wt;
+
+	current_material->sample_f(sr, wi, wt);
+
+	math::Ray<math::Vector> transmitted_ray(sr.get_hitpoint(), wt);
+
+	sr.depth++;
+	sr.m_tmin = std::numeric_limits<float>::max();
+
+	// Send the transmitted ray through the scene
+	bool is_hit{false};
+	for (auto &obj : world->m_scene) {
+		if (obj->hit(transmitted_ray, sr)) {
+			is_hit = true;
+		}
+	}
+
+	// If we hit an object, possibly generate new rays, otherwise, simply change
+	// the photons intensity
+	if (is_hit) {
+		absorb_vp(sr, transmitted_ray, world, amount);
+	}
+}
 
 /*
 ===============================
@@ -332,7 +486,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs =
 			vp_tree.get_nearest_to_point(photon.point(),
 										 max_distance_to_visible_point);
-		for (auto vp : nearby_VPs) {
+		for (auto &vp : nearby_VPs) {
 			vp->add_contribution(photon);
 		}
 		// Add contribution to nearby VP's
@@ -354,7 +508,7 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs =
 			vp_tree.get_nearest_to_point(photon.point(),
 										 max_distance_to_visible_point);
-		for (auto vp : nearby_VPs) {
+		for (auto &vp : nearby_VPs) {
 			vp->add_contribution(photon);
 		}
 		return;
@@ -427,7 +581,7 @@ void bounce_photon(
 
 	// Hit new objects with this ray
 	bool is_hit{false};
-	for (auto obj : world.m_scene) {
+	for (auto &obj : world.m_scene) {
 		if (obj->hit(photon_ray, si)) {
 			is_hit = true;
 		}
@@ -467,7 +621,7 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 
 	// Send the transmitted ray through the scene
 	bool is_hit{false};
-	for (auto obj : world.m_scene) {
+	for (auto &obj : world.m_scene) {
 		if (obj->hit(photon_ray, si))
 			is_hit = true;
 	}
