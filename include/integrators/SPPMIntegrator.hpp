@@ -11,17 +11,25 @@
 #include "structures/photon.hpp"
 #include "lights/light.hpp"
 
-namespace poly::integrators {
-
+namespace poly::integrators
+{
 	class VisiblePoint : public poly::object::Object
 	{
 	public:
-		VisiblePoint(int x_, int y_, math::Point const& point_, math::Vector const& incoming_ray_, Colour amount_, std::shared_ptr<poly::material::Material> material_, std::shared_ptr<poly::structures::scene_slab> slab);
+		VisiblePoint(int x_,
+					 int y_,
+					 math::Point const& point_,
+					 math::Vector const& incoming_ray_,
+					 Colour amount_,
+					 std::shared_ptr<poly::material::Material> material_,
+					 std::shared_ptr<std::vector<std::vector<Colour>>> storage,
+					 std::shared_ptr<poly::structures::World> world);
 		// Provided to allow compatibility with Object type
-		bool hit(math::Ray<math::Vector>const& R,
-			poly::structures::SurfaceInteraction& sr) const;
-		bool shadow_hit(math::Ray<math::Vector>const& R, float& t) const;
-		void add_contribution(poly::structures::Photon const& photon) override;
+		bool hit(math::Ray<math::Vector> const& R,
+				 poly::structures::SurfaceInteraction& sr) const;
+		bool shadow_hit(math::Ray<math::Vector> const& R, float& t) const;
+		void add_contribution(poly::structures::Photon const& photon,
+							  std::shared_ptr<std::mutex> storage_mutex);
 
 		// Originating Pixels
 		int index_x; // Along the x axis
@@ -39,30 +47,59 @@ namespace poly::integrators {
 		// Material of the object that the VisiblePoint is on
 		std::shared_ptr<poly::material::Material> surface_material;
 
-		// Slab where the data should be stored
-		std::shared_ptr<poly::structures::scene_slab> m_slab;
+		// Storage where the data should be stored
+		std::shared_ptr<std::vector<std::vector<Colour>>> m_storage;
+
+		// World used for render
+		std::shared_ptr<poly::structures::World> m_world;
 	};
 
-	class SPPMIntegrator {
+	class SPPMIntegrator
+	{
 	public:
-		SPPMIntegrator(std::size_t);
-		void render(poly::structures::World const& world, poly::camera::PinholeCamera const& camera, poly::utils::BMP_info& output);
+		SPPMIntegrator(std::size_t num_iterations			  = 1,
+					   std::size_t num_photons_per_iteration_ = 100000,
+					   std::size_t num_working_areas_		  = 1,
+					   float direct_shading_strength_		  = 0.5f,
+					   float photon_strength_multiplier_	  = 100.0f);
+		void render(poly::structures::World const& world,
+					poly::camera::PinholeCamera const& camera,
+					poly::utils::BMP_info& output);
+
 	private:
 		std::size_t m_number_iterations;
-		std::vector<std::shared_ptr<poly::object::Object>> create_visible_points(std::shared_ptr<poly::structures::scene_slab> slab,
-			poly::camera::PinholeCamera const& camera, 
+		float m_direct_shading_strength;
+		float m_photon_strength_multiplier;
+		std::size_t m_num_photons_per_iteration;
+		std::size_t m_num_working_areas;
+
+		std::vector<std::shared_ptr<poly::object::Object>>
+		create_visible_points(
+			int start_x,
+			int start_y,
+			int end_x,
+			int end_y,
+			std::shared_ptr<std::vector<std::vector<Colour>>> storage,
+			poly::camera::PinholeCamera const& camera,
 			std::shared_ptr<poly::structures::World> world);
 
-		void photon_mapping(const structures::World &world, std::vector<std::shared_ptr<poly::object::Object>>& vp_list);
+		void photon_mapping(
+			const structures::World& world,
+			std::vector<std::shared_ptr<poly::object::Object>>& vp_list,
+			std::shared_ptr<std::mutex> storage_mutex);
 	};
-}
+} // namespace poly::integrators
 /**
 Steps:
 the entire algorithm repeats for N iterations
 
-1. Shoot out rays from camera. At every intersection with an object (1 ONLY), create a visiblePoint. Store these "Visible Points" in a KD-Tree, indexed based on location in the scene.
+1. Shoot out rays from camera. At every intersection with an object (1 ONLY),
+create a visiblePoint. Store these "Visible Points" in a KD-Tree, indexed based
+on location in the scene.
 
-2. Shoot out rays from each light, intersection against the scenery. On each interstedtion, check nearby visible point KD-Tree. For each nearby visible point, add the photon's value to it's light contribution 
+2. Shoot out rays from each light, intersection against the scenery. On each
+interstedtion, check nearby visible point KD-Tree. For each nearby visible
+point, add the photon's value to it's light contribution
 
 PSEUDOCODE FOR ALGORITHM
 

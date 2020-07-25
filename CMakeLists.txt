@@ -31,13 +31,6 @@ set(POLYGON_INCLUDE "${POLYGON_ROOT}/assignment.hpp")
 set(POLYGON_SOURCE "${POLYGON_ROOT}/source/main.cpp")
 
 # --------------------
-# Configure the "path" header so files in the program can be placed accordingly
-# --------------------
-set(PATH_INCLUDE "${POLYGON_ROOT}/include/utilities/paths.hpp")
-configure_file("${POLYGON_ROOT}/include/utilities/paths.hpp.in" ${PATH_INCLUDE})
-list(APPEND POLYGON_INCLUDE ${PATH_INCLUDE})
-
-# --------------------
 # Add the include directory so files can be found
 # --------------------
 include_directories(${POLYGON_ROOT}/include)

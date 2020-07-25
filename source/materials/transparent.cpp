@@ -2,38 +2,40 @@
 
 namespace poly::material
 {
-
 	Transparent::Transparent()
 	{
-		m_reflected_brdf = std::make_shared<PerfectSpecular>();
+		m_reflected_brdf   = std::make_shared<PerfectSpecular>();
 		m_transmitted_btdf = std::make_shared<PerfectTransmitter>();
-		m_type = poly::structures::InteractionType::TRANSMIT;
+		m_type			   = poly::structures::InteractionType::TRANSMIT;
 	}
 
 	Transparent::Transparent(const float amount_refl,
-		const float amount_trans,
-		float f_diffuse,
-		float f_spec,
-		Colour const& _colour,
-		float _ior,
-		float _exp)
-		: Phong(f_diffuse, f_spec, _colour, _exp)
+							 const float amount_trans,
+							 float f_diffuse,
+							 float f_spec,
+							 Colour const& _colour,
+							 float _ior,
+							 float _exp) :
+		Phong(f_diffuse, f_spec, _colour, _exp)
 	{
-		m_reflected_brdf = std::make_shared<PerfectSpecular>(amount_refl, _colour);
-		m_transmitted_btdf = std::make_shared<PerfectTransmitter>(amount_trans, _ior);
+		m_reflected_brdf =
+			std::make_shared<PerfectSpecular>(amount_refl, _colour);
+		m_transmitted_btdf =
+			std::make_shared<PerfectTransmitter>(amount_trans, _ior);
 		m_type = poly::structures::InteractionType::TRANSMIT;
 	}
 
 	Colour Transparent::sample_f(poly::structures::SurfaceInteraction const& sr,
-		atlas::math::Vector& w_o,
-		atlas::math::Vector& w_t) const
+								 atlas::math::Vector& w_o,
+								 atlas::math::Vector& w_t) const
 	{
 		return m_transmitted_btdf->sample_f(sr, w_o, w_t);
 	}
 
-	Colour Transparent::shade(poly::structures::SurfaceInteraction& sr, poly::structures::World const& world) const
+	Colour Transparent::shade(poly::structures::SurfaceInteraction& sr,
+							  poly::structures::World const& world) const
 	{
-		Colour L = Phong::shade(sr, world);
+		Colour L		 = Phong::shade(sr, world);
 		math::Vector w_o = -sr.m_ray.d;
 		math::Vector w_r;
 
@@ -42,18 +44,22 @@ namespace poly::material
 		math::Ray<math::Vector> reflected_ray(sr.get_hitpoint(), w_r);
 
 		// If we have internal reflection, then the ray does not transmit
-		if (m_transmitted_btdf->tot_int_refl(sr))
-		{
+		if (m_transmitted_btdf->tot_int_refl(sr)) {
 			L += world.m_tracer->trace_ray(reflected_ray, world, sr.depth + 1);
 		}
-		else
-		{
-			L += reflected_colour * world.m_tracer->trace_ray(reflected_ray, world, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_r));
+		else {
+			L += reflected_colour *
+				 world.m_tracer->trace_ray(reflected_ray, world, sr.depth + 1) *
+				 (float)fabs(glm::dot(sr.m_normal, w_r));
 
 			math::Vector w_t;
-			Colour transmitted_colour = m_transmitted_btdf->sample_f(sr, w_o, w_t);
+			Colour transmitted_colour =
+				m_transmitted_btdf->sample_f(sr, w_o, w_t);
 			math::Ray<math::Vector> transmitted_ray(sr.get_hitpoint(), w_t);
-			L += transmitted_colour * world.m_tracer->trace_ray(transmitted_ray, world, sr.depth + 1) * (float)fabs(glm::dot(sr.m_normal, w_t));
+			L += transmitted_colour *
+				 world.m_tracer->trace_ray(
+					 transmitted_ray, world, sr.depth + 1) *
+				 (float)fabs(glm::dot(sr.m_normal, w_t));
 		}
 
 		return L;
@@ -82,8 +88,9 @@ namespace poly::material
 	}
 
 	/*
-	void Transparent::absorb_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
-									unsigned int max_depth, poly::structures::World& world) const
+	void Transparent::absorb_photon(structures::Photon &photon,
+	poly::structures::KDTree& vp_tree, unsigned int max_depth,
+	poly::structures::World& world) const
 	{
 		if (photon.depth() >= max_depth) {
 			//photons.push_back(photon);
@@ -98,21 +105,24 @@ namespace poly::material
 		float total = transparent_kt + specular_kd + reflective_kd + diffuse_kd;
 
 		// Random number in the range 0 to total
-		float random_number = (float(rand()) / float(std::numeric_limits<int>::max())) * total;
+		float random_number = (float(rand()) /
+	float(std::numeric_limits<int>::max())) * total;
 
 		if (random_number < transparent_kt) {
-			transmit_photon(photon, vp_tree, max_depth, world, photon.intensity() * transparent_kt / total);
-		} else if (random_number >= transparent_kt && random_number < transparent_kt + reflective_kd) {
-			bounce_photon(photon, vp_tree, max_depth, world, (reflective_kd + reflective_kd) / total * photon.intensity());
+			transmit_photon(photon, vp_tree, max_depth, world,
+	photon.intensity() * transparent_kt / total); } else if (random_number >=
+	transparent_kt && random_number < transparent_kt + reflective_kd) {
+			bounce_photon(photon, vp_tree, max_depth, world, (reflective_kd +
+	reflective_kd) / total * photon.intensity());
 		}
 		photon.intensity(photon.intensity() * diffuse_kd / total);
 		// Add photon contribution to VP
 		//photons.push_back(photon);
 	}
 
-	void Transparent::transmit_photon(structures::Photon &photon, poly::structures::KDTree& vp_tree,
-									  unsigned int max_depth, poly::structures::World& world,
-									  float intensity) const
+	void Transparent::transmit_photon(structures::Photon &photon,
+	poly::structures::KDTree& vp_tree, unsigned int max_depth,
+	poly::structures::World& world, float intensity) const
 	{
 		if (photon.depth() >= max_depth) {
 			//photons.push_back(photon);
@@ -136,21 +146,24 @@ namespace poly::material
 				is_hit = true;
 		}
 
-		// If we hit an object, possibly generate new rays, otherwise, simply change the photons intensity 
-		if (is_hit) {
-			poly::structures::Photon reflected_photon = poly::structures::Photon(photon_ray,
-				si.hitpoint_get(), si.m_normal, photon.intensity() * (1 - intensity), photon.depth() + 1);
-			si.m_material->absorb_photon(reflected_photon, vp_tree, max_depth, world);
+		// If we hit an object, possibly generate new rays, otherwise, simply
+	change the photons intensity if (is_hit) { poly::structures::Photon
+	reflected_photon = poly::structures::Photon(photon_ray, si.hitpoint_get(),
+	si.m_normal, photon.intensity() * (1 - intensity), photon.depth() + 1);
+			si.m_material->absorb_photon(reflected_photon, vp_tree, max_depth,
+	world);
 		}
 		float new_intensity = photon.intensity() * intensity;
 		photon.intensity(new_intensity);
 	}
 	*/
-	void Transparent::handle_vision_point(std::shared_ptr<poly::object::Object> &visible_point,
-										  structures::SurfaceInteraction &si, structures::World &world) const
+	void Transparent::handle_vision_point(
+		std::shared_ptr<poly::object::Object>& visible_point,
+		structures::SurfaceInteraction& si,
+		structures::World& world) const
 	{
-		(void) visible_point;
-		(void) si;
-		(void) world;
+		(void)visible_point;
+		(void)si;
+		(void)world;
 	}
 } // namespace poly::material

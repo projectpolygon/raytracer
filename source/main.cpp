@@ -6,13 +6,10 @@
 
 #include "integrators/SPPMIntegrator.hpp"
 #include "utilities/parser.hpp"
-#include "utilities/paths.hpp"
+
+#define POLY_USING_SPPM
 
 using namespace atlas;
-
-/*****************************
----------BEGIN MAIN-----------
-******************************/
 
 int main(int argc, char** argv)
 {
@@ -30,12 +27,10 @@ int main(int argc, char** argv)
 	If the file cannot be parsed, or has incorrect parameters, the
 	program will automatically terminate with exit code 1
 	*/
-	std::clog << "INFO: reading taskfile '" << argv[1] << "' from directory '"
-			  << ShaderPath << "'" << std::endl;
+	std::clog << "INFO: reading taskfile '" << argv[1] << std::endl;
 	nlohmann::json taskfile;
 	try {
-		taskfile = poly::utils::open_json_file(
-			std::string(ShaderPath).append(argv[1]).c_str());
+		taskfile = poly::utils::open_json_file(argv[1]);
 	}
 	catch (...) {
 		std::cerr << "ERROR: taskfile could not be parsed. Exiting..."
@@ -87,18 +82,22 @@ int main(int argc, char** argv)
 	zeus::Timer<float> render_timer = zeus::Timer<float>();
 	render_timer.start();
 
-#define USE_PM
+#ifdef POLY_USING_SPPM
+	// Try parsin an integrator
+	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper;
+	bool using_sppm =
+		poly::utils::create_SPPMIntegrator(stoch_prog_phot_mapper, taskfile);
+	if (using_sppm == true) {
+		stoch_prog_phot_mapper.render(world, camera, output);
+	}
+#else
+	bool using_sppm = false;
+#endif
 
-#ifdef USE_PM
-	poly::integrators::SPPMIntegrator stoch_prog_phot_mapper(5);
-	stoch_prog_phot_mapper.render(world, camera, output);
-#endif // USE_PM
-
-#ifndef USE_PM
-	// Create the required output file
-	camera.multithread_render_scene(world, output);
-
-#endif // !USE_PM
+	if (using_sppm == false) {
+		// Create the required output file
+		camera.multithread_render_scene(world, output);
+	}
 
 	// Output render time
 	std::clog << "\nINFO: Time to render was: " << render_timer.elapsed()

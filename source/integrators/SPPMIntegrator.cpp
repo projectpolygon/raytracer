@@ -5,6 +5,13 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <atlas/math/random.hpp>
+#include <condition_variable>
+
+// static constexpr float direct_shading_strength		   = 0.5f;
+// static constexpr float photon_strength_multiplier	   = 100.0f;
+// static constexpr std::size_t num_photons_per_iteration = 100'000;
+// static constexpr std::size_t num_working_areas		   = 4;
 
 /*
 ===============================
@@ -16,21 +23,39 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 				   poly::structures::Photon &photon,
 				   poly::structures::KDTree &vp_tree,
 				   std::size_t max_depth,
-				   poly::structures::World const &world);
+				   poly::structures::World const &world,
+				   std::shared_ptr<std::mutex> storage_mutex);
 
 void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 					 poly::structures::Photon &photon,
 					 poly::structures::KDTree &vp_tree,
 					 std::size_t max_depth,
 					 poly::structures::World const &world,
-					 float colour_change);
+					 float colour_change,
+					 std::shared_ptr<std::mutex> storage_mutex);
 
 void bounce_photon(std::shared_ptr<poly::material::Material> current_material,
 				   poly::structures::Photon &photon,
 				   poly::structures::KDTree &vp_tree,
 				   std::size_t max_depth,
 				   poly::structures::World const &world,
-				   float object_colour_intensity);
+				   float object_colour_intensity,
+				   std::shared_ptr<std::mutex> storage_mutex);
+
+void absorb_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount);
+
+void transmit_vp(poly::structures::SurfaceInteraction &sr,
+				 atlas::math::Ray<atlas::math::Vector> const &ray,
+				 std::shared_ptr<poly::structures::World> world,
+				 Colour &amount);
+
+void bounce_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount);
 
 namespace poly::integrators
 {
@@ -39,8 +64,16 @@ namespace poly::integrators
 	------- PHOTON MAPPER ---------
 	===============================
 	*/
-	SPPMIntegrator::SPPMIntegrator(std::size_t num_iterations) :
-		m_number_iterations{num_iterations}
+	SPPMIntegrator::SPPMIntegrator(std::size_t num_iterations,
+								   std::size_t num_photons_per_iteration_,
+								   std::size_t num_working_areas_,
+								   float direct_shading_strength_,
+								   float photon_strength_multiplier_) :
+		m_number_iterations{num_iterations},
+		m_direct_shading_strength{direct_shading_strength_},
+		m_photon_strength_multiplier{photon_strength_multiplier_},
+		m_num_photons_per_iteration{num_photons_per_iteration_},
+		m_num_working_areas{num_working_areas_}
 	{}
 
 	void SPPMIntegrator::render(poly::structures::World const &world,
@@ -52,84 +85,137 @@ namespace poly::integrators
 		std::shared_ptr<std::vector<std::vector<Colour>>> storage =
 			std::make_shared<std::vector<std::vector<Colour>>>(
 				world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
+
+		std::vector<std::shared_ptr<std::vector<std::vector<Colour>>>>
+			storage_pool;
+
+		/*for (std::size_t iteration{0}; iteration < m_number_iterations;
+			 ++iteration) {
+			std::shared_ptr<std::vector<std::vector<Colour>>> temp =
+				std::make_shared<std::vector<std::vector<Colour>>>(
+					world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
+			temp_storage.push_back(temp);
+		}*/
+
+		for (std::size_t i{0}; i < m_num_working_areas; ++i) {
+			std::shared_ptr<std::vector<std::vector<Colour>>> temp =
+				std::make_shared<std::vector<std::vector<Colour>>>(
+					world.m_vp->vres, std::vector<Colour>(world.m_vp->hres));
+			storage_pool.push_back(temp);
+		}
+
 		std::shared_ptr<std::mutex> storage_mutex =
 			std::make_shared<std::mutex>();
+
+		std::shared_ptr<std::condition_variable> storage_cv =
+			std::make_shared<std::condition_variable>();
+
 		std::vector<std::thread> thread_list;
 		std::shared_ptr<poly::structures::World> world_ptr =
 			std::make_shared<poly::structures::World>(world);
 
-		// Create a list of slabs to pull from
-		std::vector<std::shared_ptr<poly::structures::scene_slab>> slabs =
-			poly::structures::generate_slabs(world.m_start_width,
-											 world.m_end_width,
-											 world.m_start_height,
-											 world.m_end_height,
-											 world.m_slab_size,
-											 world_ptr,
-											 storage_mutex,
-											 storage);
+		// Repeat the illumination pass for num_iterations
+		for (std::size_t iteration{0}; iteration < m_number_iterations;
+			 ++iteration) {
+			// Create a new thread for each iteration
 
-		std::size_t current_completion_state = 0;
-		std::size_t end_complete_state = slabs.size() * m_number_iterations;
-		for (auto slab : slabs) {
-			// Repeat the illumination pass for num_iterations
-			for (std::size_t iteration{}; iteration < m_number_iterations;
-				 ++iteration) {
+			thread_list.emplace_back(std::thread([=, &storage_pool]() {
+				// Fetch a storage location
+				std::shared_ptr<std::vector<std::vector<Colour>>> storage_ptr;
+				{
+					std::unique_lock lock(*storage_mutex);
+
+					while (storage_pool.empty()) {
+						storage_cv->wait(lock);
+					}
+
+					storage_ptr = storage_pool.back();
+					storage_pool.pop_back();
+				}
+
 				/* -------- FIRST PASS -------- */
 				/* ------ VISIBLE POINTS ------ */
 				std::vector<std::shared_ptr<poly::object::Object>>
-					visible_points =
-						create_visible_points(slab, camera, world_ptr);
+					visible_points = create_visible_points(
+						world.m_start_width - (world.m_vp->hres / 2),
+						world.m_start_height - (world.m_vp->vres / 2),
+						world.m_end_width - (world.m_vp->hres / 2),
+						world.m_end_height - (world.m_vp->vres / 2),
+						storage_ptr,
+						camera,
+						world_ptr);
 
 				/* -------- SECOND PASS -------- */
 				/* ------- PHOTON POINTS ------- */
-				photon_mapping(world, visible_points);
+				photon_mapping(world, visible_points, storage_mutex);
+				std::clog << "INFO: iteration complete" << std::endl;
 
-				/*
-				For each light
-					shoot photons from the light
-					for each photon shot
-					intersect against the scene
-					if hit
-						gather N nearby visible points
-						add photon to each of the N points (update using pointer
-				to location on film inside the VisiblePoint calculate next
-				photon bounce, or terminate photon)
-				*/
+				// Return the storage location to the queue
 
-				std::cout << "\r                                         ";
-				std::cout << "\rLOADING: "
-						  << ((float)(current_completion_state + 1) * 100.0f /
-							  end_complete_state)
-						  << "% complete. ";
-				std::cout << std::flush;
-				current_completion_state++;
-			}
+				{
+					std::unique_lock lock(*storage_mutex);
+					for (std::size_t i{0};
+						 i < static_cast<std::size_t>(world.m_vp->vres);
+						 ++i) {
+						for (std::size_t j{0};
+							 j < static_cast<std::size_t>(world.m_vp->hres);
+							 ++j) {
+							storage->at(i).at(j) += storage_ptr->at(i).at(j);
+							storage_ptr->at(i).at(j) = static_cast<Colour>(0);
+						}
+					}
+					storage_pool.push_back(storage_ptr);
+					storage_cv->notify_all();
+				}
+			}));
 		}
 
+		// Joining the threads
+		for (std::thread &t : thread_list) {
+			t.join();
+		}
+
+		// for (auto &iter : temp_storage) {
+		//	for (std::size_t i{0};
+		//		 i < static_cast<std::size_t>(world.m_vp->vres);
+		//		 ++i) {
+		//		for (std::size_t j{0};
+		//			 j < static_cast<std::size_t>(world.m_vp->hres);
+		//			 ++j) {
+		//			storage->at(i).at(j) += iter->at(i).at(j);
+		//		}
+		//	}
+		//}
+
+		float scale_factor = (1 / static_cast<float>(m_number_iterations));
+
 		// reformat the 2D vector into a single dimensional array
-		for (auto row : *(storage)) {
-			for (auto el : row) {
-				output.m_image.push_back(poly::utils::colour_validate(el));
+		for (auto &row : *(storage)) {
+			for (auto element : row) {
+				output.m_image.push_back(
+					poly::utils::colour_average_max(element * scale_factor));
 			}
 		}
 	}
 
 	std::vector<std::shared_ptr<poly::object::Object>>
 	SPPMIntegrator::create_visible_points(
-		std::shared_ptr<poly::structures::scene_slab> slab,
+		int start_x,
+		int start_y,
+		int end_x,
+		int end_y,
+		std::shared_ptr<std::vector<std::vector<Colour>>> storage,
 		poly::camera::PinholeCamera const &camera,
 		std::shared_ptr<poly::structures::World> world)
 	{
-		int total_number_of_pixels =
-			(slab->end_x - slab->start_x) * (slab->end_y - slab->start_y);
+		int total_number_of_pixels = (end_x - start_x) * (end_y - start_y);
 
 		// Create an array of visible points  placed in the KD tree)
 		std::vector<std::shared_ptr<poly::object::Object>> visiblePoints;
 		visiblePoints.reserve(total_number_of_pixels);
 
-		for (int i = slab->start_y; i < slab->end_y; i++) {
-			for (int j = slab->start_x; j < slab->end_x; j++) {
+		for (int i = start_y; i < end_y; i++) {
+			for (int j = start_x; j < end_x; j++) {
 				// Shoot a ray into the scene, closest intersection will become
 				// a "visible point"
 				poly::structures::SurfaceInteraction sr;
@@ -149,22 +235,22 @@ namespace poly::integrators
 
 				// Find the index in our film where we will link this ray to
 				int row_0_indexed =
-					static_cast<int>(i) + (slab->world->m_vp->vres) / 2;
+					static_cast<int>(i) + (world->m_vp->vres) / 2;
 				int col_0_indexed =
-					static_cast<int>(j) + (slab->world->m_vp->hres) / 2;
-
-				Colour average_factor =
-					Colour(1.0f, 1.0f, 1.0f) * (1.0f / m_number_iterations);
+					static_cast<int>(j) + (world->m_vp->hres) / 2;
 
 				// If we have hit an object, create a visible point at the
 				// surface interaction point
 				if (hit && sr.m_material) {
 					// Shade the point directly
-					slab->storage
-						->at(slab->world->m_vp->vres - row_0_indexed - 1)
+					storage->at(world->m_vp->vres - row_0_indexed - 1)
 						.at(col_0_indexed) +=
-						(sr.m_material->shade(sr, *(slab->world))) *
-						average_factor;
+						(sr.m_material->shade(sr, *(world)));
+
+					Colour amount{1.0f, 1.0f, 1.0f};
+
+					// Recursively bounce the photon around the scene
+					absorb_vp(sr, ray, world, amount);
 
 					// Add this visible point to our vector
 					visiblePoints.push_back(
@@ -173,9 +259,10 @@ namespace poly::integrators
 							i,
 							sr.get_hitpoint(),
 							-ray.d,
-							Colour(1.0, 1.0, 1.0),
+							amount,
 							sr.m_material,
-							slab));
+							storage,
+							world));
 				}
 			}
 		}
@@ -184,14 +271,15 @@ namespace poly::integrators
 
 	void SPPMIntegrator::photon_mapping(
 		const poly::structures::World &world,
-		std::vector<std::shared_ptr<poly::object::Object>> &vp_list)
+		std::vector<std::shared_ptr<poly::object::Object>> &vp_list,
+		std::shared_ptr<std::mutex> storage_mutex)
 	{
 		poly::structures::KDTree vp_tree(vp_list, 80, 30, 0.75f, 10, -1);
 
-		constexpr std::size_t photon_count =
-			100000; // TODO: Make configurable by end user
+		const std::size_t photon_count =
+			m_num_photons_per_iteration; // TODO: Make configurable by end user
 
-		for (auto light : world.m_lights) {
+		for (auto &light : world.m_lights) {
 			for (std::size_t i{0}; i < photon_count; ++i) {
 				float x, y, z;
 				do {
@@ -207,7 +295,7 @@ namespace poly::integrators
 				structures::SurfaceInteraction si;
 
 				bool is_hit{false};
-				for (auto obj : world.m_scene) {
+				for (auto &obj : world.m_scene) {
 					if (obj->hit(photon_ray, si)) {
 						is_hit = true;
 					}
@@ -218,7 +306,11 @@ namespace poly::integrators
 						photon_ray,
 						si.get_hitpoint(),
 						si.m_normal,
-						20 * light->ls() / static_cast<float>(photon_count),
+						m_number_iterations * m_photon_strength_multiplier *
+							light->ls() /
+							static_cast<float>(
+								photon_count), // scale the photon's strength by
+											   // 1000
 						0);
 
 					// Using this photon, absorb will determine the behaviour of
@@ -227,7 +319,8 @@ namespace poly::integrators
 								  photon,
 								  vp_tree,
 								  (std::size_t)world.m_vp->max_depth,
-								  world);
+								  world,
+								  storage_mutex);
 				}
 			}
 		}
@@ -246,14 +339,16 @@ namespace poly::integrators
 		math::Vector const &incoming_ray_,
 		Colour amount_,
 		std::shared_ptr<poly::material::Material> material_,
-		std::shared_ptr<poly::structures::scene_slab> slab) :
+		std::shared_ptr<std::vector<std::vector<Colour>>> storage_,
+		std::shared_ptr<poly::structures::World> world_) :
 		index_x{x_},
 		index_y{y_},
 		point(point_),
 		w_i(incoming_ray_),
 		amount{amount_},
 		surface_material{material_},
-		m_slab{slab}
+		m_storage{storage_},
+		m_world{world_}
 	{
 		// Ensure that our point gets its bounds set
 		assert(surface_material);
@@ -278,10 +373,12 @@ namespace poly::integrators
 		return false;
 	}
 
-	void VisiblePoint::add_contribution(poly::structures::Photon const &photon)
+	void VisiblePoint::add_contribution(
+		poly::structures::Photon const &photon,
+		[[maybe_unused]] std::shared_ptr<std::mutex> storage_mutex)
 	{
-		int row_0_indexed = (int)index_y + (m_slab->world->m_vp->vres) / 2;
-		int col_0_indexed = (int)index_x + (m_slab->world->m_vp->hres) / 2;
+		int row_0_indexed = (int)index_y + (m_world->m_vp->vres) / 2;
+		int col_0_indexed = (int)index_x + (m_world->m_vp->hres) / 2;
 
 		float dist_x = point.x - photon.point().x;
 		float dist_y = point.y - photon.point().y;
@@ -290,14 +387,139 @@ namespace poly::integrators
 		float dist_to_vp =
 			std::max(1.0f, dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);
 
-		float intensity = photon.intensity();
+		Colour intensity = amount * photon.intensity();
 
-		m_slab->storage->at(m_slab->world->m_vp->vres - row_0_indexed - 1)
-			.at(col_0_indexed) +=
-			surface_material->get_hue(photon.point()) * intensity / dist_to_vp;
+		m_storage->at(m_world->m_vp->vres - row_0_indexed - 1)
+			.at(col_0_indexed) += intensity / dist_to_vp;
 	}
 
 } // namespace poly::integrators
+
+/*
+======================================
+------ VISIBLE POINT BEHAVIOUR -------
+======================================
+*/
+
+void absorb_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount)
+{
+	// If we've reached the max depth, we stay here!
+	if (world->m_vp->max_depth <= sr.depth) {
+		return;
+	}
+
+	++sr.depth;
+
+	std::shared_ptr<poly::material::Material> current_material = sr.m_material;
+
+	// Scale the amount of light transmitted through to the film by the colour
+	// of the transmitted material
+	amount *= current_material->get_hue(sr.get_hitpoint());
+
+	if (current_material->m_type == poly::structures::InteractionType::ABSORB) {
+		// Assess whether or not this should be bounced by taking the intensity
+		// of the diffuse component of the material
+		float partition = current_material->get_diffuse_strength();
+		float rgn		= (((float)(rand() % 10000)) /
+					   10000.0f); // TODO: fix this, it is not portable
+		if (rgn > partition) {
+			// Bounce the photon off this material
+			bounce_vp(sr, ray, world, amount);
+		}
+		return;
+	}
+	else if (current_material->m_type ==
+			 poly::structures::InteractionType::REFLECT) {
+		float specular_kd	= current_material->get_specular_strength();
+		float reflective_kd = current_material->get_reflective_strength();
+		float diffuse_kd	= current_material->get_diffuse_strength();
+		float total			= reflective_kd + diffuse_kd + specular_kd;
+
+		float rgn = (((float)(rand() % 10000)) / 10000.0f) * total;
+
+		if (rgn < reflective_kd) {
+			bounce_vp(sr, ray, world, amount);
+		}
+	}
+	else if (current_material->m_type ==
+			 poly::structures::InteractionType::TRANSMIT) {
+		float transparent_kt = current_material->get_refractive_strength();
+		float specular_kd	 = current_material->get_specular_strength();
+		float reflective_kd	 = current_material->get_reflective_strength();
+		float diffuse_kd	 = current_material->get_diffuse_strength();
+		float total = transparent_kt + specular_kd + reflective_kd + diffuse_kd;
+
+		// Random number in the range 0 to total
+		float random_number = (((float)(rand() % 10000)) / 10000.0f) * total;
+
+		if (random_number < transparent_kt) {
+			transmit_vp(sr, ray, world, amount);
+		}
+		else if (random_number >= transparent_kt &&
+				 random_number < transparent_kt + reflective_kd) {
+			bounce_vp(sr, ray, world, amount);
+		}
+	}
+}
+
+void bounce_vp(poly::structures::SurfaceInteraction &sr,
+			   atlas::math::Ray<atlas::math::Vector> const &ray,
+			   std::shared_ptr<poly::structures::World> world,
+			   Colour &amount)
+{
+	math::Ray<math::Vector> reflected_ray(
+		sr.get_hitpoint(),
+		poly::utils::reflect_over_normal(-ray.d, sr.m_normal));
+
+	sr.m_tmin = std::numeric_limits<float>::max();
+
+	// Hit new objects with this ray
+	bool is_hit{false};
+	for (auto &obj : world->m_scene) {
+		if (obj->hit(reflected_ray, sr)) {
+			is_hit = true;
+		}
+	}
+
+	// If we hit an object, get its material and propogate this vp
+	if (is_hit) {
+		absorb_vp(sr, reflected_ray, world, amount);
+	}
+}
+
+void transmit_vp(poly::structures::SurfaceInteraction &sr,
+				 atlas::math::Ray<atlas::math::Vector> const &ray,
+				 std::shared_ptr<poly::structures::World> world,
+				 Colour &amount)
+{
+	std::shared_ptr<poly::material::Material> current_material = sr.m_material;
+	atlas::math::Vector wi									   = -ray.d;
+	atlas::math::Vector wt;
+
+	current_material->sample_f(sr, wi, wt);
+
+	math::Ray<math::Vector> transmitted_ray(sr.get_hitpoint(), wt);
+
+	sr.depth++;
+	sr.m_tmin = std::numeric_limits<float>::max();
+
+	// Send the transmitted ray through the scene
+	bool is_hit{false};
+	for (auto &obj : world->m_scene) {
+		if (obj->hit(transmitted_ray, sr)) {
+			is_hit = true;
+		}
+	}
+
+	// If we hit an object, possibly generate new rays, otherwise, simply change
+	// the photons intensity
+	if (is_hit) {
+		absorb_vp(sr, transmitted_ray, world, amount);
+	}
+}
 
 /*
 ===============================
@@ -323,17 +545,18 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 				   poly::structures::Photon &photon,
 				   poly::structures::KDTree &vp_tree,
 				   std::size_t max_depth,
-				   poly::structures::World const &world)
+				   poly::structures::World const &world,
+				   std::shared_ptr<std::mutex> storage_mutex)
 {
-	constexpr float max_distance_to_visible_point = 20.0f;
+	constexpr float max_distance_to_visible_point = 30.0f;
 	// If the max depth for recursion is reached, stop here
 	if (photon.depth() >= max_depth) {
 		// photons.push_back(photon);
 		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs =
 			vp_tree.get_nearest_to_point(photon.point(),
 										 max_distance_to_visible_point);
-		for (auto vp : nearby_VPs) {
-			vp->add_contribution(photon);
+		for (auto &vp : nearby_VPs) {
+			vp->add_contribution(photon, storage_mutex);
 		}
 		// Add contribution to nearby VP's
 		return;
@@ -347,15 +570,20 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 					   10000.0f); // TODO: fix this, it is not portable
 		if (rgn > partition) {
 			// Bounce the photon off this material
-			bounce_photon(
-				current_material, photon, vp_tree, max_depth, world, partition);
+			bounce_photon(current_material,
+						  photon,
+						  vp_tree,
+						  max_depth,
+						  world,
+						  partition,
+						  storage_mutex);
 		}
 		// TODO: Add contribution to nearby VP's if no bounce!!!
 		std::vector<std::shared_ptr<poly::object::Object>> nearby_VPs =
 			vp_tree.get_nearest_to_point(photon.point(),
 										 max_distance_to_visible_point);
-		for (auto vp : nearby_VPs) {
-			vp->add_contribution(photon);
+		for (auto &vp : nearby_VPs) {
+			vp->add_contribution(photon, storage_mutex);
 		}
 		return;
 	}
@@ -374,7 +602,8 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 						  vp_tree,
 						  max_depth,
 						  world,
-						  (photon.intensity() * reflective_kd / total));
+						  (photon.intensity() * reflective_kd / total),
+						  storage_mutex);
 		}
 		photon.intensity(photon.intensity() * (1 - (reflective_kd / total)));
 		// photons.push_back(photon);
@@ -396,7 +625,8 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 							vp_tree,
 							max_depth,
 							world,
-							photon.intensity() * transparent_kt / total);
+							photon.intensity() * transparent_kt / total,
+							storage_mutex);
 		}
 		else if (random_number >= transparent_kt &&
 				 random_number < transparent_kt + reflective_kd) {
@@ -406,7 +636,8 @@ void absorb_photon(std::shared_ptr<poly::material::Material> current_material,
 						  max_depth,
 						  world,
 						  (reflective_kd + reflective_kd) / total *
-							  photon.intensity());
+							  photon.intensity(),
+						  storage_mutex);
 		}
 		photon.intensity(photon.intensity() * diffuse_kd / total);
 		// Add photon contribution to VP
@@ -419,7 +650,8 @@ void bounce_photon(
 	poly::structures::KDTree &vp_tree,
 	std::size_t max_depth,
 	poly::structures::World const &world,
-	float object_colour_intensity)
+	float object_colour_intensity,
+	std::shared_ptr<std::mutex> storage_mutex)
 {
 	poly::structures::SurfaceInteraction si;
 	// Get the new ray direction from the photon
@@ -427,7 +659,7 @@ void bounce_photon(
 
 	// Hit new objects with this ray
 	bool is_hit{false};
-	for (auto obj : world.m_scene) {
+	for (auto &obj : world.m_scene) {
 		if (obj->hit(photon_ray, si)) {
 			is_hit = true;
 		}
@@ -441,8 +673,12 @@ void bounce_photon(
 			si.m_normal,
 			photon.intensity() * (1 - object_colour_intensity),
 			photon.depth() + 1);
-		absorb_photon(
-			si.m_material, reflected_photon, vp_tree, max_depth, world);
+		absorb_photon(si.m_material,
+					  reflected_photon,
+					  vp_tree,
+					  max_depth,
+					  world,
+					  storage_mutex);
 	}
 	float new_intensity = photon.intensity() * object_colour_intensity;
 	photon.intensity(new_intensity);
@@ -453,7 +689,8 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 					 poly::structures::KDTree &vp_tree,
 					 std::size_t max_depth,
 					 poly::structures::World const &world,
-					 float colour_change)
+					 float colour_change,
+					 std::shared_ptr<std::mutex> storage_mutex)
 {
 	poly::structures::SurfaceInteraction si;
 	si.m_normal			   = photon.normal();
@@ -461,13 +698,12 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 	atlas::math::Vector wt;
 
 	current_material->sample_f(si, wi, wt);
-	// m_transmitted_btdf->sample_f(si, wi, wt);
 
 	atlas::math::Ray<atlas::math::Vector> photon_ray{photon.point(), wt};
 
 	// Send the transmitted ray through the scene
 	bool is_hit{false};
-	for (auto obj : world.m_scene) {
+	for (auto &obj : world.m_scene) {
 		if (obj->hit(photon_ray, si))
 			is_hit = true;
 	}
@@ -481,8 +717,12 @@ void transmit_photon(std::shared_ptr<poly::material::Material> current_material,
 									 si.m_normal,
 									 photon.intensity() * (1 - colour_change),
 									 photon.depth() + 1);
-		absorb_photon(
-			si.m_material, reflected_photon, vp_tree, max_depth, world);
+		absorb_photon(si.m_material,
+					  reflected_photon,
+					  vp_tree,
+					  max_depth,
+					  world,
+					  storage_mutex);
 	}
 	float new_intensity = photon.intensity() * colour_change;
 	photon.intensity(new_intensity);
