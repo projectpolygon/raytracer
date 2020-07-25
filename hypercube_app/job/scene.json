@@ -107,7 +107,7 @@
     "up": [ 0.0, 1.0, 0.0 ],
     "sampler": {
       "type": "jittered",
-      "samples": 9,
+      "samples": 100,
       "sets": 1
     }
   },

@@ -3,18 +3,19 @@ Splits an image up into slabs, splits them across slaves using hypercube,
 then recombines the final image after all tasks have been completed
 """
 
+import time
+
 from os import path
 from sys import exit as sys_exit
 from threading import Thread
-from time import sleep
 from typing import List
 from json import dumps as json_dumps, loads as json_loads
 from pathlib import Path
 
 from common.task import Task
 from master.master import HyperMaster, JobInfo
-from master_app_ex.create_slabs import create_slabs
-from master_app_ex.combine import combine_slabs
+from hypercube_app.create_slabs import create_slabs
+from hypercube_app.combine import combine_slabs
 
 def byID(task : Task):
 	return task.task_id
@@ -72,6 +73,9 @@ if __name__ == "__main__":
 	# Step 7: Start Master Server
 	master_thread = Thread(name='hypermaster_server_thread', target=master.start_server)
 	master_thread.setDaemon(True)
+
+	start_time = time.time()
+
 	master_thread.start()
 
 	try:
@@ -97,6 +101,9 @@ if __name__ == "__main__":
 
 		# Step 11: Combine the images using slab recombination
 		combine_slabs(task_filenames, image_width, image_height)
+
+		end_time = time.time()
+		print("{} seconds to complete".format(end_time - start_time))
 
 		sys_exit(0)
 
